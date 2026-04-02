@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">MultiTimer Pro</string>
+    <string name="main_title">MULTITIMER PRO</string>
+    <string name="new_timer">New Timer</string>
+    <string name="add_timer">Add Timer</string>
+    <string name="timer_name">Timer Name</string>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="reset">Reset</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="hours_label">H</string>
+    <string name="minutes_label">M</string>
+    <string name="seconds_label">S</string>
+    <string name="timers_active">Active timers running...</string>
+</resources>
