@@ -4,26 +4,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.components.TimerCard
 import com.android.multitimerpro.ui.theme.*
 
@@ -59,7 +55,7 @@ fun MultiTimerHomeScreen(viewModel: TimerViewModel) {
                         )
                     }
                     Text(
-                        text = "${timers.size} ACTIVOS",
+                        text = "${timers.count { it.status == "LIVE" }} ACTIVOS",
                         style = MaterialTheme.typography.labelSmall,
                         color = OnSurfaceVariant,
                         modifier = Modifier.background(SurfaceVariant, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
@@ -67,11 +63,11 @@ fun MultiTimerHomeScreen(viewModel: TimerViewModel) {
                 }
             }
 
-            items(timers) { timer ->
+            items(timers, key = { it.id }) { timer ->
                 TimerCard(
                     timer = timer,
-                    onToggle = { viewModel.update(timer.copy(isRunning = !timer.isRunning)) },
-                    onReset = { viewModel.update(timer.copy(remainingTimeMs = timer.initialTimeMs, isRunning = false, isCompleted = false)) },
+                    onToggle = { viewModel.update(timer) },
+                    onReset = { viewModel.resetTimer(timer) },
                     onDelete = { viewModel.delete(timer) }
                 )
             }
@@ -84,11 +80,12 @@ fun MultiTimerHomeScreen(viewModel: TimerViewModel) {
                 // Temporary: Add a dummy timer to test persistence
                 viewModel.insert(
                     TimerEntity(
-                        name = "New Timer",
-                        initialTimeMs = 60000,
-                        remainingTimeMs = 60000,
-                        isRunning = false,
-                        isCompleted = false
+                        name = "Timer ${timers.size + 1}",
+                        duration = 60000,
+                        remainingTime = 60000,
+                        status = "PAUSED",
+                        color = NeonBlue.toArgb(),
+                        category = "General"
                     )
                 )
             },

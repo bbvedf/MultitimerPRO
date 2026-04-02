@@ -7,9 +7,10 @@ import androidx.room.PrimaryKey
 data class TimerEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
-    val initialTimeMs: Long,
-    val remainingTimeMs: Long,
-    val isRunning: Boolean = false,
-    val lastUpdatedMs: Long = System.currentTimeMillis(),
-    val isCompleted: Boolean = false
+    val duration: Long, // Total duration in milliseconds
+    val remainingTime: Long, // Remaining time in milliseconds
+    val status: String, // "LIVE", "READY", "PAUSED", "FINISHED"
+    val color: Int, // Color as an Int
+    val category: String,
+    val createdAt: Long = System.currentTimeMillis()
 )

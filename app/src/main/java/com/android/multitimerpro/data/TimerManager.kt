@@ -1,9 +1,6 @@
 package com.android.multitimerpro.data
 
-import android.content.Context
-import android.content.Intent
-import com.android.multitimerpro.service.TimerService
-import dagger.hilt.android.qualifiers.ApplicationContext
+import android.graphics.Color
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
@@ -11,98 +8,94 @@ import javax.inject.Singleton
 
 @Singleton
 class TimerManager @Inject constructor(
-    private val repository: TimerRepository,
-    @ApplicationContext private val context: Context
+    private val repository: TimerRepository
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var tickJob: Job? = null
+
     private val _timers = MutableStateFlow<List<TimerEntity>>(emptyList())
     val timers: StateFlow<List<TimerEntity>> = _timers.asStateFlow()
 
     init {
-        scope.launch {
-            repository.allTimers.collect {
-                _timers.value = it
+        // Observe database changes and update our local state
+        serviceScope.launch {
+            repository.allTimers.collect { dbTimers ->
+                _timers.value = dbTimers
+                checkTickingState()
             }
         }
-        
-        // Timer tick loop
-        scope.launch {
+    }
+
+    private fun checkTickingState() {
+        val hasActiveTimers = _timers.value.any { it.status == "LIVE" }
+        if (hasActiveTimers && tickJob == null) {
+            startTicking()
+        } else if (!hasActiveTimers && tickJob != null) {
+            stopTicking()
+        }
+    }
+
+    private fun startTicking() {
+        tickJob = serviceScope.launch {
             while (isActive) {
-                val currentTimers = _timers.value
-                val anyRunning = currentTimers.any { it.isRunning }
-                
-                if (anyRunning) {
-                    val updatedList = currentTimers.map { timer ->
-                        if (timer.isRunning && timer.remainingTimeMs > 0) {
-                            val now = System.currentTimeMillis()
-                            val diff = now - timer.lastUpdatedMs
-                            val newRemaining = (timer.remainingTimeMs - diff).coerceAtLeast(0)
-                            
-                            timer.copy(
-                                remainingTimeMs = newRemaining,
-                                lastUpdatedMs = now,
-                                isCompleted = newRemaining == 0L
-                            )
+                delay(100) // Tick every 100ms for smooth UI, but we'll only update DB less often
+
+                _timers.update { currentList ->
+                    currentList.map { timer ->
+                        if (timer.status == "LIVE") {
+                            val newRemaining = (timer.remainingTime - 100).coerceAtLeast(0)
+                            if (newRemaining == 0L) {
+                                // Timer finished!
+                                val finishedTimer = timer.copy(
+                                    remainingTime = 0,
+                                    status = "FINISHED"
+                                )
+                                serviceScope.launch { repository.update(finishedTimer) }
+                                finishedTimer
+                            } else {
+                                timer.copy(remainingTime = newRemaining)
+                            }
                         } else {
                             timer
                         }
                     }
-                    _timers.value = updatedList
                 }
-                delay(100) // 100ms precision for animations
             }
         }
     }
 
-    suspend fun addTimer(name: String, timeMs: Long) {
-        val now = System.currentTimeMillis()
-        repository.insert(TimerEntity(
+    private fun stopTicking() {
+        tickJob?.cancel()
+        tickJob = null
+    }
+
+    suspend fun addTimer(name: String, durationMs: Long) {
+        val newTimer = TimerEntity(
             name = name,
-            initialTimeMs = timeMs,
-            remainingTimeMs = timeMs,
-            isRunning = false,
-            lastUpdatedMs = now,
-            isCompleted = false
-        ))
+            duration = durationMs,
+            remainingTime = durationMs,
+            status = "PAUSED",
+            color = Color.RED, // Default color
+            category = "General"
+        )
+        repository.insert(newTimer)
     }
 
     suspend fun toggleTimer(timer: TimerEntity) {
-        val now = System.currentTimeMillis()
-        val newState = !timer.isRunning
-        
-        // Update persistent state
-        repository.update(timer.copy(
-            isRunning = newState,
-            lastUpdatedMs = now
-        ))
-        
-        checkServiceState()
-    }
-
-    suspend fun resetTimer(timer: TimerEntity) {
-        repository.update(timer.copy(
-            remainingTimeMs = timer.initialTimeMs,
-            isRunning = false,
-            isCompleted = false,
-            lastUpdatedMs = System.currentTimeMillis()
-        ))
-        checkServiceState()
+        val newStatus = if (timer.status == "LIVE") "PAUSED" else "LIVE"
+        val updatedTimer = timer.copy(status = newStatus)
+        repository.update(updatedTimer)
     }
 
     suspend fun deleteTimer(timer: TimerEntity) {
         repository.delete(timer)
-        checkServiceState()
     }
 
-    private fun checkServiceState() {
-        val anyRunning = _timers.value.any { it.isRunning }
-        val intent = Intent(context, TimerService::class.java).apply {
-            action = if (anyRunning) TimerService.ACTION_START else TimerService.ACTION_STOP
-        }
-        if (anyRunning) {
-            context.startForegroundService(intent)
-        } else {
-            context.stopService(intent)
-        }
+    suspend fun resetTimer(timer: TimerEntity) {
+        val resetTimer = timer.copy(
+            remainingTime = timer.duration,
+            status = "PAUSED"
+        )
+        repository.update(resetTimer)
     }
 }

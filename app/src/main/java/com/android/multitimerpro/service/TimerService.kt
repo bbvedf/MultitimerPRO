@@ -1,11 +1,12 @@
 package com.android.multitimerpro.service
 
 import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.android.multitimerpro.MainActivity
-import com.android.multitimerpro.data.TimerRepository
+import com.android.multitimerpro.data.TimerManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -14,10 +15,26 @@ import javax.inject.Inject
 class TimerService : Service() {
 
     @Inject
-    lateinit var repository: TimerRepository
+    lateinit var timerManager: TimerManager
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private var tickJob: Job? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannel()
+
+        // Update notification when timers change
+        serviceScope.launch {
+            timerManager.timers.collect { timers ->
+                val activeCount = timers.count { it.status == "LIVE" }
+                if (activeCount > 0) {
+                    updateNotification("$activeCount active timers running...")
+                } else {
+                    stopForegroundService()
+                }
+            }
+        }
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -32,31 +49,27 @@ class TimerService : Service() {
     private fun startForegroundService() {
         val notification = createNotification("Active timers running...")
         startForeground(NOTIFICATION_ID, notification)
-        
-        if (tickJob == null) {
-            startTicking()
-        }
     }
 
     private fun stopForegroundService() {
-        tickJob?.cancel()
-        tickJob = null
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
-    private fun startTicking() {
-        tickJob = serviceScope.launch {
-            while (isActive) {
-                // In a production app, we'd handle this more efficiently than 
-                // updating DB every second, but for a "step by step" it's a solid start.
-                // Better approach: Update a SharedFlow/StateFlow in memory and DB every 5s or when paused.
-                
-                // For now, let's just keep the service alive.
-                // The actual "ticking" logic will be refined in the ViewModel/Manager.
-                delay(1000)
-            }
-        }
+    private fun updateNotification(content: String) {
+        val notification = createNotification(content)
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun createNotificationChannel() {
+        val channel = NotificationChannel(
+            "TIMER_CHANNEL",
+            "Timer Notifications",
+            NotificationManager.IMPORTANCE_LOW
+        )
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(channel)
     }
 
     private fun createNotification(content: String): Notification {

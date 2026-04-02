@@ -21,7 +21,9 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "multitimer_db"
-        ).build()
+        )
+        .fallbackToDestructiveMigration()
+        .build()
     }
 
     @Provides

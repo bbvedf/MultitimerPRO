@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -14,158 +13,71 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.multitimerpro.data.TimerEntity
-import com.android.multitimerpro.ui.theme.SpaceGrotesk
-import java.util.concurrent.TimeUnit
+import com.android.multitimerpro.ui.theme.*
 
 @Composable
 fun TimerCard(
     timer: TimerEntity,
     onToggle: () -> Unit,
     onReset: () -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    onDelete: () -> Unit
 ) {
-    val neonBlue = Color(0xFF69DAFF)
-    val neonGreen = Color(0xFF2FF801)
-    val cardBackground = Color(0xFF131313)
-    
-    val accentColor = when {
-        timer.isCompleted -> neonGreen
-        timer.isRunning -> neonBlue
-        else -> Color.White.copy(alpha = 0.4f)
-    }
-
-    val hours = TimeUnit.MILLISECONDS.toHours(timer.remainingTimeMs)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(timer.remainingTimeMs) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(timer.remainingTimeMs) % 60
-    val timeStr = if (hours > 0) String.format("%02d:%02d", hours, minutes) else String.format("%02d:%02d", minutes, seconds)
-    val msStr = String.format(".%02d", (timer.remainingTimeMs % 1000) / 10)
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(cardBackground)
-            .padding(start = 12.dp)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = SurfaceDark,
+        shape = RoundedCornerShape(24.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
     ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            // Barra lateral de estado
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(3.dp)
-                    .padding(vertical = 12.dp)
-                    .clip(CircleShape)
-                    .background(if (timer.isRunning || timer.isCompleted) accentColor else Color.White.copy(alpha = 0.1f))
-            )
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(modifier = Modifier.fillMaxHeight().width(6.dp).background(Color(timer.color)))
 
-            Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = timer.name.uppercase(),
-                            color = Color(0xFFADAAAA),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (timer.isRunning) "LIVE" else if (timer.isCompleted) "READY" else "IDLE",
-                            color = accentColor,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Black
-                        )
+            Row(
+                modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = timer.name, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, letterSpacing = 1.sp)
+                        Text(text = timer.status, style = MaterialTheme.typography.labelSmall, color = Color(timer.color), fontWeight = FontWeight.Black, fontSize = 8.sp)
                     }
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = Color.White.copy(alpha = 0.1f)
-                        )
+                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        val minutes = (timer.remainingTime / 1000) / 60
+                        val seconds = (timer.remainingTime / 1000) % 60
+                        val timeStr = String.format("%02d:%02d", minutes, seconds)
+                        Text(text = timeStr, style = MaterialTheme.typography.displayMedium, color = Color.White, fontWeight = FontWeight.Bold)
                     }
+                    LinearProgressIndicator(
+                        progress = if (timer.duration > 0) timer.remainingTime.toFloat() / timer.duration.toFloat() else 0f,
+                        modifier = Modifier.width(120.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
+                        color = Color(timer.color),
+                        trackColor = SurfaceVariant
+                    )
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        Text(
-                            text = timeStr,
-                            fontFamily = SpaceGrotesk,
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(
-                            text = msStr,
-                            fontFamily = SpaceGrotesk,
-                            fontSize = 16.sp,
-                            color = Color.White.copy(alpha = 0.3f),
-                            modifier = Modifier.padding(bottom = 6.dp, start = 2.dp)
-                        )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    IconButton(onClick = onReset) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, tint = OnSurfaceVariant)
                     }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onReset, modifier = Modifier.size(32.dp)) {
+                    Surface(
+                        modifier = Modifier.size(48.dp),
+                        shape = CircleShape,
+                        color = if (timer.status == "LIVE") NeonBlue else SurfaceVariant,
+                        onClick = onToggle
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                Icons.Default.Refresh,
-                                null,
-                                tint = Color.White.copy(alpha = 0.3f),
-                                modifier = Modifier.size(18.dp)
+                                if (timer.status == "LIVE") Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                tint = if (timer.status == "LIVE") DeepBlack else NeonBlue
                             )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            onClick = onToggle,
-                            shape = CircleShape,
-                            color = if (timer.isRunning || timer.isCompleted) accentColor else Color.White.copy(alpha = 0.1f),
-                            modifier = Modifier.size(42.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    if (timer.isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    null,
-                                    tint = if (timer.isRunning || timer.isCompleted) Color.Black else Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Barra de progreso inferior
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(2.dp)
-                        .background(Color.White.copy(alpha = 0.05f))
-                ) {
-                    // Simulación de progreso
-                    val progress = if (timer.initialTimeMs > 0) timer.remainingTimeMs.toFloat() / timer.initialTimeMs.toFloat() else 0f
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(progress)
-                            .fillMaxHeight()
-                            .background(accentColor)
-                    )
                 }
             }
         }
