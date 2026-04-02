@@ -2,7 +2,6 @@ package com.android.multitimerpro.data
 
 import android.content.Context
 import android.content.Intent
-import com.android.multitimerpro.data.local.TimerEntity
 import com.android.multitimerpro.service.TimerService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
@@ -21,7 +20,7 @@ class TimerManager @Inject constructor(
 
     init {
         scope.launch {
-            repository.getAllTimers().collect {
+            repository.allTimers.collect {
                 _timers.value = it
             }
         }
@@ -56,7 +55,15 @@ class TimerManager @Inject constructor(
     }
 
     suspend fun addTimer(name: String, timeMs: Long) {
-        repository.addTimer(name, timeMs)
+        val now = System.currentTimeMillis()
+        repository.insert(TimerEntity(
+            name = name,
+            initialTimeMs = timeMs,
+            remainingTimeMs = timeMs,
+            isRunning = false,
+            lastUpdatedMs = now,
+            isCompleted = false
+        ))
     }
 
     suspend fun toggleTimer(timer: TimerEntity) {
@@ -64,7 +71,7 @@ class TimerManager @Inject constructor(
         val newState = !timer.isRunning
         
         // Update persistent state
-        repository.updateTimer(timer.copy(
+        repository.update(timer.copy(
             isRunning = newState,
             lastUpdatedMs = now
         ))
@@ -73,7 +80,7 @@ class TimerManager @Inject constructor(
     }
 
     suspend fun resetTimer(timer: TimerEntity) {
-        repository.updateTimer(timer.copy(
+        repository.update(timer.copy(
             remainingTimeMs = timer.initialTimeMs,
             isRunning = false,
             isCompleted = false,
@@ -83,7 +90,7 @@ class TimerManager @Inject constructor(
     }
 
     suspend fun deleteTimer(timer: TimerEntity) {
-        repository.deleteTimer(timer)
+        repository.delete(timer)
         checkServiceState()
     }
 

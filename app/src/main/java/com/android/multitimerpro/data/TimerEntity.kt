@@ -1,4 +1,4 @@
-package com.android.multitimerpro.data.local
+package com.android.multitimerpro.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
