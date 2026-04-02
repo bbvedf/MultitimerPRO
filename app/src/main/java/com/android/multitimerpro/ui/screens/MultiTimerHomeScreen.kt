@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,15 +22,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.multitimerpro.data.TimerEntity
+import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.ui.components.TimerCard
 import com.android.multitimerpro.ui.theme.*
 
 @Composable
-fun MultiTimerHomeScreen() {
-    val activeTimers = listOf(
-        TimerData("1", "Workout", "LIVE", "12:45", ".28", 0.66f, NeonBlue),
-        TimerData("2", "Pomodoro", "READY", "25:00", null, 1.0f, NeonGreen),
-        TimerData("3", "Meditation", "PAUSED", "08:12", null, 0.33f, NeonBlue)
-    )
+fun MultiTimerHomeScreen(viewModel: TimerViewModel) {
+    val timers by viewModel.allTimers.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize().background(DeepBlack)) {
         LazyColumn(
@@ -58,7 +59,7 @@ fun MultiTimerHomeScreen() {
                         )
                     }
                     Text(
-                        text = "3 ACTIVOS",
+                        text = "${timers.size} ACTIVOS",
                         style = MaterialTheme.typography.labelSmall,
                         color = OnSurfaceVariant,
                         modifier = Modifier.background(SurfaceVariant, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
@@ -66,15 +67,31 @@ fun MultiTimerHomeScreen() {
                 }
             }
 
-            items(activeTimers) { timer ->
-                TimerCard(timer)
+            items(timers) { timer ->
+                TimerCard(
+                    timer = timer,
+                    onToggle = { viewModel.update(timer.copy(isRunning = !timer.isRunning)) },
+                    onReset = { viewModel.update(timer.copy(remainingTimeMs = timer.initialTimeMs, isRunning = false, isCompleted = false)) },
+                    onDelete = { viewModel.delete(timer) }
+                )
             }
 
             item { Spacer(modifier = Modifier.height(100.dp)) }
         }
 
         FloatingActionButton(
-            onClick = { /* Add Timer */ },
+            onClick = {
+                // Temporary: Add a dummy timer to test persistence
+                viewModel.insert(
+                    TimerEntity(
+                        name = "New Timer",
+                        initialTimeMs = 60000,
+                        remainingTimeMs = 60000,
+                        isRunning = false,
+                        isCompleted = false
+                    )
+                )
+            },
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
             containerColor = NeonBlue,
             contentColor = DeepBlack,
@@ -84,63 +101,3 @@ fun MultiTimerHomeScreen() {
         }
     }
 }
-
-@Composable
-fun TimerCard(timer: TimerData) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = SurfaceDark,
-        shape = RoundedCornerShape(24.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
-    ) {
-        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Box(modifier = Modifier.fillMaxHeight().width(6.dp).background(timer.color))
-
-            Row(
-                modifier = Modifier.padding(20.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = timer.name, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, letterSpacing = 1.sp)
-                        Text(text = timer.status, style = MaterialTheme.typography.labelSmall, color = timer.color, fontWeight = FontWeight.Black, fontSize = 8.sp)
-                    }
-                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(text = timer.time, style = MaterialTheme.typography.displayMedium, color = Color.White, fontWeight = FontWeight.Bold)
-                        timer.millis?.let {
-                            Text(text = it, style = MaterialTheme.typography.bodyLarge, color = OnSurfaceVariant.copy(alpha = 0.5f))
-                        }
-                    }
-                    LinearProgressIndicator(
-                        progress = timer.progress,
-                        modifier = Modifier.width(120.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
-                        color = timer.color,
-                        trackColor = SurfaceVariant
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    IconButton(onClick = { /* Reset */ }) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, tint = OnSurfaceVariant)
-                    }
-                    Surface(
-                        modifier = Modifier.size(48.dp),
-                        shape = CircleShape,
-                        color = if (timer.status == "LIVE") NeonBlue else SurfaceVariant
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                if (timer.status == "LIVE") Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = if (timer.status == "LIVE") DeepBlack else NeonBlue
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-data class TimerData(val id: String, val name: String, val status: String, val time: String, val millis: String?, val progress: Float, val color: Color)

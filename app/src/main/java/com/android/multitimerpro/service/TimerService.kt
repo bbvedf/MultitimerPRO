@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.android.multitimerpro.MainActivity
-import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*

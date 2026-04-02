@@ -2,8 +2,8 @@ package com.android.multitimerpro.di
 
 import android.content.Context
 import androidx.room.Room
-import com.android.multitimerpro.data.local.AppDatabase
-import com.android.multitimerpro.data.local.TimerDao
+import com.android.multitimerpro.data.AppDatabase
+import com.android.multitimerpro.data.TimerDao
 import dagger.*
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext

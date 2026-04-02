@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.android.multitimerpro.data.local.TimerEntity
+import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.theme.SpaceGrotesk
 import java.util.concurrent.TimeUnit
 
@@ -159,7 +159,7 @@ fun TimerCard(
                         .background(Color.White.copy(alpha = 0.05f))
                 ) {
                     // Simulación de progreso
-                    val progress = if (timer.isRunning) 0.4f else 0f
+                    val progress = if (timer.initialTimeMs > 0) timer.remainingTimeMs.toFloat() / timer.initialTimeMs.toFloat() else 0f
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(progress)

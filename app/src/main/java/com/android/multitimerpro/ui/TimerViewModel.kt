@@ -2,8 +2,8 @@ package com.android.multitimerpro.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.data.TimerManager
-import com.android.multitimerpro.data.local.TimerEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
