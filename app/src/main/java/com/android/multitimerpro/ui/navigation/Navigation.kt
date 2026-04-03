@@ -9,13 +9,13 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -34,6 +34,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Presets : Screen("presets", "PRESETS", Icons.Default.LibraryBooks)
     object Stats : Screen("stats", "STATS", Icons.Default.BarChart)
     object History : Screen("history", "HISTORIAL", Icons.Default.History)
+    object Login : Screen("login", "LOGIN")
     object CreateTimer : Screen("create_timer?timerId={timerId}", "CREATE") {
         fun createRoute(timerId: Int? = null) = if (timerId != null) "create_timer?timerId=$timerId" else "create_timer"
     }
@@ -43,9 +44,23 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
 }
 
 @Composable
-fun MainNavigation() {
+fun MainNavigation(
+    onGoogleSignIn: () -> Unit  // NUEVO: callback para Google Sign-In
+) {
     val navController = rememberNavController()
     val viewModel: TimerViewModel = hiltViewModel()
+
+    // Observar estado de autenticación desde ViewModel
+    val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
+
+    // Estado local para UI (podríamos usar isAuthenticated directamente)
+    var isLoggedIn by remember { mutableStateOf(false) }
+
+    // Sincronizar con ViewModel
+    LaunchedEffect(isAuthenticated) {
+        isLoggedIn = isAuthenticated
+    }
+
     val items = listOf(
         Screen.Timers,
         Screen.Presets,
@@ -55,66 +70,78 @@ fun MainNavigation() {
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = DeepBlack.copy(alpha = 0.95f),
-                tonalElevation = 0.dp,
-                modifier = Modifier.height(80.dp)
-            ) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        icon = {
-                            screen.icon?.let {
-                                Icon(
-                                    imageVector = it,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = screen.label,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontSize = 9.sp,
-                                letterSpacing = 1.sp
-                            )
-                        },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            if (isLoggedIn) {
+                NavigationBar(
+                    containerColor = DeepBlack.copy(alpha = 0.95f),
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.height(80.dp)
+                ) {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentDestination = navBackStackEntry?.destination
+                    items.forEach { screen ->
+                        NavigationBarItem(
+                            icon = {
+                                screen.icon?.let {
+                                    Icon(
+                                        imageVector = it,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = NeonBlue,
-                            selectedTextColor = NeonBlue,
-                            unselectedIconColor = OnSurfaceVariant.copy(alpha = 0.5f),
-                            unselectedTextColor = OnSurfaceVariant.copy(alpha = 0.5f),
-                            indicatorColor = Color.Transparent
+                            },
+                            label = {
+                                Text(
+                                    text = screen.label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 9.sp,
+                                    letterSpacing = 1.sp
+                                )
+                            },
+                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = NeonBlue,
+                                selectedTextColor = NeonBlue,
+                                unselectedIconColor = OnSurfaceVariant.copy(alpha = 0.5f),
+                                unselectedTextColor = OnSurfaceVariant.copy(alpha = 0.5f),
+                                indicatorColor = Color.Transparent
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Timers.route,
+            startDestination = if (isLoggedIn) Screen.Timers.route else Screen.Login.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    onLoginSuccess = {
+                        // Aquí iría login con email cuando lo implementes
+                        isLoggedIn = true
+                    },
+                    onRegisterClick = { /* Navigate to register */ },
+                    onGoogleSignIn = onGoogleSignIn  // NUEVO: pasar callback
+                )
+            }
             composable(Screen.Timers.route) {
                 HomeScreen(
                     viewModel = viewModel,
-                    onNavigateToCreate = { timerId: Int? ->
+                    onNavigateToCreate = { timerId ->
                         navController.navigate(Screen.CreateTimer.createRoute(timerId))
                     },
-                    onNavigateToLive = { timerId: Int ->
+                    onNavigateToLive = { timerId ->
                         navController.navigate(Screen.LiveTimer.createRoute(timerId))
                     }
                 )

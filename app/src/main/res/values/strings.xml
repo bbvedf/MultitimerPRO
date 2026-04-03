@@ -13,4 +13,5 @@
     <string name="minutes_label">M</string>
     <string name="seconds_label">S</string>
     <string name="timers_active">Active timers running...</string>
+    <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.android.multitimerpro.data.AppDatabase
 import com.android.multitimerpro.data.TimerDao
+import com.android.multitimerpro.data.GoogleAuthClient
 import dagger.*
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,5 +30,11 @@ object AppModule {
     @Provides
     fun provideTimerDao(db: AppDatabase): TimerDao {
         return db.timerDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideGoogleAuthClient(@ApplicationContext context: Context): GoogleAuthClient {
+        return GoogleAuthClient(context)
     }
 }

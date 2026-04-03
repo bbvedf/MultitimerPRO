@@ -13,3 +13,13 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Firebase
+firebase-credentials.json
+.env
+keystore.jks
+*.jks
+*.keystore
+app/release/
+# Idea
+.idea/
+*.iml
