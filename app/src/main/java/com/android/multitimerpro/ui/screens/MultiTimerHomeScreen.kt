@@ -25,7 +25,8 @@ import com.android.multitimerpro.ui.theme.*
 @Composable
 fun MultiTimerHomeScreen(
     viewModel: TimerViewModel,
-    onNavigateToCreate: (Int?) -> Unit
+    onNavigateToCreate: (Int?) -> Unit,
+    onNavigateToLive: (Int) -> Unit
 ) {
     val timers by viewModel.allTimers.collectAsState()
     var timerToDelete by remember { mutableStateOf<TimerEntity?>(null) }
@@ -62,7 +63,7 @@ fun MultiTimerHomeScreen(
                             letterSpacing = 2.sp
                         )
                         Text(
-                            text = "Contadores\nActivos",
+                            text = "Instrumentos\nActivos",
                             style = MaterialTheme.typography.displaySmall,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
@@ -83,7 +84,8 @@ fun MultiTimerHomeScreen(
                     onToggle = { viewModel.update(timer) },
                     onReset = { viewModel.resetTimer(timer) },
                     onDelete = { timerToDelete = timer },
-                    onEdit = { onNavigateToCreate(timer.id) }
+                    onEdit = { onNavigateToCreate(timer.id) },
+                    onClick = { onNavigateToLive(timer.id) }
                 )
             }
 

@@ -3,6 +3,7 @@ package com.android.multitimerpro.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.theme.*
 
@@ -47,6 +51,7 @@ fun CreateTimerScreen(
     }
     var selectedColor by remember { mutableStateOf(existingTimer?.let { Color(it.color) } ?: NeonBlue) }
     var selectedCategory by remember { mutableStateOf(existingTimer?.category ?: "General") }
+    var description by remember { mutableStateOf(existingTimer?.description ?: "") }
 
     val colors = listOf(NeonBlue, NeonGreen, NeonPurple, Color(0xFFFF6B6B), Color(0xFFFFD93D), Color(0xFF6BCB77))
 
@@ -96,6 +101,31 @@ fun CreateTimerScreen(
                 unfocusedIndicatorColor = SurfaceVariant
             ),
             placeholder = { Text("Ej. Entrenamiento", color = OnSurfaceVariant.copy(alpha = 0.5f)) }
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Description Input
+        Text(
+            text = "DESCRIPCIÓN (OPCIONAL)",
+            style = MaterialTheme.typography.labelSmall,
+            color = OnSurfaceVariant,
+            fontSize = 10.sp
+        )
+        TextField(
+            value = description,
+            onValueChange = { description = it },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = NeonBlue,
+                focusedIndicatorColor = NeonBlue,
+                unfocusedIndicatorColor = SurfaceVariant
+            ),
+            placeholder = { Text("Ej. V60 Method • Light Roast", color = OnSurfaceVariant.copy(alpha = 0.5f)) }
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -171,11 +201,12 @@ fun CreateTimerScreen(
                                 duration = totalMs,
                                 remainingTime = totalMs, // Reset remaining time on edit? Or keep it? Usually reset on duration change.
                                 color = selectedColor.toArgb(),
-                                category = selectedCategory
+                                category = selectedCategory,
+                                description = description
                             )
                         )
                     } else {
-                        viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory)
+                        viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
                     }
                     onBack()
                 }
@@ -198,11 +229,28 @@ fun CreateTimerScreen(
 
 @Composable
 fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String) {
+    var textFieldValueState by remember(value) {
+        mutableStateOf(TextFieldValue(text = value))
+    }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         TextField(
-            value = value,
-            onValueChange = { if (it.all { char -> char.isDigit() }) onValueChange(it) },
-            modifier = Modifier.width(64.dp),
+            value = textFieldValueState,
+            onValueChange = {
+                if (it.text.all { char -> char.isDigit() }) {
+                    textFieldValueState = it
+                    onValueChange(it.text)
+                }
+            },
+            modifier = Modifier
+                .width(64.dp)
+                .onFocusChanged { focusState ->
+                    if (focusState.isFocused) {
+                        textFieldValueState = textFieldValueState.copy(
+                            selection = TextRange(0, textFieldValueState.text.length)
+                        )
+                    }
+                },
             textStyle = MaterialTheme.typography.displaySmall.copy(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 color = Color.White

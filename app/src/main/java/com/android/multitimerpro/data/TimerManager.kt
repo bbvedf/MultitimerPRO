@@ -70,14 +70,15 @@ class TimerManager @Inject constructor(
         tickJob = null
     }
 
-    suspend fun addTimer(name: String, durationMs: Long, color: Int, category: String) {
+    suspend fun addTimer(name: String, durationMs: Long, color: Int, category: String, description: String = "") {
         val newTimer = TimerEntity(
             name = name,
             duration = durationMs,
             remainingTime = durationMs,
             status = "PAUSED",
             color = color,
-            category = category
+            category = category,
+            description = description
         )
         repository.insert(newTimer)
     }

@@ -19,8 +19,8 @@ class TimerViewModel @Inject constructor(
 
     val allTimers: StateFlow<List<TimerEntity>> = timerManager.timers
 
-    fun insert(name: String, duration: Long, color: Int, category: String) = viewModelScope.launch {
-        timerManager.addTimer(name, duration, color, category)
+    fun insert(name: String, duration: Long, color: Int, category: String, description: String = "") = viewModelScope.launch {
+        timerManager.addTimer(name, duration, color, category, description)
     }
 
     fun update(timer: TimerEntity) = viewModelScope.launch {
@@ -48,5 +48,20 @@ class TimerViewModel @Inject constructor(
 
     fun resetTimer(timer: TimerEntity) = viewModelScope.launch {
         timerManager.resetTimer(timer)
+    }
+
+    fun addInterval(timer: TimerEntity, label: String) = viewModelScope.launch {
+        val minutes = (timer.remainingTime / 1000) / 60
+        val seconds = (timer.remainingTime / 1000) % 60
+        val timeStr = String.format("%02d:%02d", minutes, seconds)
+        val newInterval = "$timeStr - $label"
+
+        val currentIntervals = if (timer.intervalsJson == "[]") mutableListOf<String>()
+        else timer.intervalsJson.removeSurrounding("[", "]").split(", ").map { it.removeSurrounding("\"") }.toMutableList()
+
+        currentIntervals.add(newInterval)
+        val newIntervalsJson = "[\"${currentIntervals.joinToString("\", \"")}\"]"
+
+        timerManager.updateTimer(timer.copy(intervalsJson = newIntervalsJson))
     }
 }
