@@ -23,7 +23,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.android.multitimerpro.ui.TimerViewModel
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
+import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.screens.*
 import com.android.multitimerpro.ui.theme.*
 
@@ -32,7 +34,9 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Presets : Screen("presets", "PRESETS", Icons.Default.LibraryBooks)
     object Stats : Screen("stats", "STATS", Icons.Default.BarChart)
     object History : Screen("history", "HISTORIAL", Icons.Default.History)
-    object CreateTimer : Screen("create_timer", "CREATE")
+    object CreateTimer : Screen("create_timer?timerId={timerId}", "CREATE") {
+        fun createRoute(timerId: Int? = null) = if (timerId != null) "create_timer?timerId=$timerId" else "create_timer"
+    }
 }
 
 @Composable
@@ -57,9 +61,13 @@ fun MainNavigation() {
                 val currentDestination = navBackStackEntry?.destination
                 items.forEach { screen ->
                     NavigationBarItem(
-                        icon = { 
-                            screen.icon?.let {
-                                Icon(it, contentDescription = null, modifier = Modifier.size(24.dp)) 
+                        icon = {
+                            screen.icon?.let { icon ->
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
                         },
                         label = {
@@ -100,15 +108,25 @@ fun MainNavigation() {
             composable(Screen.Timers.route) {
                 MultiTimerHomeScreen(
                     viewModel = viewModel,
-                    onNavigateToCreate = { navController.navigate(Screen.CreateTimer.route) }
+                    onNavigateToCreate = { timerId ->
+                        navController.navigate(Screen.CreateTimer.createRoute(timerId))
+                    }
                 )
             }
             composable(Screen.Presets.route) { PresetsScreen() }
             composable(Screen.Stats.route) { StatsScreen() }
             composable(Screen.History.route) { HistoryScreen() }
-            composable(Screen.CreateTimer.route) {
+            composable(
+                route = Screen.CreateTimer.route,
+                arguments = listOf(navArgument("timerId") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                })
+            ) { backStackEntry ->
+                val timerId = backStackEntry.arguments?.getInt("timerId") ?: -1
                 CreateTimerScreen(
                     viewModel = viewModel,
+                    timerId = if (timerId != -1) timerId else null,
                     onBack = { navController.popBackStack() }
                 )
             }

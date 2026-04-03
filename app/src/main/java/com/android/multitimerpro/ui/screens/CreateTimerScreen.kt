@@ -17,21 +17,36 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.android.multitimerpro.ui.TimerViewModel
+import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTimerScreen(
     viewModel: TimerViewModel,
+    timerId: Int? = null,
     onBack: () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var hours by remember { mutableStateOf("00") }
-    var minutes by remember { mutableStateOf("00") }
-    var seconds by remember { mutableStateOf("00") }
-    var selectedColor by remember { mutableStateOf(NeonBlue) }
-    var selectedCategory by remember { mutableStateOf("General") }
+    val timers by viewModel.allTimers.collectAsState()
+    val existingTimer = remember(timerId, timers) {
+        timers.find { it.id == timerId }
+    }
+
+    var name by remember { mutableStateOf(existingTimer?.name ?: "") }
+    var hours by remember {
+        val h = (existingTimer?.duration ?: 0) / 3600000
+        mutableStateOf(String.format("%02d", h))
+    }
+    var minutes by remember {
+        val m = ((existingTimer?.duration ?: 0) % 3600000) / 60000
+        mutableStateOf(String.format("%02d", m))
+    }
+    var seconds by remember {
+        val s = ((existingTimer?.duration ?: 0) % 60000) / 1000
+        mutableStateOf(String.format("%02d", s))
+    }
+    var selectedColor by remember { mutableStateOf(existingTimer?.let { Color(it.color) } ?: NeonBlue) }
+    var selectedCategory by remember { mutableStateOf(existingTimer?.category ?: "General") }
 
     val colors = listOf(NeonBlue, NeonGreen, NeonPurple, Color(0xFFFF6B6B), Color(0xFFFFD93D), Color(0xFF6BCB77))
 
@@ -51,7 +66,7 @@ fun CreateTimerScreen(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "NUEVO INSTRUMENTO",
+                text = if (timerId == null) "NUEVO INSTRUMENTO" else "EDITAR INSTRUMENTO",
                 style = MaterialTheme.typography.labelSmall,
                 color = OnSurfaceVariant,
                 letterSpacing = 2.sp
@@ -141,14 +156,27 @@ fun CreateTimerScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Create Button
+        // Create/Save Button
         Button(
             onClick = {
-                val h = hours.toIntOrNull() ?: 0
-                val m = minutes.toIntOrNull() ?: 0
-                val s = seconds.toIntOrNull() ?: 0
-                if (name.isNotBlank() && (h > 0 || m > 0 || s > 0)) {
-                    viewModel.addTimer(name, h, m, s, selectedColor.toArgb(), selectedCategory)
+                val h = hours.toLongOrNull() ?: 0L
+                val m = minutes.toLongOrNull() ?: 0L
+                val s = seconds.toLongOrNull() ?: 0L
+                val totalMs = (h * 3600 + m * 60 + s) * 1000
+                if (name.isNotBlank() && totalMs > 0) {
+                    if (existingTimer != null) {
+                        viewModel.updateTimer(
+                            existingTimer.copy(
+                                name = name,
+                                duration = totalMs,
+                                remainingTime = totalMs, // Reset remaining time on edit? Or keep it? Usually reset on duration change.
+                                color = selectedColor.toArgb(),
+                                category = selectedCategory
+                            )
+                        )
+                    } else {
+                        viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory)
+                    }
                     onBack()
                 }
             },
@@ -159,7 +187,7 @@ fun CreateTimerScreen(
             shape = RoundedCornerShape(16.dp)
         ) {
             Text(
-                text = "CREAR TEMPORIZADOR",
+                text = if (timerId == null) "CREAR TEMPORIZADOR" else "GUARDAR CAMBIOS",
                 color = DeepBlack,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp

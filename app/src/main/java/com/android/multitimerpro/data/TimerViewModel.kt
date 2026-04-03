@@ -38,6 +38,10 @@ class TimerViewModel @Inject constructor(
         context.startForegroundService(intent)
     }
 
+    fun updateTimer(timer: TimerEntity) = viewModelScope.launch {
+        timerManager.updateTimer(timer)
+    }
+
     fun delete(timer: TimerEntity) = viewModelScope.launch {
         timerManager.deleteTimer(timer)
     }

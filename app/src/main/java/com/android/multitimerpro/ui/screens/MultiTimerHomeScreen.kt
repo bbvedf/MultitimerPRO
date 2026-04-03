@@ -2,32 +2,44 @@ package com.android.multitimerpro.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.android.multitimerpro.ui.TimerViewModel
+import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.components.TimerCard
+import com.android.multitimerpro.ui.components.DeleteConfirmationDialog
 import com.android.multitimerpro.ui.theme.*
 
 @Composable
 fun MultiTimerHomeScreen(
     viewModel: TimerViewModel,
-    onNavigateToCreate: () -> Unit
+    onNavigateToCreate: (Int?) -> Unit
 ) {
-    val timers by viewModel.timers.collectAsState()
+    val timers by viewModel.allTimers.collectAsState()
+    var timerToDelete by remember { mutableStateOf<TimerEntity?>(null) }
+
+    if (timerToDelete != null) {
+        DeleteConfirmationDialog(
+            timerName = timerToDelete!!.name,
+            onConfirm = {
+                viewModel.delete(timerToDelete!!)
+                timerToDelete = null
+            },
+            onDismiss = { timerToDelete = null }
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(DeepBlack)) {
         LazyColumn(
@@ -50,7 +62,7 @@ fun MultiTimerHomeScreen(
                             letterSpacing = 2.sp
                         )
                         Text(
-                            text = "Instrumentos\nActivos",
+                            text = "Contadores\nActivos",
                             style = MaterialTheme.typography.displaySmall,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
@@ -68,9 +80,10 @@ fun MultiTimerHomeScreen(
             items(timers, key = { it.id }) { timer ->
                 TimerCard(
                     timer = timer,
-                    onToggle = { viewModel.toggleTimer(timer) },
+                    onToggle = { viewModel.update(timer) },
                     onReset = { viewModel.resetTimer(timer) },
-                    onDelete = { viewModel.deleteTimer(timer) }
+                    onDelete = { timerToDelete = timer },
+                    onEdit = { onNavigateToCreate(timer.id) }
                 )
             }
 
@@ -78,7 +91,7 @@ fun MultiTimerHomeScreen(
         }
 
         FloatingActionButton(
-            onClick = onNavigateToCreate,
+            onClick = { onNavigateToCreate(null) },
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
             containerColor = NeonBlue,
             contentColor = DeepBlack,

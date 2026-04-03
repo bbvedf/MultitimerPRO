@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -25,7 +27,8 @@ fun TimerCard(
     timer: TimerEntity,
     onToggle: () -> Unit,
     onReset: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -45,6 +48,15 @@ fun TimerCard(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(text = timer.name, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, letterSpacing = 1.sp)
                         Text(text = timer.status, style = MaterialTheme.typography.labelSmall, color = Color(timer.color), fontWeight = FontWeight.Black, fontSize = 8.sp)
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.Edit, contentDescription = null, tint = OnSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                        }
+                        IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.Delete, contentDescription = null, tint = OnSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                        }
                     }
                     Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         val minutes = (timer.remainingTime / 1000) / 60

@@ -88,6 +88,10 @@ class TimerManager @Inject constructor(
         repository.update(updatedTimer)
     }
 
+    suspend fun updateTimer(timer: TimerEntity) {
+        repository.update(timer)
+    }
+
     suspend fun deleteTimer(timer: TimerEntity) {
         repository.delete(timer)
     }
