@@ -39,6 +39,7 @@ class TimerManager @Inject constructor(
         tickJob = serviceScope.launch {
             while (isActive) {
                 delay(100) // Tick every 100ms for smooth UI, but we'll only update DB less often
+                val currentTime = System.currentTimeMillis()
 
                 _timers.update { currentList ->
                     currentList.map { timer ->
@@ -69,14 +70,14 @@ class TimerManager @Inject constructor(
         tickJob = null
     }
 
-    suspend fun addTimer(name: String, durationMs: Long) {
+    suspend fun addTimer(name: String, durationMs: Long, color: Int, category: String) {
         val newTimer = TimerEntity(
             name = name,
             duration = durationMs,
             remainingTime = durationMs,
             status = "PAUSED",
-            color = Color.RED, // Default color
-            category = "General"
+            color = color,
+            category = category
         )
         repository.insert(newTimer)
     }

@@ -14,18 +14,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.ui.TimerViewModel
 import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.components.TimerCard
 import com.android.multitimerpro.ui.theme.*
 
 @Composable
-fun MultiTimerHomeScreen(viewModel: TimerViewModel) {
-    val timers by viewModel.allTimers.collectAsState()
+fun MultiTimerHomeScreen(
+    viewModel: TimerViewModel,
+    onNavigateToCreate: () -> Unit
+) {
+    val timers by viewModel.timers.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize().background(DeepBlack)) {
         LazyColumn(
@@ -66,9 +68,9 @@ fun MultiTimerHomeScreen(viewModel: TimerViewModel) {
             items(timers, key = { it.id }) { timer ->
                 TimerCard(
                     timer = timer,
-                    onToggle = { viewModel.update(timer) },
+                    onToggle = { viewModel.toggleTimer(timer) },
                     onReset = { viewModel.resetTimer(timer) },
-                    onDelete = { viewModel.delete(timer) }
+                    onDelete = { viewModel.deleteTimer(timer) }
                 )
             }
 
@@ -76,19 +78,7 @@ fun MultiTimerHomeScreen(viewModel: TimerViewModel) {
         }
 
         FloatingActionButton(
-            onClick = {
-                // Temporary: Add a dummy timer to test persistence
-                viewModel.insert(
-                    TimerEntity(
-                        name = "Timer ${timers.size + 1}",
-                        duration = 60000,
-                        remainingTime = 60000,
-                        status = "PAUSED",
-                        color = NeonBlue.toArgb(),
-                        category = "General"
-                    )
-                )
-            },
+            onClick = onNavigateToCreate,
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
             containerColor = NeonBlue,
             contentColor = DeepBlack,

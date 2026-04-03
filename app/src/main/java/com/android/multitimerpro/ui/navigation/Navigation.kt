@@ -16,26 +16,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.android.multitimerpro.ui.TimerViewModel
 import com.android.multitimerpro.ui.screens.*
 import com.android.multitimerpro.ui.theme.*
 
-sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
+sealed class Screen(val route: String, val label: String, val icon: ImageVector? = null) {
     object Timers : Screen("timers", "TIMERS", Icons.Default.Timer)
     object Presets : Screen("presets", "PRESETS", Icons.Default.LibraryBooks)
     object Stats : Screen("stats", "STATS", Icons.Default.BarChart)
     object History : Screen("history", "HISTORIAL", Icons.Default.History)
+    object CreateTimer : Screen("create_timer", "CREATE")
 }
 
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
+    val viewModel: TimerViewModel = hiltViewModel()
     val items = listOf(
         Screen.Timers,
         Screen.Presets,
@@ -54,7 +57,11 @@ fun MainNavigation() {
                 val currentDestination = navBackStackEntry?.destination
                 items.forEach { screen ->
                     NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = null, modifier = Modifier.size(24.dp)) },
+                        icon = { 
+                            screen.icon?.let {
+                                Icon(it, contentDescription = null, modifier = Modifier.size(24.dp)) 
+                            }
+                        },
                         label = {
                             Text(
                                 text = screen.label,
@@ -90,10 +97,21 @@ fun MainNavigation() {
             startDestination = Screen.Timers.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Timers.route) { HomeScreen(hiltViewModel()) }
+            composable(Screen.Timers.route) {
+                MultiTimerHomeScreen(
+                    viewModel = viewModel,
+                    onNavigateToCreate = { navController.navigate(Screen.CreateTimer.route) }
+                )
+            }
             composable(Screen.Presets.route) { PresetsScreen() }
             composable(Screen.Stats.route) { StatsScreen() }
             composable(Screen.History.route) { HistoryScreen() }
+            composable(Screen.CreateTimer.route) {
+                CreateTimerScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }

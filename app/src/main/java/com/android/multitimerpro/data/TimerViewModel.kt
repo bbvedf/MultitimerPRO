@@ -19,8 +19,8 @@ class TimerViewModel @Inject constructor(
 
     val allTimers: StateFlow<List<TimerEntity>> = timerManager.timers
 
-    fun insert(timer: TimerEntity) = viewModelScope.launch {
-        timerManager.addTimer(timer.name, timer.duration)
+    fun insert(name: String, duration: Long, color: Int, category: String) = viewModelScope.launch {
+        timerManager.addTimer(name, duration, color, category)
     }
 
     fun update(timer: TimerEntity) = viewModelScope.launch {
