@@ -1,8 +1,8 @@
 package com.android.multitimerpro.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,8 +25,8 @@ import com.android.multitimerpro.ui.theme.*
 @Composable
 fun MultiTimerHomeScreen(
     viewModel: TimerViewModel,
-    onNavigateToCreate: (Int?) -> Unit,
-    onNavigateToLive: (Int) -> Unit
+    onNavigateToCreate: (String?) -> Unit,
+    onNavigateToLive: (String) -> Unit
 ) {
     val timers by viewModel.allTimers.collectAsState()
     var timerToDelete by remember { mutableStateOf<TimerEntity?>(null) }

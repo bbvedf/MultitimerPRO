@@ -3,7 +3,8 @@ package com.android.multitimerpro.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,7 +29,7 @@ import com.android.multitimerpro.ui.theme.*
 @Composable
 fun CreateTimerScreen(
     viewModel: TimerViewModel,
-    timerId: Int? = null,
+    timerId: String? = null,
     onBack: () -> Unit
 ) {
     val timers by viewModel.allTimers.collectAsState()
@@ -50,10 +51,11 @@ fun CreateTimerScreen(
         mutableStateOf(String.format("%02d", s))
     }
     var selectedColor by remember { mutableStateOf(existingTimer?.let { Color(it.color) } ?: NeonBlue) }
-    var selectedCategory by remember { mutableStateOf(existingTimer?.category ?: "General") }
+    var selectedCategory by remember { mutableStateOf(existingTimer?.category ?: "GENERAL") }
     var description by remember { mutableStateOf(existingTimer?.description ?: "") }
 
     val colors = listOf(NeonBlue, NeonGreen, NeonPurple, Color(0xFFFF6B6B), Color(0xFFFFD93D), Color(0xFF6BCB77))
+    val categories = listOf("GENERAL", "TRABAJO", "OCIO", "OTROS")
 
     Column(
         modifier = Modifier
@@ -100,35 +102,37 @@ fun CreateTimerScreen(
                 focusedIndicatorColor = NeonBlue,
                 unfocusedIndicatorColor = SurfaceVariant
             ),
-            placeholder = { Text("Ej. Entrenamiento", color = OnSurfaceVariant.copy(alpha = 0.5f)) }
+            placeholder = { Text("Ej. Sesión Deep Work", color = OnSurfaceVariant.copy(alpha = 0.5f)) }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Description Input
+        // Category Selection
         Text(
-            text = "DESCRIPCIÓN (OPCIONAL)",
+            text = "CATEGORÍA",
             style = MaterialTheme.typography.labelSmall,
             color = OnSurfaceVariant,
             fontSize = 10.sp
         )
-        TextField(
-            value = description,
-            onValueChange = { description = it },
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                cursorColor = NeonBlue,
-                focusedIndicatorColor = NeonBlue,
-                unfocusedIndicatorColor = SurfaceVariant
-            ),
-            placeholder = { Text("Ej. V60 Method • Light Roast", color = OnSurfaceVariant.copy(alpha = 0.5f)) }
-        )
+        Spacer(modifier = Modifier.height(12.dp))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(categories) { category ->
+                FilterChip(
+                    selected = selectedCategory == category,
+                    onClick = { selectedCategory = category },
+                    label = { Text(category) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = NeonBlue,
+                        selectedLabelColor = DeepBlack,
+                        containerColor = SurfaceVariant,
+                        labelColor = Color.White
+                    ),
+                    border = null
+                )
+            }
+        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Time Picker
         Text(
@@ -149,7 +153,7 @@ fun CreateTimerScreen(
             TimeInput(value = seconds, onValueChange = { if (it.length <= 2) seconds = it }, label = "SS")
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Color Selection
         Text(
@@ -186,7 +190,7 @@ fun CreateTimerScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Create/Save Button
+        // Save Button
         Button(
             onClick = {
                 val h = hours.toLongOrNull() ?: 0L
@@ -199,7 +203,7 @@ fun CreateTimerScreen(
                             existingTimer.copy(
                                 name = name,
                                 duration = totalMs,
-                                remainingTime = totalMs, // Reset remaining time on edit? Or keep it? Usually reset on duration change.
+                                remainingTime = totalMs,
                                 color = selectedColor.toArgb(),
                                 category = selectedCategory,
                                 description = description

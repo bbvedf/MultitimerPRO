@@ -10,11 +10,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Work
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,15 +22,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.android.multitimerpro.data.HistoryEntity
+import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Composable
-fun HistoryScreen() {
-    val historyItems = listOf(
-        HistoryItem("1", "Focus Deep Work", "Productividad", "Hoy, 14:30", "02:30:00", NeonBlue, Icons.Default.Work),
-        HistoryItem("2", "HIIT Training", "Deporte", "Ayer, 08:15", "00:45:12", NeonGreen, Icons.Default.FitnessCenter),
-        HistoryItem("3", "Meditación Nocturna", "Bienestar", "12 Oct, 22:00", "00:20:00", NeonPurple, Icons.Default.SelfImprovement)
-    )
+fun HistoryScreen(viewModel: TimerViewModel = hiltViewModel()) {
+    val historyItems by viewModel.history.collectAsState()
+    val totalTimeMillis by viewModel.totalTimeSpent.collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -76,13 +79,13 @@ fun HistoryScreen() {
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = "TIEMPO TOTAL",
+                        text = "TIEMPO TOTAL ENFOCADO",
                         style = MaterialTheme.typography.labelSmall,
                         color = OnSurfaceVariant,
                         letterSpacing = 2.sp
                     )
                     Text(
-                        text = "124:45:12",
+                        text = formatMillisToTime(totalTimeMillis),
                         style = MaterialTheme.typography.displayMedium,
                         color = NeonBlue,
                         fontWeight = FontWeight.Bold,
@@ -102,25 +105,15 @@ fun HistoryScreen() {
             )
         }
 
-        items(historyItems) { item ->
-            HistoryEntryCard(item)
-        }
-
-        item {
-            Button(
-                onClick = { /* Load More */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 32.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SurfaceHigh),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text(
-                    text = "CARGAR MÁS SESIONES",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
-                    letterSpacing = 2.sp
-                )
+        if (historyItems.isEmpty()) {
+            item {
+                Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
+                    Text("No hay sesiones registradas", color = OnSurfaceVariant)
+                }
+            }
+        } else {
+            items(historyItems) { item ->
+                HistoryEntryCard(item, onDelete = { viewModel.deleteHistoryEntry(item) })
             }
         }
 
@@ -129,7 +122,10 @@ fun HistoryScreen() {
 }
 
 @Composable
-fun HistoryEntryCard(item: HistoryItem) {
+fun HistoryEntryCard(item: HistoryEntity, onDelete: () -> Unit) {
+    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
+    val dateStr = dateFormat.format(Date(item.completedAt))
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = SurfaceDark,
@@ -151,16 +147,21 @@ fun HistoryEntryCard(item: HistoryItem) {
                             .border(1.dp, Color.White.copy(alpha = 0.05f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(item.icon, contentDescription = null, tint = item.color, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Default.Timer, contentDescription = null, tint = Color(item.color), modifier = Modifier.size(24.dp))
                     }
                     Column {
-                        Text(text = item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text(text = "${item.category} • ${item.date}", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+                        Text(text = item.timerName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(text = "${item.category} • $dateStr", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
                     }
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(text = item.duration, style = MaterialTheme.typography.headlineSmall, color = item.color, fontWeight = FontWeight.Bold)
-                    Text(text = "DURACIÓN TOTAL", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, fontSize = 8.sp)
+                    Text(
+                        text = formatMillisToTimeShort(item.durationMillis),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color(item.color),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(text = "DURACIÓN", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, fontSize = 8.sp)
                 }
             }
 
@@ -168,13 +169,13 @@ fun HistoryEntryCard(item: HistoryItem) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(
-                    onClick = { /* Analytics */ },
+                    onClick = { /* Ver detalles/analiticas de esta sesión específica */ },
                     modifier = Modifier.background(SurfaceHigh, RoundedCornerShape(12.dp))
                 ) {
                     Icon(Icons.Default.Analytics, contentDescription = null, tint = NeonBlue)
                 }
                 IconButton(
-                    onClick = { /* Delete */ },
+                    onClick = onDelete,
                     modifier = Modifier.background(SurfaceHigh, RoundedCornerShape(12.dp))
                 ) {
                     Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red.copy(alpha = 0.6f))
@@ -184,12 +185,19 @@ fun HistoryEntryCard(item: HistoryItem) {
     }
 }
 
-data class HistoryItem(
-    val id: String,
-    val title: String,
-    val category: String,
-    val date: String,
-    val duration: String,
-    val color: Color,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
-)
+private fun formatMillisToTime(millis: Long): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(millis)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+}
+
+private fun formatMillisToTimeShort(millis: Long): String {
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+    return if (minutes > 0) {
+        String.format("%02d:%02d", minutes, seconds)
+    } else {
+        String.format("00:%02d", seconds)
+    }
+}

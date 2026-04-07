@@ -21,5 +21,5 @@ interface TimerDao {
     suspend fun deleteTimer(timer: TimerEntity)
 
     @Query("SELECT * FROM timers WHERE id = :id")
-    suspend fun getTimerById(id: Int): TimerEntity?
+    suspend fun getTimerById(id: String): TimerEntity?
 }

@@ -9,6 +9,8 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,17 +20,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.theme.*
+import java.util.concurrent.TimeUnit
 
 @Composable
-fun StatsScreen() {
-    val categories = listOf(
-        CategoryStat("PROYECTOS", 0.4f, false),
-        CategoryStat("FOCUS", 0.7f, true),
-        CategoryStat("REPOSO", 0.2f, false),
-        CategoryStat("FITNESS", 0.8f, false),
-        CategoryStat("HOGAR", 0.5f, false)
-    )
+fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
+    val statsByCategory by viewModel.statsByCategory.collectAsState()
+    val totalTimeMillis by viewModel.totalTimeSpent.collectAsState()
+    val history by viewModel.history.collectAsState()
+
+    // Transform Map to List for the chart
+    val categories = statsByCategory.map { (name, time) ->
+        val percentage = if (totalTimeMillis > 0) time.toFloat() / totalTimeMillis else 0f
+        CategoryStat(name, percentage, false)
+    }.sortedByDescending { it.percentage }
 
     LazyColumn(
         modifier = Modifier
@@ -50,13 +57,13 @@ fun StatsScreen() {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Estadísticas\nSemanales.",
+                    text = "Estadísticas\nGlobales.",
                     style = MaterialTheme.typography.displayLarge,
                     color = Color.White,
                     lineHeight = 56.sp
                 )
                 Text(
-                    text = "Análisis profundo de su rendimiento temporal a través de capas cinéticas de datos.",
+                    text = "Análisis profundo de su rendimiento temporal acumulado en la nube.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = OnSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp)
@@ -64,7 +71,7 @@ fun StatsScreen() {
             }
         }
 
-        // Main Chart Card
+        // Summary Card
         item {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -72,38 +79,61 @@ fun StatsScreen() {
                 shape = RoundedCornerShape(24.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
             ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Row(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("TIEMPO TOTAL", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+                        Text(
+                            text = formatMillisToHours(totalTimeMillis),
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = NeonBlue,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("SESIONES", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+                        Text(
+                            text = "${history.size}",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+
+        // Main Chart Card
+        if (categories.isNotEmpty()) {
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = SurfaceDark,
+                    shape = RoundedCornerShape(24.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         Text(
                             text = "Uso por Categoría",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            text = "LUN — DOM",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = OnSurfaceVariant,
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        Row(
                             modifier = Modifier
-                                .background(SurfaceVariant, RoundedCornerShape(100.dp))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        categories.forEach { stat ->
-                            CategoryBar(stat, modifier = Modifier.weight(1f))
+                                .fillMaxWidth()
+                                .height(160.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            categories.take(5).forEach { stat ->
+                                CategoryBar(stat, modifier = Modifier.weight(1f))
+                            }
                         }
                     }
                 }
@@ -114,16 +144,11 @@ fun StatsScreen() {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 InsightCard(
-                    title = "INSIGHTS DE EFICIENCIA",
-                    description = "Has aumentado tu tiempo de Deep Work en un 12% respecto a la semana pasada.",
+                    title = "OPTIMIZACIÓN",
+                    description = if (categories.isEmpty()) "Comienza a completar timers para generar analíticas." 
+                                 else "Tu categoría principal es ${categories.first().name}.",
                     icon = Icons.Default.TrendingUp,
                     accentColor = NeonGreen
-                )
-                InsightCard(
-                    title = "SUGERENCIA PRO",
-                    description = "Tu pico de productividad ocurre a las 10:30 AM. Considera programar tus timers de \"Proyectos\" en esa franja.",
-                    icon = Icons.Default.Bolt,
-                    accentColor = NeonBlue
                 )
             }
         }
@@ -142,25 +167,19 @@ fun CategoryBar(stat: CategoryStat, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(stat.percentage)
+                .fillMaxHeight(stat.percentage.coerceIn(0.05f, 1f))
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                 .background(
-                    if (stat.isActive) {
-                        Brush.verticalGradient(
-                            listOf(NeonBlue, NeonBlue.copy(alpha = 0.2f))
-                        )
-                    } else {
-                        Brush.verticalGradient(
-                            listOf(SurfaceVariant, SurfaceVariant)
-                        )
-                    }
+                    Brush.verticalGradient(
+                        listOf(NeonBlue, NeonBlue.copy(alpha = 0.2f))
+                    )
                 )
         )
         Text(
-            text = stat.name,
+            text = stat.name.take(6),
             style = MaterialTheme.typography.labelSmall,
             fontSize = 8.sp,
-            color = if (stat.isActive) NeonBlue else OnSurfaceVariant,
+            color = OnSurfaceVariant,
             fontWeight = FontWeight.Black
         )
     }
@@ -206,6 +225,12 @@ private fun Modifier.drawBehindLeftBorder(color: Color) = this.drawBehind {
         end = androidx.compose.ui.geometry.Offset(0f, size.height),
         strokeWidth = 4.dp.toPx()
     )
+}
+
+private fun formatMillisToHours(millis: Long): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(millis)
+    val minutes = (TimeUnit.MILLISECONDS.toMinutes(millis) % 60)
+    return "${hours}h ${minutes}m"
 }
 
 data class CategoryStat(val name: String, val percentage: Float, val isActive: Boolean)

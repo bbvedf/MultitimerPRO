@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.android.multitimerpro.data.AppDatabase
 import com.android.multitimerpro.data.TimerDao
+import com.android.multitimerpro.data.HistoryDao
 import com.android.multitimerpro.data.GoogleAuthClient
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -27,7 +28,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirestore(): FirebaseFirestore {
-        return Firebase.firestore
+        // Usamos el ID específico de tu base de datos que aparece en la captura
+        return Firebase.firestore("ai-studio-ccfd95a4-1b33-4d90-8119-cff5243e3752")
     }
 
     @Provides
@@ -45,5 +47,10 @@ object AppModule {
     @Provides
     fun provideTimerDao(db: AppDatabase): TimerDao {
         return db.timerDao()
+    }
+
+    @Provides
+    fun provideHistoryDao(db: AppDatabase): HistoryDao {
+        return db.historyDao()
     }
 }

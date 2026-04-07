@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -38,10 +39,10 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Settings : Screen("settings", "AJUSTES", Icons.Default.Settings)
     object Login : Screen("login", "LOGIN")
     object CreateTimer : Screen("create_timer?timerId={timerId}", "CREATE") {
-        fun createRoute(timerId: Int? = null) = if (timerId != null) "create_timer?timerId=$timerId" else "create_timer"
+        fun createRoute(timerId: String? = null) = if (timerId != null) "create_timer?timerId=$timerId" else "create_timer"
     }
     object LiveTimer : Screen("live_timer/{timerId}", "LIVE") {
-        fun createRoute(timerId: Int) = "live_timer/$timerId"
+        fun createRoute(timerId: String) = "live_timer/$timerId"
     }
 }
 
@@ -50,14 +51,8 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
     val navController = rememberNavController()
     val viewModel: TimerViewModel = hiltViewModel()
     val isAuthenticated by viewModel.isAuthenticated.collectAsState()
-
-    LaunchedEffect(isAuthenticated) {
-        if (isAuthenticated) {
-            navController.navigate(Screen.Timers.route) {
-                popUpTo(Screen.Login.route) { inclusive = true }
-            }
-        }
-    }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
 
     val items = listOf(
         Screen.Timers,
@@ -69,20 +64,18 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
 
     Scaffold(
         bottomBar = {
-            if (isAuthenticated) {
+            if (isAuthenticated && items.any { it.route == currentDestination?.route || currentDestination?.route?.contains(it.route.split("?")[0]) == true }) {
                 NavigationBar(
-                    containerColor = DeepBlack.copy(alpha = 0.95f),
-                    tonalElevation = 0.dp,
-                    modifier = Modifier.height(80.dp)
+                    containerColor = DeepBlack,
+                    modifier = Modifier.height(80.dp),
+                    tonalElevation = 0.dp
                 ) {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination
                     items.forEach { screen ->
                         NavigationBarItem(
                             icon = {
                                 screen.icon?.let {
                                     Icon(
-                                        imageVector = it,
+                                        it,
                                         contentDescription = null,
                                         modifier = Modifier.size(24.dp)
                                     )
@@ -90,9 +83,9 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
                             },
                             label = {
                                 Text(
-                                    text = screen.label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontSize = 9.sp,
+                                    screen.label,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp
                                 )
                             },
@@ -147,8 +140,8 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
                 )
             }
             composable(Screen.Presets.route) { PresetsScreen() }
-            composable(Screen.Stats.route) { StatsScreen() }
-            composable(Screen.History.route) { HistoryScreen() }
+            composable(Screen.Stats.route) { StatsScreen(viewModel) }
+            composable(Screen.History.route) { HistoryScreen(viewModel) }
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     viewModel = viewModel,
@@ -157,9 +150,9 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
             }
             composable(
                 route = Screen.LiveTimer.route,
-                arguments = listOf(navArgument("timerId") { type = NavType.IntType })
+                arguments = listOf(navArgument("timerId") { type = NavType.StringType })
             ) { backStackEntry ->
-                val timerId = backStackEntry.arguments?.getInt("timerId") ?: -1
+                val timerId = backStackEntry.arguments?.getString("timerId") ?: ""
                 LiveTimerScreen(
                     timerId = timerId,
                     viewModel = viewModel,
@@ -169,14 +162,15 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
             composable(
                 route = Screen.CreateTimer.route,
                 arguments = listOf(navArgument("timerId") {
-                    type = NavType.IntType
-                    defaultValue = -1
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
                 })
             ) { backStackEntry ->
-                val timerId = backStackEntry.arguments?.getInt("timerId") ?: -1
+                val timerId = backStackEntry.arguments?.getString("timerId")
                 CreateTimerScreen(
                     viewModel = viewModel,
-                    timerId = if (timerId != -1) timerId else null,
+                    timerId = timerId,
                     onBack = { navController.popBackStack() }
                 )
             }

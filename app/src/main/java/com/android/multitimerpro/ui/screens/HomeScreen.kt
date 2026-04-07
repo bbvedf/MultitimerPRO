@@ -6,8 +6,8 @@ import com.android.multitimerpro.data.TimerViewModel
 @Composable
 fun HomeScreen(
     viewModel: TimerViewModel,
-    onNavigateToCreate: (Int?) -> Unit,
-    onNavigateToLive: (Int) -> Unit
+    onNavigateToCreate: (String?) -> Unit,
+    onNavigateToLive: (String) -> Unit
 ) {
     MultiTimerHomeScreen(viewModel, onNavigateToCreate, onNavigateToLive)
 }

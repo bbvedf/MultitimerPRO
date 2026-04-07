@@ -34,7 +34,7 @@ import java.util.*
 
 @Composable
 fun LiveTimerScreen(
-    timerId: Int,
+    timerId: String,
     viewModel: TimerViewModel,
     onBack: () -> Unit
 ) {
