@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.data.GoogleAuthClient
 import com.android.multitimerpro.ui.screens.*
 import com.android.multitimerpro.ui.theme.*
 
@@ -34,6 +35,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Presets : Screen("presets", "PRESETS", Icons.Default.LibraryBooks)
     object Stats : Screen("stats", "STATS", Icons.Default.BarChart)
     object History : Screen("history", "HISTORIAL", Icons.Default.History)
+    object Settings : Screen("settings", "AJUSTES", Icons.Default.Settings)
     object Login : Screen("login", "LOGIN")
     object CreateTimer : Screen("create_timer?timerId={timerId}", "CREATE") {
         fun createRoute(timerId: Int? = null) = if (timerId != null) "create_timer?timerId=$timerId" else "create_timer"
@@ -44,33 +46,30 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
 }
 
 @Composable
-fun MainNavigation(
-    onGoogleSignIn: () -> Unit  // NUEVO: callback para Google Sign-In
-) {
+fun MainNavigation(onGoogleSignIn: () -> Unit) {
     val navController = rememberNavController()
     val viewModel: TimerViewModel = hiltViewModel()
+    val isAuthenticated by viewModel.isAuthenticated.collectAsState()
 
-    // Observar estado de autenticación desde ViewModel
-    val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
-
-    // Estado local para UI (podríamos usar isAuthenticated directamente)
-    var isLoggedIn by remember { mutableStateOf(false) }
-
-    // Sincronizar con ViewModel
     LaunchedEffect(isAuthenticated) {
-        isLoggedIn = isAuthenticated
+        if (isAuthenticated) {
+            navController.navigate(Screen.Timers.route) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+        }
     }
 
     val items = listOf(
         Screen.Timers,
         Screen.Presets,
         Screen.Stats,
-        Screen.History
+        Screen.History,
+        Screen.Settings
     )
 
     Scaffold(
         bottomBar = {
-            if (isLoggedIn) {
+            if (isAuthenticated) {
                 NavigationBar(
                     containerColor = DeepBlack.copy(alpha = 0.95f),
                     tonalElevation = 0.dp,
@@ -122,17 +121,18 @@ fun MainNavigation(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = if (isLoggedIn) Screen.Timers.route else Screen.Login.route,
+            startDestination = if (isAuthenticated) Screen.Timers.route else Screen.Login.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
-                    onLoginSuccess = {
-                        // Aquí iría login con email cuando lo implementes
-                        isLoggedIn = true
+                    onGoogleLogin = onGoogleSignIn,
+                    onEmailLogin = { email, password ->
+                        viewModel.signInWithEmail(email, password)
                     },
-                    onRegisterClick = { /* Navigate to register */ },
-                    onGoogleSignIn = onGoogleSignIn  // NUEVO: pasar callback
+                    onRegisterClick = {
+                        viewModel.signUpWithEmail("test@test.com", "123456")
+                    }
                 )
             }
             composable(Screen.Timers.route) {
@@ -149,6 +149,12 @@ fun MainNavigation(
             composable(Screen.Presets.route) { PresetsScreen() }
             composable(Screen.Stats.route) { StatsScreen() }
             composable(Screen.History.route) { HistoryScreen() }
+            composable(Screen.Settings.route) {
+                SettingsScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
             composable(
                 route = Screen.LiveTimer.route,
                 arguments = listOf(navArgument("timerId") { type = NavType.IntType })

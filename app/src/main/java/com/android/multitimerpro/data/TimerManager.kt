@@ -1,17 +1,22 @@
 package com.android.multitimerpro.data
 
 import android.graphics.Color
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class TimerManager @Inject constructor(
-    private val repository: TimerRepository
+    private val repository: TimerRepository,
+    private val firestore: FirebaseFirestore
 ) {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var tickJob: Job? = null
+    private val auth = FirebaseAuth.getInstance()
 
     private val _timers = MutableStateFlow<List<TimerEntity>>(emptyList())
     val timers: StateFlow<List<TimerEntity>> = _timers.asStateFlow()
@@ -22,6 +27,42 @@ class TimerManager @Inject constructor(
             repository.allTimers.collect { dbTimers ->
                 _timers.value = dbTimers
                 checkTickingState()
+            }
+        }
+
+        // Initial sync if user is logged in
+        auth.currentUser?.let { user ->
+            syncFromCloud(user.uid)
+        }
+    }
+
+    fun syncFromCloud(uid: String) {
+        serviceScope.launch {
+            try {
+                val snapshot = firestore.collection("users")
+                    .document(uid)
+                    .collection("timers")
+                    .get()
+                    .await()
+
+                snapshot.documents.forEach { doc ->
+                    val timer = TimerEntity(
+                        id = doc.getString("id")?.toInt() ?: 0,
+                        name = doc.getString("name") ?: "",
+                        description = doc.getString("description") ?: "",
+                        duration = doc.getLong("duration") ?: 0L,
+                        remainingTime = doc.getLong("remainingTime") ?: 0L,
+                        status = doc.getString("status") ?: "PAUSED",
+                        color = doc.getLong("color")?.toInt() ?: Color.BLUE,
+                        category = doc.getString("category") ?: "General",
+                        intervalsJson = doc.getString("intervalsJson") ?: "[]",
+                        uid = doc.getString("uid") ?: uid,
+                        createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                    )
+                    repository.insert(timer)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -78,7 +119,8 @@ class TimerManager @Inject constructor(
             status = "PAUSED",
             color = color,
             category = category,
-            description = description
+            description = description,
+            uid = auth.currentUser?.uid ?: ""
         )
         repository.insert(newTimer)
     }

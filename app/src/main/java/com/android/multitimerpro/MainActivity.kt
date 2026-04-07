@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
     private val googleSignInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        viewModel.handleGoogleSignInResult(result.data, googleAuthClient)
+        viewModel.handleGoogleSignInResult(result.data)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

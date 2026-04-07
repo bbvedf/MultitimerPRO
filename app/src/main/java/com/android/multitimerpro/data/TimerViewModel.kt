@@ -2,6 +2,7 @@ package com.android.multitimerpro.data
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.multitimerpro.service.TimerService
@@ -12,17 +13,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class TimerViewModel @Inject constructor(
     private val timerManager: TimerManager,
+    private val googleAuthClient: GoogleAuthClient,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
+    private val TAG = "TimerViewModel"
     val allTimers: StateFlow<List<TimerEntity>> = timerManager.timers
 
-    // Estados de autenticación
+    // Auth states
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
 
@@ -32,42 +36,75 @@ class TimerViewModel @Inject constructor(
     private val auth = FirebaseAuth.getInstance()
 
     init {
-        // Verificar si ya hay usuario logueado
         _isAuthenticated.value = auth.currentUser != null
+        Log.d(TAG, "Auth init: isAuthenticated = ${_isAuthenticated.value}")
     }
 
-    fun handleGoogleSignInResult(data: Intent?, googleAuthClient: GoogleAuthClient) {
+    fun handleGoogleSignInResult(data: Intent?) {
         viewModelScope.launch {
+            Log.d(TAG, "Handling Google Sign In result...")
             val result = googleAuthClient.handleSignInResult(data)
             result.onSuccess { success ->
                 if (success) {
+                    Log.d(TAG, "Google Sign In Success!")
                     _isAuthenticated.value = true
                     _authError.value = null
-                    // Aquí cargarás timers desde Firestore después
-                    // loadTimersFromCloud()
+                    timerManager.syncFromCloud(auth.currentUser?.uid ?: "")
                 }
             }.onFailure { exception ->
-                _authError.value = exception.message
+                Log.e(TAG, "Google Sign In Failed", exception)
+                _authError.value = "Google Error: ${exception.localizedMessage}"
                 _isAuthenticated.value = false
             }
         }
     }
 
-    fun signOut(googleAuthClient: GoogleAuthClient) {
+    fun signInWithEmail(email: String, password: String) {
         viewModelScope.launch {
-            googleAuthClient.signOut()
-            _isAuthenticated.value = false
+            try {
+                Log.d(TAG, "Attempting Email Login for $email")
+                auth.signInWithEmailAndPassword(email, password).await()
+                Log.d(TAG, "Email Login Success!")
+                _isAuthenticated.value = true
+                _authError.value = null
+                timerManager.syncFromCloud(auth.currentUser?.uid ?: "")
+            } catch (e: Exception) {
+                Log.e(TAG, "Email Login Failed", e)
+                _authError.value = e.localizedMessage
+                _isAuthenticated.value = false
+            }
         }
     }
 
-    // Funciones existentes
+    fun signUpWithEmail(email: String, password: String) {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "Attempting Registration for $email")
+                auth.createUserWithEmailAndPassword(email, password).await()
+                Log.d(TAG, "Registration Success!")
+                _isAuthenticated.value = true
+                _authError.value = null
+            } catch (e: Exception) {
+                Log.e(TAG, "Registration Failed", e)
+                _authError.value = e.localizedMessage
+            }
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            googleAuthClient.signOut()
+            _isAuthenticated.value = false
+            Log.d(TAG, "User signed out")
+        }
+    }
+
     fun insert(name: String, duration: Long, color: Int, category: String, description: String = "") = viewModelScope.launch {
         timerManager.addTimer(name, duration, color, category, description)
     }
 
     fun update(timer: TimerEntity) = viewModelScope.launch {
         timerManager.toggleTimer(timer)
-        // If we are starting a timer, ensure the service is running
         if (timer.status != "LIVE") {
             startService()
         }

@@ -2,7 +2,6 @@ package com.android.multitimerpro.data
 
 import android.content.Context
 import android.content.Intent
-import com.android.multitimerpro.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -19,7 +18,8 @@ class GoogleAuthClient @Inject constructor(
 
     private val googleSignInClient by lazy {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(context.getString(R.string.default_web_client_id))
+            // Usando el Web Client ID real extraído de google-services.json
+            .requestIdToken("345643159897-jq82kf0jb4f5j3jo0h9n47bor6tkr4fh.apps.googleusercontent.com")
             .requestEmail()
             .build()
         GoogleSignIn.getClient(context, gso)
@@ -30,7 +30,8 @@ class GoogleAuthClient @Inject constructor(
     suspend fun handleSignInResult(data: Intent?): Result<Boolean> {
         return try {
             val account = GoogleSignIn.getSignedInAccountFromIntent(data).await()
-            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+            val idToken = account.idToken ?: throw Exception("Google ID Token is null")
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
             auth.signInWithCredential(credential).await()
             Result.success(true)
         } catch (e: Exception) {
@@ -40,8 +41,8 @@ class GoogleAuthClient @Inject constructor(
 
     fun getCurrentUser() = auth.currentUser
 
-    fun signOut() {
+    suspend fun signOut() {
         auth.signOut()
-        googleSignInClient.signOut()
+        googleSignInClient.signOut().await()
     }
 }

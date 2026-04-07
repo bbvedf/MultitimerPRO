@@ -14,5 +14,6 @@ data class TimerEntity(
     val category: String,
     val description: String = "",
     val intervalsJson: String = "[]", // Store intervals as JSON string
+    val uid: String = "", // Firebase Auth UID
     val createdAt: Long = System.currentTimeMillis()
 )
