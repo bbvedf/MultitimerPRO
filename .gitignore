@@ -23,3 +23,6 @@ app/release/
 # Idea
 .idea/
 *.iml
+#design
+stitch/
+

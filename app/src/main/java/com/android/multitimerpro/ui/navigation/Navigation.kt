@@ -45,6 +45,9 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object LiveTimer : Screen("live_timer/{timerId}", "LIVE") {
         fun createRoute(timerId: String) = "live_timer/$timerId"
     }
+    object HistoryDetail : Screen("history_detail/{historyId}", "DETAIL") {
+        fun createRoute(historyId: String) = "history_detail/$historyId"
+    }
 }
 
 @Composable
@@ -151,7 +154,14 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
             }
             composable(Screen.Presets.route) { PresetsScreen() }
             composable(Screen.Stats.route) { StatsScreen(viewModel) }
-            composable(Screen.History.route) { HistoryScreen(viewModel) }
+            composable(Screen.History.route) { 
+                HistoryScreen(
+                    viewModel = viewModel,
+                    onNavigateToDetail = { historyId ->
+                        navController.navigate(Screen.HistoryDetail.createRoute(historyId))
+                    }
+                ) 
+            }
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     viewModel = viewModel,
@@ -181,6 +191,17 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
                 CreateTimerScreen(
                     viewModel = viewModel,
                     timerId = timerId,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = Screen.HistoryDetail.route,
+                arguments = listOf(navArgument("historyId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val historyId = backStackEntry.arguments?.getString("historyId") ?: ""
+                HistoryDetailScreen(
+                    historyId = historyId,
+                    viewModel = viewModel,
                     onBack = { navController.popBackStack() }
                 )
             }

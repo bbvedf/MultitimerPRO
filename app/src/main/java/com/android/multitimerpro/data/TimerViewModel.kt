@@ -104,14 +104,16 @@ class TimerViewModel @Inject constructor(
                 timerManager.syncHistoryFromCloud(uid)
             } catch (e: Exception) {
                 Log.e(TAG, "Error crítico en syncUserAndData: ${e.message}")
-                if (e.message?.contains("PERMISSION_DENIED") == true) {
-                    Log.e(TAG, "TIP: Revisa que el email '$email' cumpla el regex de las reglas.")
-                }
             }
         }
     }
 
-    // Resto del código se mantiene igual...
+    suspend fun updateHistory(history: HistoryEntity) {
+        historyRepository.update(history)
+        showMessage("Cambios guardados")
+    }
+
+    // Resto del código...
     val totalTimeSpent: StateFlow<Long> = history.map { list ->
         list.sumOf { it.durationMillis }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)

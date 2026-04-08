@@ -21,6 +21,8 @@ class HistoryRepository @Inject constructor(
 
     fun getHistoryByUid(uid: String): Flow<List<HistoryEntity>> = historyDao.getHistoryByUid(uid)
 
+    suspend fun getHistoryById(id: String): HistoryEntity? = historyDao.getHistoryById(id)
+
     suspend fun insert(history: HistoryEntity) {
         try {
             Log.d(TAG, "[HISTORIAL] Insertando local: ${history.timerName}")
@@ -33,6 +35,19 @@ class HistoryRepository @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "[HISTORIAL] Error en insert", e)
+        }
+    }
+
+    suspend fun update(history: HistoryEntity) {
+        try {
+            historyDao.update(history)
+            if (history.uid.isNotEmpty()) {
+                repositoryScope.launch {
+                    syncToCloud(history)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "[HISTORIAL] Error en update", e)
         }
     }
 
@@ -56,14 +71,12 @@ class HistoryRepository @Inject constructor(
 
     private suspend fun syncToCloud(history: HistoryEntity) {
         try {
-            // Mapeo EXACTO para cumplir con las Security Rules:
-            // Requiere: ['timerName', 'startTime', 'endTime', 'duration', 'uid']
             val historyMap = mapOf(
                 "id" to history.id,
                 "timerName" to history.timerName,
                 "startTime" to (history.completedAt - history.durationMillis),
                 "endTime" to history.completedAt,
-                "duration" to history.durationMillis, // La regla pide 'duration', no 'durationMillis'
+                "duration" to history.durationMillis,
                 "uid" to history.uid,
                 "category" to history.category,
                 "color" to history.color,
@@ -71,7 +84,6 @@ class HistoryRepository @Inject constructor(
                 "intervalsJson" to "[]"
             )
 
-            Log.d(TAG, "[CLOUD] Intentando escribir historial: ${history.timerName}")
             firestore.collection("users")
                 .document(history.uid)
                 .collection("history")

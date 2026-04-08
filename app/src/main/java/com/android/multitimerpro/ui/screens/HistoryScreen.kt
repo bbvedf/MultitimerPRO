@@ -12,9 +12,7 @@ import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,15 +23,31 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.android.multitimerpro.data.HistoryEntity
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.ui.components.DeleteHistoryConfirmationDialog
 import com.android.multitimerpro.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun HistoryScreen(viewModel: TimerViewModel = hiltViewModel()) {
+fun HistoryScreen(
+    viewModel: TimerViewModel = hiltViewModel(),
+    onNavigateToDetail: (String) -> Unit = {}
+) {
     val historyItems by viewModel.history.collectAsState()
     val totalTimeMillis by viewModel.totalTimeSpent.collectAsState()
+    var historyToDelete by remember { mutableStateOf<HistoryEntity?>(null) }
+
+    if (historyToDelete != null) {
+        DeleteHistoryConfirmationDialog(
+            timerName = historyToDelete!!.timerName,
+            onConfirm = {
+                viewModel.deleteHistoryEntry(historyToDelete!!)
+                historyToDelete = null
+            },
+            onDismiss = { historyToDelete = null }
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -113,7 +127,11 @@ fun HistoryScreen(viewModel: TimerViewModel = hiltViewModel()) {
             }
         } else {
             items(historyItems) { item ->
-                HistoryEntryCard(item, onDelete = { viewModel.deleteHistoryEntry(item) })
+                HistoryEntryCard(
+                    item = item, 
+                    onDelete = { historyToDelete = item },
+                    onClick = { onNavigateToDetail(item.id) }
+                )
             }
         }
 
@@ -122,7 +140,11 @@ fun HistoryScreen(viewModel: TimerViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun HistoryEntryCard(item: HistoryEntity, onDelete: () -> Unit) {
+fun HistoryEntryCard(
+    item: HistoryEntity, 
+    onDelete: () -> Unit,
+    onClick: () -> Unit
+) {
     val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
     val dateStr = dateFormat.format(Date(item.completedAt))
 
@@ -130,7 +152,8 @@ fun HistoryEntryCard(item: HistoryEntity, onDelete: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         color = SurfaceDark,
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
+        onClick = onClick
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(
@@ -169,7 +192,7 @@ fun HistoryEntryCard(item: HistoryEntity, onDelete: () -> Unit) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(
-                    onClick = { /* Ver detalles/analiticas de esta sesión específica */ },
+                    onClick = onClick,
                     modifier = Modifier.background(SurfaceHigh, RoundedCornerShape(12.dp))
                 ) {
                     Icon(Icons.Default.Analytics, contentDescription = null, tint = NeonBlue)
@@ -189,15 +212,15 @@ private fun formatMillisToTime(millis: Long): String {
     val hours = TimeUnit.MILLISECONDS.toHours(millis)
     val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
     val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
-    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
 }
 
 private fun formatMillisToTimeShort(millis: Long): String {
     val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
     val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
     return if (minutes > 0) {
-        String.format("%02d:%02d", minutes, seconds)
+        String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
     } else {
-        String.format("00:%02d", seconds)
+        String.format(Locale.getDefault(), "00:%02d", seconds)
     }
 }

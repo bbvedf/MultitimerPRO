@@ -11,8 +11,14 @@ interface HistoryDao {
     @Query("SELECT * FROM timer_history WHERE uid = :uid ORDER BY completedAt DESC")
     fun getHistoryByUid(uid: String): Flow<List<HistoryEntity>>
 
+    @Query("SELECT * FROM timer_history WHERE id = :id")
+    suspend fun getHistoryById(id: String): HistoryEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(history: HistoryEntity)
+
+    @Update
+    suspend fun update(history: HistoryEntity)
 
     @Delete
     suspend fun delete(history: HistoryEntity)
