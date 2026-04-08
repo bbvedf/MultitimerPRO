@@ -8,7 +8,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.GoogleAuthClient
+import com.android.multitimerpro.ui.components.LogoutConfirmationDialog
 import com.android.multitimerpro.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 
@@ -28,10 +29,18 @@ fun SettingsScreen(
 ) {
     val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
-    // We need GoogleAuthClient for sign out
-    // In a real app, this would be injected or handled via ViewModel
-    // For now, we'll assume the ViewModel can handle it if we add a method
+    if (showLogoutDialog) {
+        LogoutConfirmationDialog(
+            onConfirm = {
+                showLogoutDialog = false
+                viewModel.signOut()
+                onBack()
+            },
+            onDismiss = { showLogoutDialog = false }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -118,10 +127,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = {
-                viewModel.signOut()
-                onBack()
-            },
+            onClick = { showLogoutDialog = true },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4B4B).copy(alpha = 0.1f)),
             shape = RoundedCornerShape(12.dp),

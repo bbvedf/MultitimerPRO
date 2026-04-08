@@ -30,6 +30,7 @@ import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.GoogleAuthClient
 import com.android.multitimerpro.ui.screens.*
 import com.android.multitimerpro.ui.theme.*
+import kotlinx.coroutines.flow.collectLatest
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector? = null) {
     object Timers : Screen("timers", "TIMERS", Icons.Default.Timer)
@@ -53,6 +54,14 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
     val isAuthenticated by viewModel.isAuthenticated.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiMessage.collectLatest { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
     val items = listOf(
         Screen.Timers,
@@ -63,6 +72,7 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (isAuthenticated && items.any { it.route == currentDestination?.route || currentDestination?.route?.contains(it.route.split("?")[0]) == true }) {
                 NavigationBar(

@@ -36,6 +36,9 @@ class TimerViewModel @Inject constructor(
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
 
+    private val _uiMessage = MutableSharedFlow<String>()
+    val uiMessage = _uiMessage.asSharedFlow()
+
     private val _authError = MutableStateFlow<String?>(null)
     val authError: StateFlow<String?> = _authError.asStateFlow()
 
@@ -51,30 +54,64 @@ class TimerViewModel @Inject constructor(
         }
     }
 
+    fun showMessage(message: String) {
+        viewModelScope.launch {
+            _uiMessage.emit(message)
+        }
+    }
+
     private fun syncUserAndData(uid: String, email: String) {
         viewModelScope.launch {
+            if (uid.isBlank()) return@launch
+            
             try {
-                // Crear/Actualizar el documento del usuario para cumplir con las Security Rules
-                val userMap = mapOf(
-                    "uid" to uid,
-                    "email" to email,
-                    "createdAt" to System.currentTimeMillis()
-                )
-                firestore.collection("users").document(uid)
-                    .set(userMap, SetOptions.merge())
-                    .await()
-                Log.d(TAG, "User document synced successfully for $uid")
+                val finalEmail = if (email.isBlank()) auth.currentUser?.email ?: "" else email
+                if (finalEmail.isBlank()) {
+                    Log.w(TAG, "Sync pospuesto: Email no disponible")
+                    return@launch
+                }
 
+                // 1. Intentamos obtener el documento actual para no romper la regla de 'createdAt' inmutable
+                val userDocRef = firestore.collection("users").document(uid)
+                val existingDoc = try { userDocRef.get().await() } catch (e: Exception) { null }
+                
+                val createdAt = if (existingDoc != null && existingDoc.exists()) {
+                    existingDoc.getLong("createdAt") ?: System.currentTimeMillis()
+                } else {
+                    System.currentTimeMillis()
+                }
+
+                val userMap = mutableMapOf<String, Any>(
+                    "uid" to uid,
+                    "email" to finalEmail,
+                    "createdAt" to createdAt
+                )
+                
+                auth.currentUser?.displayName?.let { userMap["displayName"] = it }
+                val photoUrl = auth.currentUser?.photoUrl?.toString()
+                if (photoUrl != null && (photoUrl.startsWith("http://") || photoUrl.startsWith("https://"))) {
+                    userMap["photoUrl"] = photoUrl
+                }
+
+                Log.d(TAG, "Sincronizando perfil usuario: $userMap")
+                userDocRef.set(userMap, SetOptions.merge()).await()
+                
+                Log.d(TAG, "Perfil de usuario sincronizado (OK)")
+
+                // Ahora sí, disparamos el resto de la sincronización
                 timerManager.reclaimLocalTimers(uid)
                 timerManager.syncFromCloud(uid)
                 timerManager.syncHistoryFromCloud(uid)
             } catch (e: Exception) {
-                Log.e(TAG, "Error syncing user document: ${e.message}")
+                Log.e(TAG, "Error crítico en syncUserAndData: ${e.message}")
+                if (e.message?.contains("PERMISSION_DENIED") == true) {
+                    Log.e(TAG, "TIP: Revisa que el email '$email' cumpla el regex de las reglas.")
+                }
             }
         }
     }
 
-    // Stats calculations
+    // Resto del código se mantiene igual...
     val totalTimeSpent: StateFlow<Long> = history.map { list ->
         list.sumOf { it.durationMillis }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
@@ -85,21 +122,22 @@ class TimerViewModel @Inject constructor(
 
     fun handleGoogleSignInResult(data: Intent?) {
         viewModelScope.launch {
-            Log.d(TAG, "Handling Google Sign In result...")
+            Log.d(TAG, "Manejando resultado de Google Sign In...")
             val result = googleAuthClient.handleSignInResult(data)
             result.onSuccess { success ->
                 if (success) {
                     val user = auth.currentUser
-                    val uid = user?.uid ?: ""
-                    Log.d(TAG, "Google Sign In Success! UID: $uid")
+                    Log.d(TAG, "Google Login Éxito! UID: ${user?.uid}")
                     _isAuthenticated.value = true
                     _authError.value = null
-                    syncUserAndData(uid, user?.email ?: "")
+                    syncUserAndData(user?.uid ?: "", user?.email ?: "")
+                    showMessage("¡Bienvenido!")
                 }
             }.onFailure { exception ->
-                Log.e(TAG, "Google Sign In Failed", exception)
-                _authError.value = "Google Error: ${exception.localizedMessage}"
+                Log.e(TAG, "Google Login Falló", exception)
+                _authError.value = "Error: ${exception.localizedMessage}"
                 _isAuthenticated.value = false
+                showMessage("Error de login: ${exception.localizedMessage}")
             }
         }
     }
@@ -107,18 +145,15 @@ class TimerViewModel @Inject constructor(
     fun signInWithEmail(email: String, password: String) {
         viewModelScope.launch {
             try {
-                Log.d(TAG, "Attempting Email Login for $email")
                 auth.signInWithEmailAndPassword(email, password).await()
                 val user = auth.currentUser
-                val uid = user?.uid ?: ""
-                Log.d(TAG, "Email Login Success! UID: $uid")
                 _isAuthenticated.value = true
                 _authError.value = null
-                syncUserAndData(uid, email)
+                syncUserAndData(user?.uid ?: "", email)
+                showMessage("Sesión iniciada")
             } catch (e: Exception) {
-                Log.e(TAG, "Email Login Failed", e)
                 _authError.value = e.localizedMessage
-                _isAuthenticated.value = false
+                showMessage("Error: ${e.localizedMessage}")
             }
         }
     }
@@ -126,17 +161,15 @@ class TimerViewModel @Inject constructor(
     fun signUpWithEmail(email: String, password: String) {
         viewModelScope.launch {
             try {
-                Log.d(TAG, "Attempting Registration for $email")
                 auth.createUserWithEmailAndPassword(email, password).await()
                 val user = auth.currentUser
-                val uid = user?.uid ?: ""
-                Log.d(TAG, "Registration Success! UID: $uid")
                 _isAuthenticated.value = true
                 _authError.value = null
-                syncUserAndData(uid, email)
+                syncUserAndData(user?.uid ?: "", email)
+                showMessage("Cuenta creada")
             } catch (e: Exception) {
-                Log.e(TAG, "Registration Failed", e)
                 _authError.value = e.localizedMessage
+                showMessage("Error: ${e.localizedMessage}")
             }
         }
     }
@@ -145,7 +178,7 @@ class TimerViewModel @Inject constructor(
         viewModelScope.launch {
             googleAuthClient.signOut()
             _isAuthenticated.value = false
-            Log.d(TAG, "User signed out")
+            showMessage("Sesión cerrada")
         }
     }
 
@@ -173,6 +206,7 @@ class TimerViewModel @Inject constructor(
 
     fun delete(timer: TimerEntity) = viewModelScope.launch {
         timerManager.deleteTimer(timer)
+        showMessage("Eliminado")
     }
 
     fun resetTimer(timer: TimerEntity) = viewModelScope.launch {
@@ -181,6 +215,7 @@ class TimerViewModel @Inject constructor(
 
     fun deleteHistoryEntry(history: HistoryEntity) = viewModelScope.launch {
         historyRepository.delete(history)
+        showMessage("Historial eliminado")
     }
 
     fun addInterval(timer: TimerEntity, label: String) = viewModelScope.launch {
