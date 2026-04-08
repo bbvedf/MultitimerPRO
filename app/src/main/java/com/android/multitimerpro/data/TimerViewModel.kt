@@ -32,6 +32,10 @@ class TimerViewModel @Inject constructor(
         .onEach { list -> Log.d(TAG, "History flow emitted ${list.size} items") }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Theme state: null means follow system, true/false for forced dark/light
+    private val _isDarkMode = MutableStateFlow<Boolean?>(null)
+    val isDarkMode: StateFlow<Boolean?> = _isDarkMode.asStateFlow()
+
     // Auth states
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
@@ -52,6 +56,10 @@ class TimerViewModel @Inject constructor(
         if (currentUser != null) {
             syncUserAndData(currentUser.uid, currentUser.email ?: "")
         }
+    }
+
+    fun toggleTheme(isDark: Boolean) {
+        _isDarkMode.value = isDark
     }
 
     fun showMessage(message: String) {

@@ -42,7 +42,7 @@ fun MultiTimerHomeScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(DeepBlack)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -59,21 +59,23 @@ fun MultiTimerHomeScreen(
                         Text(
                             text = "ESTADO",
                             style = MaterialTheme.typography.labelSmall,
-                            color = OnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 2.sp
                         )
                         Text(
                             text = "Instrumentos\nActivos",
                             style = MaterialTheme.typography.displaySmall,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
                         text = "${timers.count { it.status == "LIVE" }} ACTIVOS",
                         style = MaterialTheme.typography.labelSmall,
-                        color = OnSurfaceVariant,
-                        modifier = Modifier.background(SurfaceVariant, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
             }
@@ -95,8 +97,8 @@ fun MultiTimerHomeScreen(
         FloatingActionButton(
             onClick = { onNavigateToCreate(null) },
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
-            containerColor = NeonBlue,
-            contentColor = DeepBlack,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = if (MaterialTheme.colorScheme.primary == NeonBlue) DeepBlack else Color.White,
             shape = RoundedCornerShape(16.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(32.dp))

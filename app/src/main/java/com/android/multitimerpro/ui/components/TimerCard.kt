@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun TimerCard(
@@ -33,9 +34,9 @@ fun TimerCard(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceDark,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)),
         onClick = onClick
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
@@ -46,49 +47,74 @@ fun TimerCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = timer.name, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, letterSpacing = 1.sp)
-                        Text(text = timer.status, style = MaterialTheme.typography.labelSmall, color = Color(timer.color), fontWeight = FontWeight.Black, fontSize = 8.sp)
+                        Text(
+                            text = timer.name.uppercase(), 
+                            style = MaterialTheme.typography.labelSmall, 
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                            letterSpacing = 1.sp,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = timer.status, 
+                            style = MaterialTheme.typography.labelSmall, 
+                            color = Color(timer.color), 
+                            fontWeight = FontWeight.Black, 
+                            fontSize = 8.sp
+                        )
 
                         Spacer(modifier = Modifier.width(8.dp))
 
                         IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
-                            Icon(Icons.Default.Edit, contentDescription = null, tint = OnSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                         }
                         IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
-                            Icon(Icons.Default.Delete, contentDescription = null, tint = OnSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                         }
                     }
                     Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        val minutes = (timer.remainingTime / 1000) / 60
-                        val seconds = (timer.remainingTime / 1000) % 60
-                        val timeStr = String.format("%02d:%02d", minutes, seconds)
-                        Text(text = timeStr, style = MaterialTheme.typography.displayMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                        val hours = (timer.remainingTime / 3600000)
+                        val minutes = (timer.remainingTime % 3600000) / 60000
+                        val seconds = (timer.remainingTime % 60000) / 1000
+                        
+                        val timeStr = if (hours > 0) {
+                            String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
+                        } else {
+                            String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+                        }
+                        
+                        Text(
+                            text = timeStr, 
+                            style = if (hours > 0) MaterialTheme.typography.displaySmall else MaterialTheme.typography.displayMedium, 
+                            color = MaterialTheme.colorScheme.onSurface, 
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     LinearProgressIndicator(
-                        progress = if (timer.duration > 0) timer.remainingTime.toFloat() / timer.duration.toFloat() else 0f,
+                        progress = { if (timer.duration > 0) timer.remainingTime.toFloat() / timer.duration.toFloat() else 0f },
                         modifier = Modifier.width(120.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
                         color = Color(timer.color),
-                        trackColor = SurfaceVariant
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     IconButton(onClick = onReset) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, tint = OnSurfaceVariant)
+                        Icon(Icons.Default.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Surface(
                         modifier = Modifier.size(48.dp),
                         shape = CircleShape,
-                        color = if (timer.status == "LIVE") NeonBlue else SurfaceVariant,
+                        color = if (timer.status == "LIVE") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                         onClick = onToggle
                     ) {
                         Box(contentAlignment = Alignment.Center) {
+                            val isDark = MaterialTheme.colorScheme.background == DeepBlack
                             Icon(
                                 if (timer.status == "LIVE") Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = null,
-                                tint = if (timer.status == "LIVE") DeepBlack else NeonBlue
+                                tint = if (timer.status == "LIVE") (if (isDark) DeepBlack else Color.White) else MaterialTheme.colorScheme.primary
                             )
                         }
                     }

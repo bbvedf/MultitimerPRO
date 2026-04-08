@@ -14,12 +14,12 @@ fun DeleteConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceHigh,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 text = "BORRAR CONTADOR",
                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
         },
@@ -27,7 +27,7 @@ fun DeleteConfirmationDialog(
             Text(
                 text = "¿Estás seguro de que quieres eliminar '$timerName'? Esta acción no se puede deshacer.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = OnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         confirmButton = {
@@ -43,7 +43,7 @@ fun DeleteConfirmationDialog(
             TextButton(onClick = onDismiss) {
                 Text(
                     text = "Cancelar",
-                    color = OnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
             }

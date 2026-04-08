@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +24,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.theme.*
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,16 +41,20 @@ fun CreateTimerScreen(
     var name by remember { mutableStateOf(existingTimer?.name ?: "") }
     var hours by remember {
         val h = (existingTimer?.duration ?: 0) / 3600000
-        mutableStateOf(String.format("%02d", h))
+        mutableStateOf(String.format(Locale.getDefault(), "%02d", h))
     }
     var minutes by remember {
         val m = ((existingTimer?.duration ?: 0) % 3600000) / 60000
-        mutableStateOf(String.format("%02d", m))
+        mutableStateOf(String.format(Locale.getDefault(), "%02d", m))
     }
     var seconds by remember {
         val s = ((existingTimer?.duration ?: 0) % 60000) / 1000
-        mutableStateOf(String.format("%02d", s))
+        mutableStateOf(String.format(Locale.getDefault(), "%02d", s))
     }
+    
+    val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
+    val isDark = isDarkModeOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
+    
     var selectedColor by remember { mutableStateOf(existingTimer?.let { Color(it.color) } ?: NeonBlue) }
     var selectedCategory by remember { mutableStateOf(existingTimer?.category ?: "GENERAL") }
     var description by remember { mutableStateOf(existingTimer?.description ?: "") }
@@ -60,7 +65,7 @@ fun CreateTimerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
         // Header
@@ -69,13 +74,17 @@ fun CreateTimerScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack, 
+                    contentDescription = null, 
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = if (timerId == null) "NUEVO INSTRUMENTO" else "EDITAR INSTRUMENTO",
                 style = MaterialTheme.typography.labelSmall,
-                color = OnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 2.sp
             )
         }
@@ -86,7 +95,7 @@ fun CreateTimerScreen(
         Text(
             text = "NOMBRE DEL TEMPORIZADOR",
             style = MaterialTheme.typography.labelSmall,
-            color = OnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp
         )
         TextField(
@@ -96,13 +105,18 @@ fun CreateTimerScreen(
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                cursorColor = NeonBlue,
-                focusedIndicatorColor = NeonBlue,
-                unfocusedIndicatorColor = SurfaceVariant
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceVariant
             ),
-            placeholder = { Text("Ej. Sesión Deep Work", color = OnSurfaceVariant.copy(alpha = 0.5f)) }
+            placeholder = { 
+                Text(
+                    "Ej. Sesión Deep Work", 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                ) 
+            }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -111,7 +125,7 @@ fun CreateTimerScreen(
         Text(
             text = "CATEGORÍA",
             style = MaterialTheme.typography.labelSmall,
-            color = OnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -122,10 +136,10 @@ fun CreateTimerScreen(
                     onClick = { selectedCategory = category },
                     label = { Text(category) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = NeonBlue,
-                        selectedLabelColor = DeepBlack,
-                        containerColor = SurfaceVariant,
-                        labelColor = Color.White
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = if (isDark) DeepBlack else Color.White,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     border = null
                 )
@@ -138,7 +152,7 @@ fun CreateTimerScreen(
         Text(
             text = "DURACIÓN",
             style = MaterialTheme.typography.labelSmall,
-            color = OnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp
         )
         Row(
@@ -146,11 +160,34 @@ fun CreateTimerScreen(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TimeInput(value = hours, onValueChange = { if (it.length <= 2) hours = it }, label = "HH")
-            Text(":", color = OnSurfaceVariant, fontSize = 24.sp)
-            TimeInput(value = minutes, onValueChange = { if (it.length <= 2) minutes = it }, label = "MM")
-            Text(":", color = OnSurfaceVariant, fontSize = 24.sp)
-            TimeInput(value = seconds, onValueChange = { if (it.length <= 2) seconds = it }, label = "SS")
+            TimeInput(
+                value = hours, 
+                onValueChange = { if (it.length <= 2) hours = it }, 
+                label = "HH",
+                isDark = isDark
+            )
+            Text(
+                ":", 
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                fontSize = 24.sp
+            )
+            TimeInput(
+                value = minutes, 
+                onValueChange = { if (it.length <= 2) minutes = it }, 
+                label = "MM",
+                isDark = isDark
+            )
+            Text(
+                ":", 
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                fontSize = 24.sp
+            )
+            TimeInput(
+                value = seconds, 
+                onValueChange = { if (it.length <= 2) seconds = it }, 
+                label = "SS",
+                isDark = isDark
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -159,7 +196,7 @@ fun CreateTimerScreen(
         Text(
             text = "COLOR",
             style = MaterialTheme.typography.labelSmall,
-            color = OnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp
         )
         Spacer(modifier = Modifier.height(12.dp))
@@ -218,12 +255,12 @@ fun CreateTimerScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = NeonBlue),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(16.dp)
         ) {
             Text(
                 text = if (timerId == null) "CREAR TEMPORIZADOR" else "GUARDAR CAMBIOS",
-                color = DeepBlack,
+                color = if (isDark) DeepBlack else Color.White,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             )
@@ -232,7 +269,7 @@ fun CreateTimerScreen(
 }
 
 @Composable
-fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String) {
+fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String, isDark: Boolean) {
     var textFieldValueState by remember(value) {
         mutableStateOf(TextFieldValue(text = value))
     }
@@ -257,16 +294,20 @@ fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String) {
                 },
             textStyle = MaterialTheme.typography.displaySmall.copy(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onBackground
             ),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = NeonBlue,
-                unfocusedIndicatorColor = SurfaceVariant
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             singleLine = true
         )
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+        Text(
+            text = label, 
+            style = MaterialTheme.typography.labelSmall, 
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

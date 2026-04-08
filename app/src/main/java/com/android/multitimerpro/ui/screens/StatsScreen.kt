@@ -28,19 +28,19 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
     val statsByCategory by viewModel.statsByCategory.collectAsState()
-    val totalTimeMillis by viewModel.totalTimeSpent.collectAsState()
+    val totalTimeSpent by viewModel.totalTimeSpent.collectAsState()
     val history by viewModel.history.collectAsState()
 
     // Transform Map to List for the chart
     val categories = statsByCategory.map { (name, time) ->
-        val percentage = if (totalTimeMillis > 0) time.toFloat() / totalTimeMillis else 0f
+        val percentage = if (totalTimeSpent > 0) time.toFloat() / totalTimeSpent else 0f
         CategoryStat(name, percentage, false)
     }.sortedByDescending { it.percentage }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
@@ -52,20 +52,20 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                 Text(
                     text = "DASHBOARD DE PRECISIÓN",
                     style = MaterialTheme.typography.labelSmall,
-                    color = NeonBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     letterSpacing = 3.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Estadísticas\nGlobales.",
                     style = MaterialTheme.typography.displayLarge,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     lineHeight = 56.sp
                 )
                 Text(
                     text = "Análisis profundo de su rendimiento temporal acumulado en la nube.",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = OnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -75,9 +75,9 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
         item {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = SurfaceDark,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(24.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
             ) {
                 Row(
                     modifier = Modifier.padding(24.dp),
@@ -85,20 +85,20 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("TIEMPO TOTAL", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+                        Text("TIEMPO TOTAL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
-                            text = formatMillisToHours(totalTimeMillis),
+                            text = formatMillisToHours(totalTimeSpent),
                             style = MaterialTheme.typography.headlineLarge,
-                            color = NeonBlue,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("SESIONES", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+                        Text("SESIONES", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             text = "${history.size}",
                             style = MaterialTheme.typography.headlineLarge,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -111,15 +111,16 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = SurfaceDark,
+                    color = MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(24.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                 ) {
                     Column(modifier = Modifier.padding(24.dp)) {
                         Text(
                             text = "Uso por Categoría",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Spacer(modifier = Modifier.height(40.dp))
@@ -171,7 +172,7 @@ fun CategoryBar(stat: CategoryStat, modifier: Modifier = Modifier) {
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                 .background(
                     Brush.verticalGradient(
-                        listOf(NeonBlue, NeonBlue.copy(alpha = 0.2f))
+                        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                     )
                 )
         )
@@ -179,7 +180,7 @@ fun CategoryBar(stat: CategoryStat, modifier: Modifier = Modifier) {
             text = stat.name.take(6),
             style = MaterialTheme.typography.labelSmall,
             fontSize = 8.sp,
-            color = OnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Black
         )
     }
@@ -189,9 +190,9 @@ fun CategoryBar(stat: CategoryStat, modifier: Modifier = Modifier) {
 fun InsightCard(title: String, description: String, icon: androidx.compose.ui.graphics.vector.ImageVector, accentColor: Color) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceHigh,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     ) {
         Row(
             modifier = Modifier
@@ -211,7 +212,7 @@ fun InsightCard(title: String, description: String, icon: androidx.compose.ui.gr
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

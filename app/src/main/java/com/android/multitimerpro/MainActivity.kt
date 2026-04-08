@@ -5,9 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.android.multitimerpro.data.GoogleAuthClient
 import com.android.multitimerpro.data.TimerViewModel
@@ -33,12 +36,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MultiTimerProTheme {
+            val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
+            val darkTheme = isDarkModeOverride ?: isSystemInDarkTheme()
+
+            MultiTimerProTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     MainNavigation(
+                        viewModel = viewModel,
                         onGoogleSignIn = {
                             googleSignInLauncher.launch(googleAuthClient.getSignInIntent())
                         }

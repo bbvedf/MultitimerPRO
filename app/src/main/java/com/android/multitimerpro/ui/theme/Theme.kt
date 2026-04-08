@@ -1,7 +1,9 @@
 package com.android.multitimerpro.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
@@ -19,10 +21,29 @@ private val DarkColorScheme = darkColorScheme(
     onSurfaceVariant = OnSurfaceVariant
 )
 
+private val LightColorScheme = lightColorScheme(
+    primary = NeonBlueDark,
+    secondary = NeonGreenDark,
+    tertiary = NeonPurpleDark,
+    background = PureWhite,
+    surface = SurfaceLight,
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onBackground = OnSurfaceLight,
+    onSurface = OnSurfaceLight,
+    surfaceVariant = SurfaceVariantLight,
+    onSurfaceVariant = OnSurfaceVariantLight
+)
+
 @Composable
-fun MultiTimerProTheme(content: @Composable () -> Unit) {
+fun MultiTimerProTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+
     MaterialTheme(
-        colorScheme = DarkColorScheme,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )

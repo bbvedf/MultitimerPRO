@@ -13,12 +13,12 @@ fun LogoutConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceHigh,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 text = "CERRAR SESIÓN",
                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
         },
@@ -26,7 +26,7 @@ fun LogoutConfirmationDialog(
             Text(
                 text = "¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a identificarte para sincronizar tus datos de operador.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = OnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         confirmButton = {
@@ -42,7 +42,7 @@ fun LogoutConfirmationDialog(
             TextButton(onClick = onDismiss) {
                 Text(
                     text = "Cancelar",
-                    color = OnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
             }

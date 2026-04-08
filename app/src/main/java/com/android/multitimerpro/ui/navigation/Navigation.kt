@@ -23,7 +23,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.android.multitimerpro.data.TimerViewModel
@@ -51,9 +50,11 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
 }
 
 @Composable
-fun MainNavigation(onGoogleSignIn: () -> Unit) {
+fun MainNavigation(
+    viewModel: TimerViewModel, // Recibimos el ViewModel de la Activity
+    onGoogleSignIn: () -> Unit
+) {
     val navController = rememberNavController()
-    val viewModel: TimerViewModel = hiltViewModel()
     val isAuthenticated by viewModel.isAuthenticated.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -79,9 +80,9 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
         bottomBar = {
             if (isAuthenticated && items.any { it.route == currentDestination?.route || currentDestination?.route?.contains(it.route.split("?")[0]) == true }) {
                 NavigationBar(
-                    containerColor = DeepBlack,
+                    containerColor = MaterialTheme.colorScheme.background,
                     modifier = Modifier.height(80.dp),
-                    tonalElevation = 0.dp
+                    tonalElevation = 8.dp
                 ) {
                     items.forEach { screen ->
                         NavigationBarItem(
@@ -113,10 +114,10 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
                                 }
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = NeonBlue,
-                                selectedTextColor = NeonBlue,
-                                unselectedIconColor = OnSurfaceVariant.copy(alpha = 0.5f),
-                                unselectedTextColor = OnSurfaceVariant.copy(alpha = 0.5f),
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 indicatorColor = Color.Transparent
                             )
                         )
@@ -132,6 +133,7 @@ fun MainNavigation(onGoogleSignIn: () -> Unit) {
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
+                    viewModel = viewModel,
                     onGoogleLogin = onGoogleSignIn,
                     onEmailLogin = { email, password ->
                         viewModel.signInWithEmail(email, password)

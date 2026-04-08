@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -43,25 +43,39 @@ fun LiveTimerScreen(
 
     var showAddMarkDialog by remember { mutableStateOf(false) }
     var markLabel by remember { mutableStateOf("") }
+    
+    val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
+    val isDark = isDarkModeOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
 
     if (showAddMarkDialog) {
         AlertDialog(
             onDismissRequest = { showAddMarkDialog = false },
-            containerColor = SurfaceHigh,
-            title = { Text("AÑADIR MARCA", color = Color.White, fontWeight = FontWeight.Bold) },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { 
+                Text(
+                    "AÑADIR MARCA", 
+                    color = MaterialTheme.colorScheme.onSurface, 
+                    fontWeight = FontWeight.Bold
+                ) 
+            },
             text = {
                 TextField(
                     value = markLabel,
                     onValueChange = { markLabel = it },
-                    placeholder = { Text("Nombre de la marca", color = OnSurfaceVariant.copy(alpha = 0.5f)) },
+                    placeholder = { 
+                        Text(
+                            "Nombre de la marca", 
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        ) 
+                    },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = NeonBlue,
-                        focusedIndicatorColor = NeonBlue,
-                        unfocusedIndicatorColor = SurfaceVariant
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
             },
@@ -73,18 +87,18 @@ fun LiveTimerScreen(
                         showAddMarkDialog = false
                     }
                 }) {
-                    Text("AÑADIR", color = NeonBlue, fontWeight = FontWeight.Bold)
+                    Text("AÑADIR", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddMarkDialog = false }) {
-                    Text("CANCELAR", color = OnSurfaceVariant)
+                    Text("CANCELAR", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(DeepBlack)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
             // Header
             Row(
@@ -93,19 +107,32 @@ fun LiveTimerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack, 
+                        contentDescription = null, 
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
                 }
                 Text(
                     text = "MULTITIMER PRO",
                     style = MaterialTheme.typography.titleMedium,
-                    color = NeonBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
                 IconButton(onClick = { /* Profile */ }) {
-                    Surface(modifier = Modifier.size(32.dp), shape = CircleShape, color = SurfaceVariant) {
+                    Surface(
+                        modifier = Modifier.size(32.dp), 
+                        shape = CircleShape, 
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.MoreVert, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Icon(
+                                Icons.Default.MoreVert, 
+                                contentDescription = null, 
+                                tint = MaterialTheme.colorScheme.onSurface, 
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
                     }
                 }
@@ -123,7 +150,7 @@ fun LiveTimerScreen(
 
                 Canvas(modifier = Modifier.size(280.dp)) {
                     drawCircle(
-                        color = Color.White.copy(alpha = 0.05f),
+                        color = if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(alpha = 0.05f),
                         style = Stroke(width = 12.dp.toPx())
                     )
                     drawArc(
@@ -139,17 +166,26 @@ fun LiveTimerScreen(
                     Text(
                         text = timer.category.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = OnSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 3.sp
                     )
-                    val minutes = (timer.remainingTime / 1000) / 60
-                    val seconds = (timer.remainingTime / 1000) % 60
+                    
+                    val hours = (timer.remainingTime / 3600000)
+                    val minutes = (timer.remainingTime % 3600000) / 60000
+                    val seconds = (timer.remainingTime % 60000) / 1000
+                    
+                    val timeStr = if (hours > 0) {
+                        String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
+                    } else {
+                        String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+                    }
+
                     Text(
-                        text = String.format("%02d:%02d", minutes, seconds),
+                        text = timeStr,
                         style = MaterialTheme.typography.displayLarge,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 80.sp
+                        fontSize = if (hours > 0) 64.sp else 80.sp
                     )
                     Text(
                         text = timer.status,
@@ -173,20 +209,39 @@ fun LiveTimerScreen(
                     Text(
                         text = timer.name,
                         style = MaterialTheme.typography.headlineLarge,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = timer.description.ifBlank { "Sin descripción" },
                         style = MaterialTheme.typography.bodyLarge,
-                        color = OnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(text = "META", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, letterSpacing = 1.sp)
-                    val metaMinutes = (timer.duration / 1000) / 60
-                    val metaSeconds = (timer.duration / 1000) % 60
-                    Text(text = String.format("%02d:%02d", metaMinutes, metaSeconds), style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "META", 
+                        style = MaterialTheme.typography.labelSmall, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                        letterSpacing = 1.sp
+                    )
+                    
+                    val metaHours = (timer.duration / 3600000)
+                    val metaMinutes = (timer.duration % 3600000) / 60000
+                    val metaSeconds = (timer.duration % 60000) / 1000
+                    
+                    val metaStr = if (metaHours > 0) {
+                        String.format(Locale.getDefault(), "%02d:%02d:%02d", metaHours, metaMinutes, metaSeconds)
+                    } else {
+                        String.format(Locale.getDefault(), "%02d:%02d", metaMinutes, metaSeconds)
+                    }
+
+                    Text(
+                        text = metaStr, 
+                        style = MaterialTheme.typography.titleLarge, 
+                        color = MaterialTheme.colorScheme.onBackground, 
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -197,18 +252,18 @@ fun LiveTimerScreen(
                 Button(
                     onClick = { viewModel.update(timer) },
                     modifier = Modifier.weight(1f).height(64.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = NeonBlue),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Icon(
                         if (timer.status == "LIVE") Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = null,
-                        tint = DeepBlack
+                        tint = if (isDark) DeepBlack else Color.White
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = if (timer.status == "LIVE") "PAUSAR" else "INICIAR",
-                        color = DeepBlack,
+                        color = if (isDark) DeepBlack else Color.White,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 1.sp
                     )
@@ -216,11 +271,15 @@ fun LiveTimerScreen(
                 Surface(
                     modifier = Modifier.size(64.dp),
                     shape = RoundedCornerShape(20.dp),
-                    color = SurfaceVariant,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     onClick = { viewModel.resetTimer(timer) }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White)
+                        Icon(
+                            Icons.Default.Refresh, 
+                            contentDescription = null, 
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
@@ -244,7 +303,7 @@ fun LiveTimerScreen(
                     title = "FINALIZA",
                     value = sdf.format(endTime),
                     icon = Icons.Default.Timer,
-                    color = NeonBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -257,9 +316,19 @@ fun LiveTimerScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "INTERVALOS", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, letterSpacing = 2.sp)
+                Text(
+                    text = "INTERVALOS", 
+                    style = MaterialTheme.typography.labelSmall, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                    letterSpacing = 2.sp
+                )
                 TextButton(onClick = { showAddMarkDialog = true }) {
-                    Text(text = "AÑADIR MARCA", style = MaterialTheme.typography.labelSmall, color = NeonBlue, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "AÑADIR MARCA", 
+                        style = MaterialTheme.typography.labelSmall, 
+                        color = MaterialTheme.colorScheme.primary, 
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -274,10 +343,10 @@ fun LiveTimerScreen(
                     val time = parts.getOrNull(0) ?: ""
                     val label = parts.getOrNull(1) ?: ""
                     IntervalItem(
-                        number = String.format("%02d", index + 1),
+                        number = String.format(Locale.getDefault(), "%02d", index + 1),
                         name = label,
                         time = time,
-                        color = if (index == intervals.size - 1) NeonGreen else Color.White.copy(alpha = 0.5f)
+                        color = if (index == intervals.size - 1) NeonGreen else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
             }
@@ -289,7 +358,7 @@ fun LiveTimerScreen(
 fun IntervalItem(number: String, name: String, time: String, color: Color) {
     Surface(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        color = SurfaceDark.copy(alpha = 0.5f),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -298,8 +367,18 @@ fun IntervalItem(number: String, name: String, time: String, color: Color) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = number, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, modifier = Modifier.width(24.dp))
-                Text(text = name, style = MaterialTheme.typography.bodyLarge, color = Color.White, fontWeight = FontWeight.Medium)
+                Text(
+                    text = number, 
+                    style = MaterialTheme.typography.labelSmall, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                    modifier = Modifier.width(24.dp)
+                )
+                Text(
+                    text = name, 
+                    style = MaterialTheme.typography.bodyLarge, 
+                    color = MaterialTheme.colorScheme.onSurface, 
+                    fontWeight = FontWeight.Medium
+                )
             }
             Text(text = time, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
         }
@@ -310,15 +389,26 @@ fun IntervalItem(number: String, name: String, time: String, color: Color) {
 fun StatMiniCard(title: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        color = SurfaceDark,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(20.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = title, style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, fontSize = 8.sp, letterSpacing = 1.sp)
-            Text(text = value, style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(
+                text = title, 
+                style = MaterialTheme.typography.labelSmall, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                fontSize = 8.sp, 
+                letterSpacing = 1.sp
+            )
+            Text(
+                text = value, 
+                style = MaterialTheme.typography.titleLarge, 
+                color = MaterialTheme.colorScheme.onSurface, 
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

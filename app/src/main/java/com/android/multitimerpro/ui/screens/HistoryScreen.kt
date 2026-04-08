@@ -52,7 +52,7 @@ fun HistoryScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -64,20 +64,20 @@ fun HistoryScreen(
                 Text(
                     text = "Historial de",
                     style = MaterialTheme.typography.displayLarge,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Sesiones",
                     style = MaterialTheme.typography.displayLarge,
-                    color = NeonBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                 )
                 Text(
                     text = "Un registro detallado de cada segundo optimizado. Tu rendimiento, fragmentado en intervalos de precisión absoluta.",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = OnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -87,21 +87,21 @@ fun HistoryScreen(
         item {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = SurfaceDark,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(24.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
                         text = "TIEMPO TOTAL ENFOCADO",
                         style = MaterialTheme.typography.labelSmall,
-                        color = OnSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 2.sp
                     )
                     Text(
                         text = formatMillisToTime(totalTimeMillis),
                         style = MaterialTheme.typography.displayMedium,
-                        color = NeonBlue,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = (-2).sp
                     )
@@ -113,7 +113,7 @@ fun HistoryScreen(
             Text(
                 text = "SESIONES RECIENTES",
                 style = MaterialTheme.typography.labelSmall,
-                color = OnSurfaceVariant.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                 letterSpacing = 2.sp,
                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
             )
@@ -122,7 +122,7 @@ fun HistoryScreen(
         if (historyItems.isEmpty()) {
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
-                    Text("No hay sesiones registradas", color = OnSurfaceVariant)
+                    Text("No hay sesiones registradas", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         } else {
@@ -150,9 +150,9 @@ fun HistoryEntryCard(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceDark,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)),
         onClick = onClick
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -166,15 +166,29 @@ fun HistoryEntryCard(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(SurfaceHigh)
-                            .border(1.dp, Color.White.copy(alpha = 0.05f), CircleShape),
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Timer, contentDescription = null, tint = Color(item.color), modifier = Modifier.size(24.dp))
+                        Icon(
+                            Icons.Default.Timer, 
+                            contentDescription = null, 
+                            tint = Color(item.color), 
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                     Column {
-                        Text(text = item.timerName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text(text = "${item.category} • $dateStr", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant)
+                        Text(
+                            text = item.timerName, 
+                            style = MaterialTheme.typography.titleMedium, 
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "${item.category} • $dateStr", 
+                            style = MaterialTheme.typography.labelSmall, 
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
                 Column(horizontalAlignment = Alignment.End) {
@@ -184,7 +198,12 @@ fun HistoryEntryCard(
                         color = Color(item.color),
                         fontWeight = FontWeight.Bold
                     )
-                    Text(text = "DURACIÓN", style = MaterialTheme.typography.labelSmall, color = OnSurfaceVariant, fontSize = 8.sp)
+                    Text(
+                        text = "DURACIÓN", 
+                        style = MaterialTheme.typography.labelSmall, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                        fontSize = 8.sp
+                    )
                 }
             }
 
@@ -193,15 +212,23 @@ fun HistoryEntryCard(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(
                     onClick = onClick,
-                    modifier = Modifier.background(SurfaceHigh, RoundedCornerShape(12.dp))
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                 ) {
-                    Icon(Icons.Default.Analytics, contentDescription = null, tint = NeonBlue)
+                    Icon(
+                        Icons.Default.Analytics, 
+                        contentDescription = null, 
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.background(SurfaceHigh, RoundedCornerShape(12.dp))
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red.copy(alpha = 0.6f))
+                    Icon(
+                        Icons.Default.Delete, 
+                        contentDescription = null, 
+                        tint = Color.Red.copy(alpha = 0.6f)
+                    )
                 }
             }
         }
