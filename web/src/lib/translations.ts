@@ -2,7 +2,10 @@ export const translations = {
   en: {
     nav: {
       features: "Features",
-      tech: "Technology",
+      showcase: "Interface",
+      testimonials: "Feedback",
+      faq: "FAQ",
+      tech: "Tech",
       download: "Download"
     },
     hero: {
@@ -34,6 +37,32 @@ export const translations = {
       stats: "Performance Insights",
       live: "Live Tracking"
     },
+    testimonials: {
+      title: "Operator Feedback",
+      items: [
+        { quote: "The only timer that matches my workflow precision.", author: "Digital Nomad" },
+        { quote: "Industrial grade reliability for my kitchen and my gym.", author: "Tech Enthusiast" },
+        { quote: "Obsidian theme is just gorgeous. Zero friction.", author: "UI Designer" },
+        { quote: "Finally a timer that doesn't feel like a toy.", author: "Professional Chef" },
+        { quote: "The cloud sync is flawless between my devices.", author: "Software Engineer" },
+        { quote: "Best productivity tool I've downloaded this year.", author: "Product Manager" },
+        { quote: "Helps me keep track of multiple parallel experiments.", author: "Research Scientist" },
+        { quote: "The best HIIT companion. Period.", author: "Fitness Coach" },
+        { quote: "Simple enough for my mom, powerful enough for my dev job.", author: "Tech Lead" },
+        { quote: "The interface feels like a sci-fi terminal. Love it.", author: "Data Analyst" },
+        { quote: "Every second counts in my lab. This is the only tool I trust.", author: "Bio Engineer" },
+        { quote: "Concurrent timers changed the way I cook.", author: "Home Chef" }
+      ]
+    },
+    faq: {
+      title: "Common Queries",
+      items: [
+        { q: "Is it really free?", a: "Absolutely. MultiTimer PRO is completely free to download and use for essential timing. We offer a PRO tier for power users who want advanced analytics, unlimited cloud sync, and exclusive obsidian themes." },
+        { q: "Does it work offline?", a: "Yes. The core engine works without internet. Cloud sync automatically kicks in once you're back online." },
+        { q: "Is my data secure?", a: "All logs are encrypted and stored using Google Firebase enterprise-grade infrastructure." },
+        { q: "Multiple timers at once?", a: "Initialize as many concurrent instruments as your performance requires." }
+      ]
+    },
     tech: {
       label: "The Engine",
       title1: "Industrial Grade",
@@ -53,6 +82,9 @@ export const translations = {
   es: {
     nav: {
       features: "Funciones",
+      showcase: "Interfaz",
+      testimonials: "Opiniones",
+      faq: "FAQ",
       tech: "Tecnología",
       download: "Descargar"
     },
@@ -85,6 +117,32 @@ export const translations = {
       stats: "Análisis de Rendimiento",
       live: "Seguimiento en Vivo"
     },
+    testimonials: {
+      title: "Feedback de Operadores",
+      items: [
+        { quote: "El único temporizador que iguala mi precisión de trabajo.", author: "Nómada Digital" },
+        { quote: "Fiabilidad de grado industrial para mi entrenamiento y cocina.", author: "Entusiasta Tech" },
+        { quote: "La estética Obsidian es brutal. Cero fricción.", author: "Diseñador UI" },
+        { quote: "Por fin un temporizador que no parece un juguete.", author: "Chef Profesional" },
+        { quote: "La sincronización cloud es perfecta entre mis dispositivos.", author: "Ingeniero de Software" },
+        { quote: "La mejor herramienta de productividad que he bajado este año.", author: "Product Manager" },
+        { quote: "Me ayuda a seguir múltiples experimentos en paralelo.", author: "Científico" },
+        { quote: "El mejor compañero para HIIT. Punto.", author: "Coach de Fitness" },
+        { quote: "Suficientemente simple para mi madre, potente para mi trabajo.", author: "Tech Lead" },
+        { quote: "La interfaz parece una terminal de ciencia ficción. Me encanta.", author: "Analista de Datos" },
+        { quote: "En mi laboratorio cada segundo cuenta. Solo confío en esta herramienta.", author: "Bio Ingeniero" },
+        { quote: "Los temporizadores concurrentes han cambiado mi forma de cocinar.", author: "Cocinero" }
+      ]
+    },
+    faq: {
+      title: "Consultas Frecuentes",
+      items: [
+        { q: "¿Es realmente gratis?", a: "Totalmente. MultiTimer PRO es completamente gratuito para descargar y usar en su núcleo esencial. Ofrecemos un nivel PRO para operadores de alto rendimiento que requieran analíticas avanzadas, sincronización ilimitada y temas Obsidian exclusivos." },
+        { q: "¿Funciona sin conexión?", a: "Sí. El motor principal funciona sin internet. La sincronización cloud se activa al recuperar la conexión." },
+        { q: "¿Mis datos están seguros?", a: "Toda la información se cifra y almacena en la infraestructura de grado empresarial de Google Firebase." },
+        { q: "¿Varios timers a la vez?", a: "Inicializa tantos instrumentos concurrentes como tu rendimiento exija." }
+      ]
+    },
     tech: {
       label: "El Motor",
       title1: "Arquitectura de",
@@ -104,7 +162,10 @@ export const translations = {
   fr: {
     nav: {
       features: "Fonctions",
-      tech: "Technologie",
+      showcase: "Interface",
+      testimonials: "Avis",
+      faq: "FAQ",
+      tech: "Tech",
       download: "Télécharger"
     },
     hero: {
@@ -132,18 +193,38 @@ export const translations = {
     },
     showcase: {
       title: "Interface Visuelle",
-      timers: "Instruments Actifs",
+      timers: "Instruments Activos",
       stats: "Analyses de Performance",
       live: "Suivi en Direct"
+    },
+    testimonials: {
+      title: "Feedback Opérateurs",
+      items: [
+        { quote: "Le seul minuteur à la hauteur de mon workflow.", author: "Nomade Digital" },
+        { quote: "Fiabilité industrielle pour ma cuisine et mon sport.", author: "Passionné Tech" },
+        { quote: "L'esthétique Obsidian est magnifique.", author: "Designer UI" },
+        { quote: "Enfin un minuteur qui n'est pas un jouet.", author: "Chef Pro" },
+        { quote: "Sync cloud parfaite.", author: "Ingénieur" },
+        { quote: "Outil indispensable.", author: "Manager" }
+      ]
+    },
+    faq: {
+      title: "FAQ",
+      items: [
+        { q: "Est-ce gratuit ?", a: "Oui, MultiTimer PRO est gratuit pour l'essentiel. Une version PRO existe pour les fonctions avancées." },
+        { q: "Fonctionne hors ligne ?", a: "Oui. Le moteur fonctionne sans internet et synchronise au retour de la conexión." },
+        { q: "Données sécurisées ?", a: "Chiffré et stocké sur l'infrastructure Google Firebase." },
+        { q: "Plusieurs minuteurs ?", a: "Lancez autant d'instruments que nécessaire simultanément." }
+      ]
     },
     tech: {
       label: "Le Moteur",
       title1: "Architecture",
       title2: "Industrielle.",
-      desc: "MultiTimer PRO n'est pas seulement un minuteur. C'est un système distribué conçu pour gérer plusieurs instruments simultanés.",
+      desc: "MultiTimer PRO n'est pas seulement un minuteur. C'est un sistema distribuido diseñado para manejar múltiples instrumentos simultáneos.",
       concurrent: "Minuteurs Simultanés",
       retention: "Rétention de Données",
-      presets: "Préréglages Personnalisés",
+      presets: "Préréglages Personnalizados",
       unlimited: "Illimité",
       infinite: "Infini",
       cloud: "Sauvegarde Cloud"
@@ -155,7 +236,10 @@ export const translations = {
   de: {
     nav: {
       features: "Funktionen",
-      tech: "Technologie",
+      showcase: "Schnittstelle",
+      testimonials: "Feedback",
+      faq: "FAQ",
+      tech: "Tech",
       download: "Herunterladen"
     },
     hero: {
@@ -187,6 +271,26 @@ export const translations = {
       stats: "Performance-Einblicke",
       live: "Live-Verfolgung"
     },
+    testimonials: {
+      title: "Nutzer-Feedback",
+      items: [
+        { quote: "Der einzige Timer für meinen Workflow.", author: "Digitaler Nomade" },
+        { quote: "Industrielle Zuverlässigkeit für Sport und Küche.", author: "Tech-Enthusiast" },
+        { quote: "Obsidian-Design ist einfach großartig.", author: "UI-Designer" },
+        { quote: "Endlich ein echter Timer.", author: "Chefkoch" },
+        { quote: "Cloud-Sync ist super.", author: "Entwickler" },
+        { quote: "Top Tool.", author: "Manager" }
+      ]
+    },
+    faq: {
+      title: "Fragen",
+      items: [
+        { q: "Ist es kostenlos?", a: "Ja, MultiTimer PRO ist in der Basisversion kostenlos. Eine PRO-Version ist verfügbar." },
+        { q: "Offline-Modus?", a: "Ja. Der Core-Motor arbeitet ohne Internet und synchronisiert später." },
+        { q: "Sicher?", a: "Verschlüsselt und auf Google Firebase gespeichert." },
+        { q: "Mehrere Timer gleichzeitig?", a: "Initialisieren Sie so viele wie nötig." }
+      ]
+    },
     tech: {
       label: "Der Motor",
       title1: "Industrielle",
@@ -206,14 +310,17 @@ export const translations = {
   it: {
     nav: {
       features: "Funzioni",
-      tech: "Tecnologia",
+      showcase: "Interfaccia",
+      testimonials: "Feedback",
+      faq: "FAQ",
+      tech: "Tech",
       download: "Scarica"
     },
     hero: {
       version: "Versione Sistema 1.0.0 Gold",
       title1: "Precisione",
       title2: "Ridefinita.",
-      subtitle: "Il multi-timer ad alta precisione per i maestri della produttività. Accuratezza atomica per lavoro profondo e allenamento.",
+      subtitle: "Il multi-timer ad alta precisione para i maestri della produttività. Accuratezza atomica para lavoro profondo e allenamento.",
       cta: "Ottieni su Google Play"
     },
     features: {
@@ -221,22 +328,42 @@ export const translations = {
       subtitle: "Strumenti Pro per HIIT, Deep Work e Cucina.",
       stitch: {
         title: "Estetica Obsidian",
-        desc: "Un'interfaccia progettata per la massima chiarezza e interazione senza attriti."
+        desc: "Un'interfaccia progettata para la massima chiarezza e interazione senza attriti."
       },
       precision: {
         title: "Precisione Atomica",
-        desc: "Ottimizzato per compiti critici dove ogni secondo conta."
+        desc: "Ottimizzato para compiti critici dove ogni secondo conta."
       },
       security: {
         title: "Sincronizzazione Cloud",
-        desc: "I tuoi dati sincronizzati in modo sicuro su tutti i tuoi dispositivi."
+        desc: "I tuoi dati sincronizzati in modo sicuro su tutti i tuoi dispositivos."
       }
     },
     showcase: {
       title: "Interfaccia Visiva",
-      timers: "Strumenti Attivi",
-      stats: "Analisi Performance",
-      live: "Monitoraggio Live"
+      timers: "Strumenti Activos",
+      stats: "Análisis Performance",
+      live: "Seguimiento Live"
+    },
+    testimonials: {
+      title: "Feedback Operatori",
+      items: [
+        { quote: "L'unico timer alla pari del mio workflow.", author: "Nomade Digitale" },
+        { quote: "Affidabilità industriale per cucina e sport.", author: "Appassionato Tech" },
+        { quote: "L'estetica Obsidian è bellissima.", author: "UI Designer" },
+        { quote: "Finalmente un timer serio.", author: "Chef" },
+        { quote: "Sincronizzazione perfetta.", author: "Ingegnere" },
+        { quote: "Miglior strumento di sempre.", author: "Manager" }
+      ]
+    },
+    faq: {
+      title: "Domande Frequenti",
+      items: [
+        { q: "È gratuito?", a: "Sì, MultiTimer PRO è gratuito. Una versione PRO è disponibile." },
+        { q: "Funziona offline?", a: "Sì. Funziona senza internet e sincronizza appena connesso." },
+        { q: "Dati sicuri?", a: "Criptato e salvato su Google Firebase." },
+        { q: "Timer simultanei?", a: "Avvia tutti gli strumenti necessari contemporaneamente." }
+      ]
     },
     tech: {
       label: "Il Motore",
@@ -257,6 +384,9 @@ export const translations = {
   pt: {
     nav: {
       features: "Recursos",
+      showcase: "Interface",
+      testimonials: "Feedback",
+      faq: "FAQ",
       tech: "Tecnologia",
       download: "Baixar"
     },
@@ -264,7 +394,7 @@ export const translations = {
       version: "Versão do Sistema 1.0.0 Gold",
       title1: "Precisão",
       title2: "Redefinida.",
-      subtitle: "O multi-temporizador de alta precisão para mestres da produtividade. Exatidão atômica para trabalho profundo e treino.",
+      subtitle: "O multi-temporizador de alta precisión para mestres da produttividade. Exatidão atômica para trabalho profundo e treino.",
       cta: "Obtenha no Google Play"
     },
     features: {
@@ -276,26 +406,46 @@ export const translations = {
       },
       precision: {
         title: "Precisão Atômica",
-        desc: "Otimizado para tarefas críticas onde cada segundo conta."
+        desc: "Otimizado para tarefas críticas onde cada secondo conta."
       },
       security: {
         title: "Sincronização Cloud",
-        desc: "Seus dados sincronizados com segurança em todos os seus dispositivos."
+        desc: "Seus datos sincronizados com segurança em todos os seus dispositivos."
       }
     },
     showcase: {
       title: "Interface Visual",
-      timers: "Instrumentos Ativos",
+      timers: "Instrumentos Activos",
       stats: "Análise de Performance",
       live: "Rastreamento ao Vivo"
+    },
+    testimonials: {
+      title: "Feedback Operadores",
+      items: [
+        { quote: "O único timer que acompanha meu workflow.", author: "Nômade Digital" },
+        { quote: "Confiabilidade industrial para cozinha e treino.", author: "Entusiasta Tech" },
+        { quote: "A estética Obsidian è fantástica.", author: "UI Designer" },
+        { quote: "Melhor timer que já usei.", author: "Chef" },
+        { quote: "Sincronización impecable.", author: "Engenheiro" },
+        { quote: "Ferramenta essencial.", author: "Gerente" }
+      ]
+    },
+    faq: {
+      title: "Perguntas Frequentes",
+      items: [
+        { q: "É gratuito?", a: "Sim, o MultiTimer PRO è gratuito. Uma versão PRO está disponível." },
+        { q: "Funciona offline?", a: "Sim. Funciona sem internet e sincroniza ao conectar." },
+        { q: "Dados seguros?", a: "Criptografado e salvo no Google Firebase." },
+        { q: "Vários timers?", a: "Inicie quantos instrumentos desejar simultaneamente." }
+      ]
     },
     tech: {
       label: "O Motor",
       title1: "Arquitetura de",
       title2: "Grau Industrial.",
-      desc: "MultiTimer PRO é um sistema distribuído projetado para lidar com vários instrumentos simultâneos.",
+      desc: "MultiTimer PRO é un sistema distribuído projetado para lidar com vários instrumentos simultâneos.",
       concurrent: "Temporizadores Simultâneos",
-      retention: "Retenção de Dados",
+      retention: "Retenção de Datos",
       presets: "Predefinições Cloud",
       unlimited: "Ilimitado",
       infinite: "Infinito",
