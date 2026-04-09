@@ -166,11 +166,11 @@ export const LandingPage = () => {
           
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="hidden lg:flex items-center gap-8 text-[10px] font-bold uppercase tracking-widest text-[var(--on-surface-variant)]">
-              <a href="#features" className="hover:text-neon-blue transition-colors">{t.nav.features}</a>
               <a href="#showcase" className="hover:text-neon-blue transition-colors">{t.showcase.title}</a>
+              <a href="#features" className="hover:text-neon-blue transition-colors">{t.nav.features}</a>
               <a href="#testimonials" className="hover:text-neon-blue transition-colors">{t.testimonials.title}</a>
-              <a href="#faq" className="hover:text-neon-blue transition-colors">{t.faq.title}</a>
               <a href="#tech" className="hover:text-neon-blue transition-colors">{t.nav.tech}</a>
+              <a href="#faq" className="hover:text-neon-blue transition-colors">{t.faq.title}</a>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-2.5 rounded-xl bg-[var(--surface-variant)] border border-[var(--border-color)] text-[var(--on-surface-variant)] hover:text-neon-blue transition-all active:scale-90">
@@ -250,8 +250,8 @@ export const LandingPage = () => {
                 <div className="flex items-center gap-4 border-t border-[var(--border-color)] pt-6">
                   <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-neon-blue"><User size={20} /></div>
                   <div>
-                    <p className="font-headline font-bold text-xs uppercase tracking-widest text-[var(--text-color)]">{item.author}</p>
-                    <p className="text-[7px] font-black text-neon-blue uppercase tracking-[0.2em] opacity-70">Verified Operator</p>
+                    <p className="font-headline font-bold text-sm uppercase tracking-widest text-[var(--text-color)]">{item.author}</p>
+                    <p className="text-[8px] font-black text-neon-blue uppercase tracking-[0.2em] opacity-70">Verified Operator</p>
                   </div>
                 </div>
               </div>
