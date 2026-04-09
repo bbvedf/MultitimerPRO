@@ -2,6 +2,7 @@ package com.android.multitimerpro.data
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -36,6 +37,13 @@ class TimerViewModel @Inject constructor(
     private val _isDarkMode = MutableStateFlow<Boolean?>(null)
     val isDarkMode: StateFlow<Boolean?> = _isDarkMode.asStateFlow()
 
+    // Snooze Preferences (in minutes)
+    private val _snooze1 = MutableStateFlow(5)
+    val snooze1: StateFlow<Int> = _snooze1.asStateFlow()
+
+    private val _snooze2 = MutableStateFlow(10)
+    val snooze2: StateFlow<Int> = _snooze2.asStateFlow()
+
     // Auth states
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
@@ -57,6 +65,9 @@ class TimerViewModel @Inject constructor(
             syncUserAndData(currentUser.uid, currentUser.email ?: "")
         }
     }
+
+    fun setSnooze1(minutes: Int) { _snooze1.value = minutes }
+    fun setSnooze2(minutes: Int) { _snooze2.value = minutes }
 
     fun toggleTheme(isDark: Boolean) {
         _isDarkMode.value = isDark
@@ -121,7 +132,7 @@ class TimerViewModel @Inject constructor(
         showMessage("Cambios guardados")
     }
 
-    // Resto del código...
+    // Stats calculations
     val totalTimeSpent: StateFlow<Long> = history.map { list ->
         list.sumOf { it.durationMillis }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
@@ -207,7 +218,22 @@ class TimerViewModel @Inject constructor(
         val intent = Intent(context, TimerService::class.java).apply {
             action = TimerService.ACTION_START
         }
-        context.startForegroundService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
+        }
+    }
+
+    fun snoozeTimer(timer: TimerEntity, minutes: Int) = viewModelScope.launch {
+        val additionalMs = minutes * 60 * 1000L
+        val updatedTimer = timer.copy(
+            remainingTime = additionalMs,
+            status = "LIVE"
+        )
+        timerManager.updateTimer(updatedTimer)
+        startService()
+        showMessage("Snooze: +$minutes min")
     }
 
     fun updateTimer(timer: TimerEntity) = viewModelScope.launch {

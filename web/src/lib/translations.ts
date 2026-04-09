@@ -63,6 +63,7 @@ export const translations = {
       subtitle: "Industrial Grade Support",
       items: [
         { q: "Is it really free?", a: "Absolutely. MultiTimer PRO is completely free to download and use for essential timing. We offer a PRO tier for power users who want advanced analytics, unlimited cloud sync, and exclusive obsidian themes." },
+        { q: "What permissions are required?", a: "Minimal and transparent. We only ask for essential permissions like notifications to alert you when timers finish. Privacy is our core principle; we never request unnecessary access to your personal data." },
         { q: "Does it work offline?", a: "Yes. The core engine works without internet. Cloud sync automatically kicks in once you're back online." },
         { q: "Is my data secure?", a: "All logs are encrypted and stored using Google Firebase enterprise-grade infrastructure." },
         { q: "Multiple timers at once?", a: "Initialize as many concurrent instruments as your performance requires." }
@@ -152,6 +153,7 @@ export const translations = {
       subtitle: "Soporte de Grado Industrial",
       items: [
         { q: "¿Es realmente gratis?", a: "Totalmente. MultiTimer PRO es completamente gratuito para descargar y usar en su núcleo esencial. Ofrecemos un nivel PRO para operadores de alto rendimiento que requieran analíticas avanzadas, sincronización ilimitada y temas Obsidian exclusivos." },
+        { q: "¿Qué permisos son necesarios?", a: "Mínimos y transparentes. Solo solicitamos permisos esenciales como notificaciones para avisarte cuando terminen tus temporizadores. La privacidad es nuestro principio fundamental; nunca solicitamos accesos innecesarios a tus datos personales." },
         { q: "¿Funciona sin conexión?", a: "Sí. El motor principal funciona sin internet. La sincronización cloud se activa al recuperar la conexión." },
         { q: "¿Mis datos están seguros?", a: "Toda la información se cifra y almacena en la infraestructura de grado empresarial de Google Firebase." },
         { q: "¿Varios timers a la vez?", a: "Inicializa tantos instrumentos concurrentes como tu rendimiento exija." }
@@ -183,7 +185,7 @@ export const translations = {
     features: { title: "Élite", subtitle: "Instruments Pro.", stitch: { title: "Obsidian", desc: "Clarté maximale." }, precision: { title: "Précision", desc: "Stable." }, security: { title: "Cloud", desc: "Synchronisé." } },
     showcase: { title: "Interface", subtitle: "Terminal de l'Opérateur" },
     testimonials: { title: "Feedback", subtitle: "Approuvé", role: "Opérateur Vérifié", items: [{ quote: "Génial.", author: "Nomade" }, { quote: "Fiable.", author: "Tech" }, { quote: "Magnifique.", author: "Designer" }] },
-    faq: { title: "FAQ", subtitle: "Support Industriel", items: [{ q: "Gratuit ?", a: "Oui." }, { q: "Hors ligne ?", a: "Oui." }] },
+    faq: { title: "FAQ", subtitle: "Support Industriel", items: [{ q: "Gratuit ?", a: "Oui, MultiTimer PRO est gratuit." }, { q: "Permissions ?", a: "Uniquement le nécessaire pour les notifications." }, { q: "Hors ligne ?", a: "Oui." }] },
     tech: { label: "Moteur", title1: "Architecture", title2: "Industrielle.", subtitle: "Noyau de Précision", status: "État Système", operational: "Opérationnel", module: "Module", desc: "Système distribué." },
     footer: { rights: "© 2026 MultiTimer Systems." }
   },
@@ -193,7 +195,7 @@ export const translations = {
     features: { title: "Elite", subtitle: "Pro-Instrumente.", stitch: { title: "Obsidian", desc: "Maximale Klarheit." }, precision: { title: "Präzision", desc: "Stabil." }, security: { title: "Cloud", desc: "Synchronisiert." } },
     showcase: { title: "Interface", subtitle: "Operator-Terminal" },
     testimonials: { title: "Feedback", subtitle: "Vertraut", role: "Verifizierter Operator", items: [{ quote: "Der Hammer.", author: "Nomade" }, { quote: "Industriequalität.", author: "Enthusiast" }, { quote: "Design top.", author: "Designer" }] },
-    faq: { title: "Fragen", subtitle: "Industrieller Support", items: [{ q: "Kostenlos ?", a: "Ja." }, { q: "Offline ?", a: "Ja." }] },
+    faq: { title: "Fragen", subtitle: "Industrieller Support", items: [{ q: "Kostenlos ?", a: "Ja, MultiTimer PRO ist kostenlos." }, { q: "Berechtigungen ?", a: "Nur für Benachrichtigungen erforderlich." }, { q: "Offline ?", a: "Ja." }] },
     tech: { label: "Motor", title1: "Industrielle", title2: "Architektur.", subtitle: "Präzisionskern", status: "Systemstatus", operational: "Operativ", module: "Modul", desc: "Hochpräzises System." },
     footer: { rights: "© 2026 MultiTimer Systems." }
   },
@@ -201,9 +203,9 @@ export const translations = {
     nav: { features: "Funzioni", showcase: "Interfaccia", testimonials: "Feedback", faq: "FAQ", tech: "Tech", download: "Scarica" },
     hero: { tagline: "Terminale Operatore", version: "Versione 1.0.0 Gold", title1: "Precisione", title2: "Ridefinita.", subtitle: "Multi-timer alta precisione.", cta: "Google Play" },
     features: { title: "Elite", subtitle: "Strumenti Pro.", stitch: { title: "Obsidian", desc: "Massima chiarezza." }, precision: { title: "Precisione", desc: "Stabile." }, security: { title: "Cloud", desc: "Sincronizzato." } },
-    showcase: { title: "Interfaccia", subtitle: "Terminale dell'Operatore" },
-    testimonials: { title: "Feedback", subtitle: "Approvato", role: "Operatore Verificato", items: [{ quote: "Unico.", author: "Nomade" }, { quote: "Affidabile.", author: "Tech" }, { quote: "Bellissimo.", author: "Designer" }] },
-    faq: { title: "FAQ", subtitle: "Supporto Industriale", items: [{ q: "Gratis ?", a: "Sì." }, { q: "Offline ?", a: "Sì." }] },
+    showcase: { title: "Interface", subtitle: "Terminale dell'Operatore" },
+    testimonials: { title: "Feedback", subtitle: "Approuvato", role: "Operatore Verificato", items: [{ quote: "Unico.", author: "Nomade" }, { quote: "Affidabile.", author: "Tech" }, { quote: "Bellissimo.", author: "Designer" }] },
+    faq: { title: "FAQ", subtitle: "Supporto Industriale", items: [{ q: "Gratis ?", a: "Sì, MultiTimer PRO è gratuito." }, { q: "Permessi ?", a: "Solo per le notifiche." }, { q: "Offline ?", a: "Sì." }] },
     tech: { label: "Motore", title1: "Architecture", title2: "Industriale.", subtitle: "Nucleo di Precisione", status: "Stato Sistema", operational: "Operativo", module: "Modulo", desc: "Sistema distribuito." },
     footer: { rights: "© 2026 MultiTimer Systems." }
   },
@@ -213,7 +215,7 @@ export const translations = {
     features: { title: "Elite", subtitle: "Instrumentos Pro.", stitch: { title: "Obsidian", desc: "Clareza máxima." }, precision: { title: "Precisão", desc: "Estável." }, security: { title: "Cloud", desc: "Sincronizado." } },
     showcase: { title: "Interface", subtitle: "Terminal do Operador" },
     testimonials: { title: "Feedback", subtitle: "Avaliado", role: "Operador Verificado", items: [{ quote: "Excelente.", author: "Nômade" }, { quote: "Confiável.", author: "Tech" }, { quote: "Fantástico.", author: "Designer" }] },
-    faq: { title: "FAQ", subtitle: "Suporte Industrial", items: [{ q: "Grátis ?", a: "Sim." }, { q: "Offline ?", a: "Sim." }] },
+    faq: { title: "FAQ", subtitle: "Suporte Industrial", items: [{ q: "Grátis ?", a: "Sim, MultiTimer PRO é gratuito." }, { q: "Permissões ?", a: "Apenas para notificações." }, { q: "Offline ?", a: "Sim." }] },
     tech: { label: "Motor", title1: "Arquitectura", title2: "Industrial.", subtitle: "Núcleo de Precisão", status: "Estado do Sistema", operational: "Operacional", module: "Módulo", desc: "Sistema distribuído." },
     footer: { rights: "© 2026 MultiTimer Systems." }
   }

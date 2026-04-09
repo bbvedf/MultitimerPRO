@@ -3,18 +3,21 @@ package com.android.multitimerpro.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Snooze
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.multitimerpro.data.TimerViewModel
@@ -31,6 +34,8 @@ fun SettingsScreen(
     val user = auth.currentUser
     var showLogoutDialog by remember { mutableStateOf(false) }
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
+    val snooze1 by viewModel.snooze1.collectAsState()
+    val snooze2 by viewModel.snooze2.collectAsState()
 
     if (showLogoutDialog) {
         LogoutConfirmationDialog(
@@ -124,7 +129,7 @@ fun SettingsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Theme Section
         Text(
@@ -134,7 +139,7 @@ fun SettingsScreen(
             fontSize = 10.sp
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -173,7 +178,46 @@ fun SettingsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Snooze Section
+        Text(
+            text = "CONFIGURACIÓN DE SNOOZE (MIN)",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 10.sp
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Snooze, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Snooze 1", color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    SnoozeInput(value = snooze1.toString(), onValueChange = { viewModel.setSnooze1(it.toIntOrNull() ?: 0) })
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Snooze, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text("Snooze 2", color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    SnoozeInput(value = snooze2.toString(), onValueChange = { viewModel.setSnooze2(it.toIntOrNull() ?: 0) })
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Actions
         Text(
@@ -216,4 +260,20 @@ fun SettingsScreen(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
     }
+}
+
+@Composable
+fun SnoozeInput(value: String, onValueChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.width(80.dp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true,
+        textStyle = LocalTextStyle.current.copy(textAlign = androidx.compose.ui.text.style.TextAlign.Center),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        )
+    )
 }

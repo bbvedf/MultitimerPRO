@@ -1,9 +1,13 @@
 package com.android.multitimerpro.data
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.util.Log
+import com.android.multitimerpro.service.TimerService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
@@ -15,7 +19,8 @@ import java.util.UUID
 class TimerManager @Inject constructor(
     private val repository: TimerRepository,
     private val historyRepository: HistoryRepository,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    @ApplicationContext private val context: Context
 ) {
     private val TAG = "MT_DEBUG"
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -24,6 +29,10 @@ class TimerManager @Inject constructor(
 
     private val _timers = MutableStateFlow<List<TimerEntity>>(emptyList())
     val timers: StateFlow<List<TimerEntity>> = _timers.asStateFlow()
+
+    // Snooze preferences maintained here for service access
+    var snooze1Min: Int = 5
+    var snooze2Min: Int = 10
 
     init {
         serviceScope.launch {
@@ -162,6 +171,16 @@ class TimerManager @Inject constructor(
             try {
                 val finishedTimer = timer.copy(remainingTime = 0, status = "FINISHED")
                 repository.update(finishedTimer)
+                
+                // Trigger notification in service with snooze durations
+                val intent = Intent(context, TimerService::class.java).apply {
+                    action = TimerService.ACTION_FINISH_NOTIFY
+                    putExtra(TimerService.EXTRA_TIMER_NAME, timer.name)
+                    putExtra(TimerService.EXTRA_TIMER_ID, timer.id)
+                    putExtra(TimerService.EXTRA_SNOOZE_1, snooze1Min)
+                    putExtra(TimerService.EXTRA_SNOOZE_2, snooze2Min)
+                }
+                context.startService(intent)
                 
                 val currentUid = auth.currentUser?.uid ?: timer.uid
                 Log.d(TAG, "[FINALIZADO] ${timer.name}. Guardando historial para UID: $currentUid")

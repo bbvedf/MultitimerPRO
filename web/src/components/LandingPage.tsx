@@ -160,7 +160,7 @@ export const LandingPage = () => {
               <span className="font-headline font-bold text-lg tracking-tighter uppercase leading-none group-hover:text-neon-blue transition-colors">
                 MultiTimer <span className="font-black">PRO</span>
               </span>
-              <span className="text-[8px] font-black text-neon-blue tracking-[0.3em] uppercase opacity-70">Operator Terminal</span>
+              <span className="text-[8px] font-black text-neon-blue tracking-[0.3em] uppercase opacity-70">{t.hero.tagline}</span>
             </div>
           </button>
           
@@ -251,7 +251,7 @@ export const LandingPage = () => {
                   <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-neon-blue"><User size={20} /></div>
                   <div>
                     <p className="font-headline font-bold text-sm uppercase tracking-widest text-[var(--text-color)]">{item.author}</p>
-                    <p className="text-[8px] font-black text-neon-blue uppercase tracking-[0.2em] opacity-70">Verified Operator</p>
+                    <p className="text-[8px] font-black text-neon-blue uppercase tracking-[0.2em] opacity-70">{t.testimonials.role}</p>
                   </div>
                 </div>
               </div>
@@ -268,6 +268,8 @@ export const LandingPage = () => {
             <h2 className="font-headline text-5xl md:text-7xl font-black uppercase leading-[0.9] tracking-tighter text-[var(--text-color)]">
               {t.tech.title1} <br /> <span className="text-[var(--on-surface-variant)]">{t.tech.title2}</span>
             </h2>
+            <div className="h-1 w-24 bg-neon-blue mb-6" />
+            <p className="text-[var(--on-surface-variant)] uppercase tracking-widest text-xs font-bold">{t.tech.subtitle}</p>
             <p className="text-[var(--on-surface-variant)] text-lg leading-relaxed">{t.tech.desc}</p>
             <div className="space-y-6">
               {[
@@ -289,15 +291,15 @@ export const LandingPage = () => {
             <div className="relative z-10 bg-[var(--surface-dark)] border border-[var(--border-color)] p-10 rounded-[40px] shadow-2xl">
               <div className="flex justify-between items-center mb-12">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-[var(--on-surface-variant)] uppercase tracking-widest">System Status</p>
-                  <h4 className="font-headline text-2xl font-bold uppercase text-[var(--text-color)]">Operational</h4>
+                  <p className="text-[10px] font-bold text-[var(--on-surface-variant)] uppercase tracking-widest">{t.tech.status}</p>
+                  <h4 className="font-headline text-2xl font-bold uppercase text-[var(--text-color)]">{t.tech.operational}</h4>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-neon-green/10 flex items-center justify-center"><Zap className="text-neon-green" size={24} /></div>
               </div>
               <div className="space-y-8">
                 {[75, 45, 90].map((val, i) => (
                   <div key={i} className="space-y-2">
-                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[var(--on-surface-variant)]"><span>Module {i + 1}</span><span>{val}%</span></div>
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[var(--on-surface-variant)]"><span>{t.tech.module} {i + 1}</span><span>{val}%</span></div>
                     <div className="h-2 bg-[var(--surface-variant)] rounded-full overflow-hidden">
                       <motion.div initial={{ width: 0 }} whileInView={{ width: `${val}%` }} className="h-full bg-neon-blue shadow-[0_0_10px_#69DAFF]" />
                     </div>
