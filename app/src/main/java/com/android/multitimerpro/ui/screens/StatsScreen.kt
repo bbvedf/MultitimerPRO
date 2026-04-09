@@ -31,7 +31,6 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
     val totalTimeSpent by viewModel.totalTimeSpent.collectAsState()
     val history by viewModel.history.collectAsState()
 
-    // Transform Map to List for the chart
     val categories = statsByCategory.map { (name, time) ->
         val percentage = if (totalTimeSpent > 0) time.toFloat() / totalTimeSpent else 0f
         CategoryStat(name, percentage, false)
@@ -46,27 +45,26 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
     ) {
         item { Spacer(modifier = Modifier.height(64.dp)) }
 
-        // Editorial Header
+        // Editorial Header - AJUSTADO TAMAÑO
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = "DASHBOARD DE PRECISIÓN",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 3.sp,
+                    letterSpacing = 2.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Estadísticas\nGlobales.",
-                    style = MaterialTheme.typography.displayLarge,
+                    text = "Estadísticas Globales",
+                    style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onBackground,
-                    lineHeight = 56.sp
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Análisis profundo de su rendimiento temporal acumulado en la nube.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp)
+                    text = "Análisis profundo de su rendimiento acumulado.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

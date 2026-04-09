@@ -30,7 +30,6 @@ class TimerManager @Inject constructor(
     private val _timers = MutableStateFlow<List<TimerEntity>>(emptyList())
     val timers: StateFlow<List<TimerEntity>> = _timers.asStateFlow()
 
-    // Snooze preferences maintained here for service access
     var snooze1Min: Int = 5
     var snooze2Min: Int = 10
 
@@ -76,9 +75,7 @@ class TimerManager @Inject constructor(
     fun syncFromCloud(uid: String) {
         serviceScope.launch {
             try {
-                Log.d(TAG, "Iniciando descarga de timers desde Firestore para $uid")
                 val snapshot = firestore.collection("users").document(uid).collection("timers").get().await()
-                Log.d(TAG, "Firestore devolvió ${snapshot.size()} timers")
                 snapshot.documents.forEach { doc ->
                     val timer = TimerEntity(
                         id = doc.getString("id") ?: doc.id,
@@ -86,7 +83,7 @@ class TimerManager @Inject constructor(
                         description = doc.getString("description") ?: "",
                         duration = doc.getLong("duration") ?: 0L,
                         remainingTime = doc.getLong("remainingTime") ?: 0L,
-                        status = doc.getString("status") ?: "PAUSED",
+                        status = doc.getString("status") ?: "READY",
                         color = doc.getLong("color")?.toInt() ?: Color.BLUE,
                         category = doc.getString("category") ?: "ENFOQUE",
                         intervalsJson = doc.getString("intervalsJson") ?: "[]",
@@ -104,16 +101,14 @@ class TimerManager @Inject constructor(
     fun syncHistoryFromCloud(uid: String) {
         serviceScope.launch {
             try {
-                Log.d(TAG, "Iniciando descarga de historial desde Firestore para $uid")
                 val snapshot = firestore.collection("users").document(uid).collection("history").get().await()
-                Log.d(TAG, "Firestore devolvió ${snapshot.size()} entradas de historial")
                 snapshot.documents.forEach { doc ->
                     val history = HistoryEntity(
                         id = doc.getString("id") ?: doc.id,
                         timerName = doc.getString("timerName") ?: "",
                         category = doc.getString("category") ?: "",
-                        durationMillis = doc.getLong("durationMillis") ?: 0L,
-                        completedAt = doc.getLong("completedAt") ?: System.currentTimeMillis(),
+                        durationMillis = doc.getLong("duration") ?: 0L,
+                        completedAt = doc.getLong("endTime") ?: System.currentTimeMillis(),
                         uid = doc.getString("uid") ?: uid,
                         color = doc.getLong("color")?.toInt() ?: Color.BLUE,
                         notes = doc.getString("notes") ?: ""
@@ -172,7 +167,6 @@ class TimerManager @Inject constructor(
                 val finishedTimer = timer.copy(remainingTime = 0, status = "FINISHED")
                 repository.update(finishedTimer)
                 
-                // Trigger notification in service with snooze durations
                 val intent = Intent(context, TimerService::class.java).apply {
                     action = TimerService.ACTION_FINISH_NOTIFY
                     putExtra(TimerService.EXTRA_TIMER_NAME, timer.name)
@@ -183,7 +177,7 @@ class TimerManager @Inject constructor(
                 context.startService(intent)
                 
                 val currentUid = auth.currentUser?.uid ?: timer.uid
-                Log.d(TAG, "[FINALIZADO] ${timer.name}. Guardando historial para UID: $currentUid")
+                Log.d(TAG, "[FINALIZADO] ${timer.name}. Guardando historial.")
                 
                 val historyEntry = HistoryEntity(
                     timerName = timer.name,
@@ -211,19 +205,17 @@ class TimerManager @Inject constructor(
             name = name,
             duration = durationMs,
             remainingTime = durationMs,
-            status = "PAUSED",
+            status = "READY",
             color = color,
             category = category,
             description = description,
             uid = currentUid
         )
         repository.insert(newTimer)
-        Log.d(TAG, "Timer CREADO: ${name}. UID asignado: $currentUid")
     }
 
     suspend fun toggleTimer(timer: TimerEntity) {
         val newStatus = if (timer.status == "LIVE") "PAUSED" else "LIVE"
-        Log.d(TAG, "Timer ${timer.name} cambiado a $newStatus")
         repository.update(timer.copy(status = newStatus))
     }
 
@@ -236,6 +228,6 @@ class TimerManager @Inject constructor(
     }
 
     suspend fun resetTimer(timer: TimerEntity) {
-        repository.update(timer.copy(remainingTime = timer.duration, status = "PAUSED"))
+        repository.update(timer.copy(remainingTime = timer.duration, status = "READY"))
     }
 }

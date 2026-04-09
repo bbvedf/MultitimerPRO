@@ -58,27 +58,26 @@ fun HistoryScreen(
     ) {
         item { Spacer(modifier = Modifier.height(64.dp)) }
 
-        // Editorial Header
+        // Editorial Header - UNIFICADO CON STATS
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = "Historial de",
-                    style = MaterialTheme.typography.displayLarge,
+                    text = "HISTORIAL DE ACTIVIDAD",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    letterSpacing = 2.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Historial de Sesiones",
+                    style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Sesiones",
-                    style = MaterialTheme.typography.displayLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                )
-                Text(
-                    text = "Un registro detallado de cada segundo optimizado. Tu rendimiento, fragmentado en intervalos de precisión absoluta.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp)
+                    text = "Un registro detallado de cada instrumento completado.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -243,8 +242,8 @@ private fun formatMillisToTime(millis: Long): String {
 }
 
 private fun formatMillisToTimeShort(millis: Long): String {
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+    val minutes = millis / 60000
+    val seconds = (millis % 60000) / 1000
     return if (minutes > 0) {
         String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
     } else {
