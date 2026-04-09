@@ -208,7 +208,7 @@ export const LandingPage = () => {
           <div className="text-center mb-24">
             <h2 className="font-headline text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6 text-[var(--text-color)]">{t.showcase.title}</h2>
             <div className="h-1 w-24 bg-neon-blue mx-auto mb-6" />
-            <p className="text-[var(--on-surface-variant)] uppercase tracking-[0.2em] text-xs font-bold">The Operator's Terminal</p>
+            <p className="text-[var(--on-surface-variant)] uppercase tracking-[0.2em] text-xs font-bold">{t.showcase.subtitle}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
             <ShowcaseItem title={t.showcase.timers} img={theme === 'dark' ? "/input_file_3.png" : "/input_file_3_light.png"} color="#69DAFF" theme={theme} />
@@ -239,7 +239,7 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 mb-16 text-center">
           <h2 className="font-headline text-4xl md:text-5xl font-black uppercase tracking-tighter text-[var(--text-color)] mb-6">{t.testimonials.title}</h2>
           <div className="h-1 w-24 bg-neon-blue mx-auto mb-6" />
-          <p className="text-[var(--on-surface-variant)] uppercase tracking-widest text-xs font-bold">Trusted by Performance Experts</p>
+          <p className="text-[var(--on-surface-variant)] uppercase tracking-widest text-xs font-bold">{t.testimonials.subtitle}</p>
         </div>
         <div className="relative flex">
           <motion.div animate={{ x: ["0%", "-50%"] }} transition={{ duration: 40, ease: "linear", repeat: Infinity }} className="flex gap-8 px-4">
@@ -316,7 +316,7 @@ export const LandingPage = () => {
           <div className="text-center mb-20 space-y-4">
             <h2 className="font-headline text-4xl md:text-5xl font-black uppercase tracking-tighter text-[var(--text-color)] mb-6">{t.faq.title}</h2>
             <div className="h-1 w-24 bg-neon-blue mx-auto mb-6" />
-            <p className="text-[var(--on-surface-variant)] uppercase tracking-widest text-xs font-bold">Industrial Grade Support</p>
+            <p className="text-[var(--on-surface-variant)] uppercase tracking-widest text-xs font-bold">{t.faq.subtitle}</p>
           </div>
           <div className="bg-[var(--surface-dark)] p-8 md:p-12 rounded-[40px] border border-[var(--border-color)] shadow-2xl">
             {t.faq.items.map((item, i) => (
