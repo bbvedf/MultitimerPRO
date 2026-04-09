@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: "Space Grotesk", sans-serif;
+  
+  --color-neon-blue: #69DAFF;
+  --color-neon-green: #2FF801;
+  --color-neon-purple: #89A5FF;
+}
+
+@layer base {
+  :root {
+    --deep-black: #000000;
+    --surface-dark: #131313;
+    --surface-variant: #1A1919;
+    --surface-high: #201F1F;
+    --on-surface-variant: #ADAAAA;
+    --text-color: #FFFFFF;
+    --bg-color: #000000;
+    --border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  :root.light {
+    --deep-black: #FEFEFE;
+    --surface-dark: #FFFFFF;
+    --surface-variant: #EBEBEB;
+    --surface-high: #E0E0E0;
+    --on-surface-variant: #666666;
+    --text-color: #1A1A1A;
+    --bg-color: #FEFEFE;
+    --border-color: rgba(0, 0, 0, 0.05);
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+.neon-glow-blue {
+  box-shadow: 0 0 15px rgba(105, 218, 255, 0.4);
+}
+
+.neon-glow-green {
+  box-shadow: 0 0 15px rgba(47, 248, 1, 0.4);
+}
+
+.glass-panel {
+  background-color: var(--surface-variant);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+}

@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user identification and preferences.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoUrl": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "number", "description": "Timestamp in ms" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Timer": {
+      "title": "Timer Instrument",
+      "description": "A timer configuration and its current state.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "duration": { "type": "number" },
+        "remainingTime": { "type": "number" },
+        "status": { "type": "string", "enum": ["LIVE", "READY", "PAUSED", "FINISHED"] },
+        "color": { "type": "number" },
+        "category": { "type": "string" },
+        "intervalsJson": { "type": "string" },
+        "uid": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "duration", "remainingTime", "status", "color", "category", "uid", "createdAt"]
+    },
+    "HistorySession": {
+      "title": "History Session",
+      "description": "A completed timer session record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timerId": { "type": "string" },
+        "timerName": { "type": "string" },
+        "startTime": { "type": "number" },
+        "endTime": { "type": "number" },
+        "duration": { "type": "number" },
+        "intervalsJson": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["timerName", "startTime", "endTime", "duration", "uid"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User profile document."
+    },
+    "/users/{userId}/timers/{timerId}": {
+      "schema": { "$ref": "Timer" },
+      "description": "User's timers."
+    },
+    "/users/{userId}/history/{historyId}": {
+      "schema": { "$ref": "HistorySession" },
+      "description": "User's session history."
+    }
+  }
+}
