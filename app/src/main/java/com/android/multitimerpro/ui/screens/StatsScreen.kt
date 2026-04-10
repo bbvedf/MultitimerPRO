@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.theme.*
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @Composable
@@ -45,7 +46,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
     ) {
         item { Spacer(modifier = Modifier.height(64.dp)) }
 
-        // Editorial Header - AJUSTADO TAMAÑO
+        // Editorial Header
         item {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
@@ -57,7 +58,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                 )
                 Text(
                     text = "Estadísticas Globales",
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineMedium, // REDUCIDO de Large a Medium
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
@@ -85,8 +86,8 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                     Column {
                         Text("TIEMPO TOTAL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
-                            text = formatMillisToHours(totalTimeSpent),
-                            style = MaterialTheme.typography.headlineLarge,
+                            text = formatMillisToTime(totalTimeSpent), // UNIFICADO A HH:MM:SS
+                            style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
@@ -95,7 +96,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                         Text("SESIONES", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             text = "${history.size}",
-                            style = MaterialTheme.typography.headlineLarge,
+                            style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold
                         )
@@ -226,10 +227,11 @@ private fun Modifier.drawBehindLeftBorder(color: Color) = this.drawBehind {
     )
 }
 
-private fun formatMillisToHours(millis: Long): String {
+private fun formatMillisToTime(millis: Long): String {
     val hours = TimeUnit.MILLISECONDS.toHours(millis)
-    val minutes = (TimeUnit.MILLISECONDS.toMinutes(millis) % 60)
-    return "${hours}h ${minutes}m"
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+    return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
 }
 
 data class CategoryStat(val name: String, val percentage: Float, val isActive: Boolean)

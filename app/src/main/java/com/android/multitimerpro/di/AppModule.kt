@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.android.multitimerpro.data.AppDatabase
 import com.android.multitimerpro.data.TimerDao
 import com.android.multitimerpro.data.HistoryDao
+import com.android.multitimerpro.data.PresetDao
 import com.android.multitimerpro.data.GoogleAuthClient
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -52,5 +53,10 @@ object AppModule {
     @Provides
     fun provideHistoryDao(db: AppDatabase): HistoryDao {
         return db.historyDao()
+    }
+
+    @Provides
+    fun providePresetDao(db: AppDatabase): PresetDao {
+        return db.presetDao()
     }
 }

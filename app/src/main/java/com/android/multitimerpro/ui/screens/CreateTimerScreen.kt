@@ -1,5 +1,6 @@
 package com.android.multitimerpro.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -227,43 +228,72 @@ fun CreateTimerScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Save Button
-        Button(
-            onClick = {
-                val h = hours.toLongOrNull() ?: 0L
-                val m = minutes.toLongOrNull() ?: 0L
-                val s = seconds.toLongOrNull() ?: 0L
-                val totalMs = (h * 3600 + m * 60 + s) * 1000
-                if (name.isNotBlank() && totalMs > 0) {
-                    if (existingTimer != null) {
-                        viewModel.updateTimer(
-                            existingTimer.copy(
-                                name = name,
-                                duration = totalMs,
-                                remainingTime = totalMs,
-                                color = selectedColor.toArgb(),
-                                category = selectedCategory,
-                                description = description
+        // Action Buttons
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(
+                onClick = {
+                    val h = hours.toLongOrNull() ?: 0L
+                    val m = minutes.toLongOrNull() ?: 0L
+                    val s = seconds.toLongOrNull() ?: 0L
+                    val totalMs = (h * 3600 + m * 60 + s) * 1000
+                    if (name.isNotBlank() && totalMs > 0) {
+                        if (existingTimer != null) {
+                            viewModel.updateTimer(
+                                existingTimer.copy(
+                                    name = name,
+                                    duration = totalMs,
+                                    remainingTime = totalMs,
+                                    color = selectedColor.toArgb(),
+                                    category = selectedCategory,
+                                    description = description
+                                )
                             )
-                        )
-                    } else {
-                        viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
+                        } else {
+                            viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
+                        }
+                        onBack()
                     }
-                    onBack()
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = if (timerId == null) "CREAR TEMPORIZADOR" else "GUARDAR CAMBIOS",
-                color = if (isDark) DeepBlack else Color.White,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(
+                    text = if (timerId == null) "CREAR TEMPORIZADOR" else "GUARDAR CAMBIOS",
+                    color = if (isDark) DeepBlack else Color.White,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+            }
+
+            // AHORA VISIBLE SIEMPRE (Creación y Edición)
+            OutlinedButton(
+                onClick = {
+                    val h = hours.toLongOrNull() ?: 0L
+                    val m = minutes.toLongOrNull() ?: 0L
+                    val s = seconds.toLongOrNull() ?: 0L
+                    val totalMs = (h * 3600 + m * 60 + s) * 1000
+                    if (name.isNotBlank() && totalMs > 0) {
+                        viewModel.saveAsPreset(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
+                    } else {
+                        viewModel.showMessage("Nombre y duración requeridos")
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+            ) {
+                Text(
+                    text = "GUARDAR COMO PRESET",
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+            }
         }
     }
 }

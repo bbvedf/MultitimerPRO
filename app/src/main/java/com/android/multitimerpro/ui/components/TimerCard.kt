@@ -78,17 +78,15 @@ fun TimerCard(
                         val minutes = (timer.remainingTime % 3600000) / 60000
                         val seconds = (timer.remainingTime % 60000) / 1000
                         
-                        val timeStr = if (hours > 0) {
-                            String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
-                        } else {
-                            String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-                        }
+                        // UNIFICADO SIEMPRE A HH:MM:SS
+                        val timeStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
                         
                         Text(
                             text = timeStr, 
-                            style = if (hours > 0) MaterialTheme.typography.displaySmall else MaterialTheme.typography.displayMedium, 
+                            style = MaterialTheme.typography.displaySmall, // Forzado a displaySmall para que HH:MM:SS quepa siempre
                             color = MaterialTheme.colorScheme.onSurface, 
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 32.sp // Ajuste fino de tamaño
                         )
                     }
                     LinearProgressIndicator(

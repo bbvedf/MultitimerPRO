@@ -174,18 +174,15 @@ fun LiveTimerScreen(
                     val minutes = (timer.remainingTime % 3600000) / 60000
                     val seconds = (timer.remainingTime % 60000) / 1000
                     
-                    val timeStr = if (hours > 0) {
-                        String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
-                    } else {
-                        String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-                    }
+                    // UNIFICADO A HH:MM:SS
+                    val timeStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
 
                     Text(
                         text = timeStr,
                         style = MaterialTheme.typography.displayLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
-                        fontSize = if (hours > 0) 64.sp else 80.sp
+                        fontSize = 54.sp // Adjusted for HH:MM:SS
                     )
                     Text(
                         text = timer.status,
@@ -230,11 +227,8 @@ fun LiveTimerScreen(
                     val metaMinutes = (timer.duration % 3600000) / 60000
                     val metaSeconds = (timer.duration % 60000) / 1000
                     
-                    val metaStr = if (metaHours > 0) {
-                        String.format(Locale.getDefault(), "%02d:%02d:%02d", metaHours, metaMinutes, metaSeconds)
-                    } else {
-                        String.format(Locale.getDefault(), "%02d:%02d", metaMinutes, metaSeconds)
-                    }
+                    // UNIFICADO A HH:MM:SS
+                    val metaStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", metaHours, metaMinutes, metaSeconds)
 
                     Text(
                         text = metaStr, 

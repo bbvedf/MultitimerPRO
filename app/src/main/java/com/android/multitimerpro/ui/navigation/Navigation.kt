@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import com.android.multitimerpro.data.TimerViewModel
@@ -154,7 +155,14 @@ fun MainNavigation(
                     }
                 )
             }
-            composable(Screen.Presets.route) { PresetsScreen() }
+            composable(Screen.Presets.route) { 
+                PresetsScreen(
+                    viewModel = viewModel,
+                    onNavigateToCreate = {
+                        navController.navigate(Screen.CreateTimer.createRoute())
+                    }
+                ) 
+            }
             composable(Screen.Stats.route) { StatsScreen(viewModel) }
             composable(Screen.History.route) { 
                 HistoryScreen(

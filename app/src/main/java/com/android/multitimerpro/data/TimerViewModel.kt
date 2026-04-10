@@ -21,6 +21,7 @@ import javax.inject.Inject
 class TimerViewModel @Inject constructor(
     private val timerManager: TimerManager,
     private val historyRepository: HistoryRepository,
+    private val presetRepository: PresetRepository,
     private val googleAuthClient: GoogleAuthClient,
     private val firestore: FirebaseFirestore,
     @ApplicationContext private val context: Context
@@ -31,6 +32,9 @@ class TimerViewModel @Inject constructor(
     
     val history: StateFlow<List<HistoryEntity>> = historyRepository.allHistory
         .onEach { list -> Log.d(TAG, "History flow emitted ${list.size} items") }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val allPresets: StateFlow<List<PresetEntity>> = presetRepository.allPresets
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Theme state: null means follow system, true/false for forced dark/light
@@ -267,5 +271,35 @@ class TimerViewModel @Inject constructor(
         val newIntervalsJson = "[\"${currentIntervals.joinToString("\", \"")}\"]"
 
         timerManager.updateTimer(timer.copy(intervalsJson = newIntervalsJson))
+    }
+
+    // Preset management
+    fun saveAsPreset(name: String, duration: Long, color: Int, category: String, description: String = "") = viewModelScope.launch {
+        val preset = PresetEntity(
+            name = name,
+            durationMillis = duration,
+            color = color,
+            category = category,
+            description = description,
+            uid = auth.currentUser?.uid ?: ""
+        )
+        presetRepository.insert(preset)
+        showMessage("Preset guardado")
+    }
+
+    fun deletePreset(preset: PresetEntity) = viewModelScope.launch {
+        presetRepository.delete(preset)
+        showMessage("Preset eliminado")
+    }
+
+    fun startTimerFromPreset(preset: PresetEntity) = viewModelScope.launch {
+        timerManager.addTimer(
+            preset.name,
+            preset.durationMillis,
+            preset.color,
+            preset.category,
+            preset.description
+        )
+        showMessage("Temporizador añadido")
     }
 }

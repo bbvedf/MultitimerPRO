@@ -2,182 +2,202 @@ package com.android.multitimerpro.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Coffee
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.multitimerpro.data.PresetEntity
+import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.ui.components.DeletePresetConfirmationDialog
 import com.android.multitimerpro.ui.theme.*
+import java.util.Locale
 
 @Composable
-fun PresetsScreen() {
+fun PresetsScreen(
+    viewModel: TimerViewModel,
+    onNavigateToCreate: () -> Unit
+) {
+    val presets by viewModel.allPresets.collectAsState()
+    val isDark = MaterialTheme.colorScheme.background == DeepBlack
+    var presetToDelete by remember { mutableStateOf<PresetEntity?>(null) }
+
+    if (presetToDelete != null) {
+        DeletePresetConfirmationDialog(
+            presetName = presetToDelete!!.name,
+            onConfirm = {
+                viewModel.deletePreset(presetToDelete!!)
+                presetToDelete = null
+            },
+            onDismiss = { presetToDelete = null }
+        )
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
             Spacer(modifier = Modifier.height(64.dp))
-            Text(
-                text = "Presets\nGuardados",
-                style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 56.sp
-            )
+            
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "PLANTILLAS RÁPIDAS",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    letterSpacing = 2.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Presets Guardados",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Main Featured Preset
-            FeaturedPresetCard()
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Grid of smaller presets
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                SmallPresetCard(
-                    title = "Quick Workout",
-                    category = "HIIT",
-                    time = "10:00",
-                    color = NeonGreen,
-                    icon = Icons.Default.FitnessCenter,
-                    modifier = Modifier.weight(1f)
-                )
-                SmallPresetCard(
-                    title = "Tea Brew",
-                    category = "COCINA",
-                    time = "03:00",
-                    color = NeonPurple,
-                    icon = Icons.Default.Coffee,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Add New Button
-            Surface(
-                modifier = Modifier.fillMaxWidth().height(120.dp),
-                color = Color.Transparent,
-                shape = RoundedCornerShape(24.dp),
-                border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+            if (presets.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(32.dp))
-                    Text(text = "CREAR NUEVO PRESET", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 2.sp)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun FeaturedPresetCard() {
-    val isDark = MaterialTheme.colorScheme.background == DeepBlack
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(32.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
-    ) {
-        Box {
-            Box(modifier = Modifier.matchParentSize().width(8.dp).background(MaterialTheme.colorScheme.primary).align(Alignment.CenterStart))
-
-            Column(modifier = Modifier.padding(24.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(), 
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Default.Book, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Focus 25m", 
-                            style = MaterialTheme.typography.headlineLarge, 
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Icon(
+                            Icons.Default.Timer, 
+                            contentDescription = null, 
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
                         )
                         Text(
-                            text = "TRABAJO PROFUNDO", 
-                            style = MaterialTheme.typography.labelSmall, 
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, 
-                            letterSpacing = 1.sp,
-                            maxLines = 1
+                            "No hay presets todavía.\nGuarda tus configuraciones favoritas.",
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "25:00", 
-                        style = MaterialTheme.typography.displaySmall, 
-                        color = MaterialTheme.colorScheme.primary, 
-                        fontWeight = FontWeight.Bold
-                    )
                 }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Button(
-                    onClick = { /* Start */ },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(16.dp)
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, tint = if (isDark) DeepBlack else Color.White)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "INICIAR SESIÓN", 
-                        color = if (isDark) DeepBlack else Color.White, 
-                        fontWeight = FontWeight.Black, 
-                        letterSpacing = 1.sp
-                    )
+                    items(presets) { preset ->
+                        SmallPresetCard(
+                            preset = preset,
+                            isDark = isDark,
+                            onStart = { viewModel.startTimerFromPreset(preset) },
+                            onDelete = { presetToDelete = preset }
+                        )
+                    }
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = onNavigateToCreate,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = if (isDark) DeepBlack else Color.White,
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(32.dp))
         }
     }
 }
 
 @Composable
-fun SmallPresetCard(title: String, category: String, time: String, color: Color, icon: ImageVector, modifier: Modifier = Modifier) {
+fun SmallPresetCard(
+    preset: PresetEntity, 
+    isDark: Boolean,
+    onStart: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val hours = preset.durationMillis / 3600000
+    val minutes = (preset.durationMillis % 3600000) / 60000
+    val seconds = (preset.durationMillis % 60000) / 1000
+    val timeStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
+
     Surface(
-        modifier = modifier.height(160.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.height(180.dp),
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     ) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
-                Text(text = category, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(Color(preset.color).copy(alpha = 0.1f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Timer, contentDescription = null, tint = Color(preset.color), modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
+                }
             }
+            
             Column {
                 Text(
-                    text = title, 
+                    text = preset.name, 
                     style = MaterialTheme.typography.titleMedium, 
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = time, style = MaterialTheme.typography.headlineSmall, color = color, fontWeight = FontWeight.Bold)
-                    Surface(modifier = Modifier.size(32.dp), shape = CircleShape, color = MaterialTheme.colorScheme.surface) {
+                Text(
+                    text = preset.category, 
+                    style = MaterialTheme.typography.labelSmall, 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                    fontSize = 9.sp
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(), 
+                    horizontalArrangement = Arrangement.SpaceBetween, 
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = timeStr, 
+                        style = MaterialTheme.typography.titleLarge, // Adjusted size for HH:MM:SS
+                        color = MaterialTheme.colorScheme.onSurface, 
+                        fontWeight = FontWeight.Bold
+                    )
+                    Surface(
+                        modifier = Modifier.size(40.dp), 
+                        shape = CircleShape, 
+                        color = MaterialTheme.colorScheme.primary,
+                        onClick = onStart
+                    ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null, 
+                                tint = if (isDark) DeepBlack else Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     }
                 }
