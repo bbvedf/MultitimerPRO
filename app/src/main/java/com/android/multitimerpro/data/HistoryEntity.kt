@@ -13,5 +13,6 @@ data class HistoryEntity(
     val completedAt: Long = System.currentTimeMillis(),
     val uid: String = "",
     val color: Int,
-    val notes: String = ""
+    val notes: String = "",
+    val intervalsJson: String = "[]"
 )

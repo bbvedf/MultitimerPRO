@@ -111,7 +111,8 @@ class TimerManager @Inject constructor(
                         completedAt = doc.getLong("endTime") ?: System.currentTimeMillis(),
                         uid = doc.getString("uid") ?: uid,
                         color = doc.getLong("color")?.toInt() ?: Color.BLUE,
-                        notes = doc.getString("notes") ?: ""
+                        notes = doc.getString("notes") ?: "",
+                        intervalsJson = doc.getString("intervalsJson") ?: "[]"
                     )
                     historyRepository.insert(history)
                 }
@@ -131,7 +132,6 @@ class TimerManager @Inject constructor(
     }
 
     private fun startTicking() {
-        Log.d(TAG, "Tick JOB START")
         tickJob = serviceScope.launch {
             while (isActive) {
                 delay(100)
@@ -164,7 +164,7 @@ class TimerManager @Inject constructor(
     private fun handleTimerFinished(timer: TimerEntity) {
         serviceScope.launch(NonCancellable) {
             try {
-                val finishedTimer = timer.copy(remainingTime = 0, status = "FINISHED")
+                val finishedTimer = timer.copy(remainingTime = 0, status = "FINISHED", intervalsJson = "[]")
                 repository.update(finishedTimer)
                 
                 val intent = Intent(context, TimerService::class.java).apply {
@@ -177,14 +177,14 @@ class TimerManager @Inject constructor(
                 context.startService(intent)
                 
                 val currentUid = auth.currentUser?.uid ?: timer.uid
-                Log.d(TAG, "[FINALIZADO] ${timer.name}. Guardando historial.")
                 
                 val historyEntry = HistoryEntity(
                     timerName = timer.name,
                     category = timer.category,
                     durationMillis = timer.duration,
                     uid = currentUid,
-                    color = timer.color
+                    color = timer.color,
+                    intervalsJson = timer.intervalsJson // GUARDAMOS LOS INTERVALOS REALES
                 )
                 historyRepository.insert(historyEntry)
             } catch (e: Exception) {
@@ -194,7 +194,6 @@ class TimerManager @Inject constructor(
     }
 
     private fun stopTicking() {
-        Log.d(TAG, "Tick JOB STOP")
         tickJob?.cancel()
         tickJob = null
     }
@@ -228,6 +227,6 @@ class TimerManager @Inject constructor(
     }
 
     suspend fun resetTimer(timer: TimerEntity) {
-        repository.update(timer.copy(remainingTime = timer.duration, status = "READY"))
+        repository.update(timer.copy(remainingTime = timer.duration, status = "READY", intervalsJson = "[]"))
     }
 }
