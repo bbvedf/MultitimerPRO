@@ -19,10 +19,6 @@ class HistoryRepository @Inject constructor(
 
     val allHistory: Flow<List<HistoryEntity>> = historyDao.getAllHistory()
 
-    fun getHistoryByUid(uid: String): Flow<List<HistoryEntity>> = historyDao.getHistoryByUid(uid)
-
-    suspend fun getHistoryById(id: String): HistoryEntity? = historyDao.getHistoryById(id)
-
     suspend fun insert(history: HistoryEntity) {
         try {
             Log.d(TAG, "[HISTORIAL] Insertando local: ${history.timerName}")
