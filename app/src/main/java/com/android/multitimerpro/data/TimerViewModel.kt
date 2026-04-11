@@ -2,8 +2,14 @@ package com.android.multitimerpro.data
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
+import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.multitimerpro.service.TimerService
@@ -15,7 +21,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+
+// Import added for persistent filters
+import com.android.multitimerpro.ui.screens.TimeFilter
 
 @HiltViewModel
 class TimerViewModel @Inject constructor(
@@ -37,11 +51,25 @@ class TimerViewModel @Inject constructor(
     val allPresets: StateFlow<List<PresetEntity>> = presetRepository.allPresets
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Theme state: null means follow system, true/false for forced dark/light
+    // --- Persistent History Filter State ---
+    private val _historyShowFilters = MutableStateFlow(false)
+    val historyShowFilters: StateFlow<Boolean> = _historyShowFilters.asStateFlow()
+
+    private val _historySelectedCategory = MutableStateFlow("TODAS")
+    val historySelectedCategory: StateFlow<String> = _historySelectedCategory.asStateFlow()
+
+    private val _historySelectedTimeFilter = MutableStateFlow(TimeFilter.TODO)
+    val historySelectedTimeFilter: StateFlow<TimeFilter> = _historySelectedTimeFilter.asStateFlow()
+
+    fun setHistoryShowFilters(show: Boolean) { _historyShowFilters.value = show }
+    fun setHistorySelectedCategory(category: String) { _historySelectedCategory.value = category }
+    fun setHistorySelectedTimeFilter(filter: TimeFilter) { _historySelectedTimeFilter.value = filter }
+
+    // Theme state
     private val _isDarkMode = MutableStateFlow<Boolean?>(null)
     val isDarkMode: StateFlow<Boolean?> = _isDarkMode.asStateFlow()
 
-    // Snooze Preferences (in minutes)
+    // Snooze Preferences
     private val _snooze1 = MutableStateFlow(5)
     val snooze1: StateFlow<Int> = _snooze1.asStateFlow()
 
@@ -63,7 +91,6 @@ class TimerViewModel @Inject constructor(
     init {
         val currentUser = auth.currentUser
         _isAuthenticated.value = currentUser != null
-        Log.d(TAG, "Auth init: isAuthenticated = ${_isAuthenticated.value}, UID: ${currentUser?.uid}")
         
         if (currentUser != null) {
             syncUserAndData(currentUser.uid, currentUser.email ?: "")
@@ -86,47 +113,25 @@ class TimerViewModel @Inject constructor(
     private fun syncUserAndData(uid: String, email: String) {
         viewModelScope.launch {
             if (uid.isBlank()) return@launch
-            
             try {
                 val finalEmail = if (email.isBlank()) auth.currentUser?.email ?: "" else email
-                if (finalEmail.isBlank()) {
-                    Log.w(TAG, "Sync pospuesto: Email no disponible")
-                    return@launch
-                }
-
-                // 1. Intentamos obtener el documento actual para no romper la regla de 'createdAt' inmutable
                 val userDocRef = firestore.collection("users").document(uid)
                 val existingDoc = try { userDocRef.get().await() } catch (e: Exception) { null }
-                
                 val createdAt = if (existingDoc != null && existingDoc.exists()) {
                     existingDoc.getLong("createdAt") ?: System.currentTimeMillis()
                 } else {
                     System.currentTimeMillis()
                 }
-
-                val userMap = mutableMapOf<String, Any>(
-                    "uid" to uid,
-                    "email" to finalEmail,
-                    "createdAt" to createdAt
-                )
-                
+                val userMap = mutableMapOf<String, Any>("uid" to uid, "email" to finalEmail, "createdAt" to createdAt)
                 auth.currentUser?.displayName?.let { userMap["displayName"] = it }
                 val photoUrl = auth.currentUser?.photoUrl?.toString()
-                if (photoUrl != null && (photoUrl.startsWith("http://") || photoUrl.startsWith("https://"))) {
-                    userMap["photoUrl"] = photoUrl
-                }
-
-                Log.d(TAG, "Sincronizando perfil usuario: $userMap")
+                if (photoUrl != null && photoUrl.startsWith("http")) userMap["photoUrl"] = photoUrl
                 userDocRef.set(userMap, SetOptions.merge()).await()
-                
-                Log.d(TAG, "Perfil de usuario sincronizado (OK)")
-
-                // Ahora sí, disparamos el resto de la sincronización
                 timerManager.reclaimLocalTimers(uid)
                 timerManager.syncFromCloud(uid)
                 timerManager.syncHistoryFromCloud(uid)
             } catch (e: Exception) {
-                Log.e(TAG, "Error crítico en syncUserAndData: ${e.message}")
+                Log.e(TAG, "Sync failed: ${e.message}")
             }
         }
     }
@@ -136,7 +141,7 @@ class TimerViewModel @Inject constructor(
         showMessage("Cambios guardados")
     }
 
-    // Stats calculations
+    // Stats
     val totalTimeSpent: StateFlow<Long> = history.map { list ->
         list.sumOf { it.durationMillis }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
@@ -145,24 +150,20 @@ class TimerViewModel @Inject constructor(
         list.groupBy { it.category }.mapValues { entry -> entry.value.sumOf { it.durationMillis } }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    // Auth actions... (Google SignIn, Email Login, etc.)
     fun handleGoogleSignInResult(data: Intent?) {
         viewModelScope.launch {
-            Log.d(TAG, "Manejando resultado de Google Sign In...")
             val result = googleAuthClient.handleSignInResult(data)
             result.onSuccess { success ->
                 if (success) {
-                    val user = auth.currentUser
-                    Log.d(TAG, "Google Login Éxito! UID: ${user?.uid}")
                     _isAuthenticated.value = true
                     _authError.value = null
-                    syncUserAndData(user?.uid ?: "", user?.email ?: "")
+                    syncUserAndData(auth.currentUser?.uid ?: "", auth.currentUser?.email ?: "")
                     showMessage("¡Bienvenido!")
                 }
-            }.onFailure { exception ->
-                Log.e(TAG, "Google Login Falló", exception)
-                _authError.value = "Error: ${exception.localizedMessage}"
+            }.onFailure { e ->
+                _authError.value = "Error: ${e.localizedMessage}"
                 _isAuthenticated.value = false
-                showMessage("Error de login: ${exception.localizedMessage}")
             }
         }
     }
@@ -171,14 +172,12 @@ class TimerViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 auth.signInWithEmailAndPassword(email, password).await()
-                val user = auth.currentUser
                 _isAuthenticated.value = true
                 _authError.value = null
-                syncUserAndData(user?.uid ?: "", email)
+                syncUserAndData(auth.currentUser?.uid ?: "", email)
                 showMessage("Sesión iniciada")
             } catch (e: Exception) {
                 _authError.value = e.localizedMessage
-                showMessage("Error: ${e.localizedMessage}")
             }
         }
     }
@@ -187,14 +186,12 @@ class TimerViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 auth.createUserWithEmailAndPassword(email, password).await()
-                val user = auth.currentUser
                 _isAuthenticated.value = true
                 _authError.value = null
-                syncUserAndData(user?.uid ?: "", email)
+                syncUserAndData(auth.currentUser?.uid ?: "", email)
                 showMessage("Cuenta creada")
             } catch (e: Exception) {
                 _authError.value = e.localizedMessage
-                showMessage("Error: ${e.localizedMessage}")
             }
         }
     }
@@ -207,99 +204,150 @@ class TimerViewModel @Inject constructor(
         }
     }
 
+    // Timer and History actions
     fun insert(name: String, duration: Long, color: Int, category: String, description: String = "") = viewModelScope.launch {
         timerManager.addTimer(name, duration, color, category, description)
     }
 
     fun update(timer: TimerEntity) = viewModelScope.launch {
         timerManager.toggleTimer(timer)
-        if (timer.status != "LIVE") {
-            startService()
-        }
+        if (timer.status != "LIVE") startService()
     }
 
     private fun startService() {
-        val intent = Intent(context, TimerService::class.java).apply {
-            action = TimerService.ACTION_START
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
-        }
+        val intent = Intent(context, TimerService::class.java).apply { action = TimerService.ACTION_START }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent)
+        else context.startService(intent)
     }
 
     fun snoozeTimer(timer: TimerEntity, minutes: Int) = viewModelScope.launch {
         val additionalMs = minutes * 60 * 1000L
-        val updatedTimer = timer.copy(
-            remainingTime = additionalMs,
-            status = "LIVE"
-        )
-        timerManager.updateTimer(updatedTimer)
+        timerManager.updateTimer(timer.copy(remainingTime = additionalMs, status = "LIVE"))
         startService()
         showMessage("Snooze: +$minutes min")
     }
 
-    fun updateTimer(timer: TimerEntity) = viewModelScope.launch {
-        timerManager.updateTimer(timer)
-    }
-
-    fun delete(timer: TimerEntity) = viewModelScope.launch {
-        timerManager.deleteTimer(timer)
-        showMessage("Eliminado")
-    }
-
-    fun resetTimer(timer: TimerEntity) = viewModelScope.launch {
-        timerManager.resetTimer(timer)
-    }
-
-    fun deleteHistoryEntry(history: HistoryEntity) = viewModelScope.launch {
-        historyRepository.delete(history)
-        showMessage("Historial eliminado")
-    }
+    fun updateTimer(timer: TimerEntity) = viewModelScope.launch { timerManager.updateTimer(timer) }
+    fun delete(timer: TimerEntity) = viewModelScope.launch { timerManager.deleteTimer(timer); showMessage("Eliminado") }
+    fun resetTimer(timer: TimerEntity) = viewModelScope.launch { timerManager.resetTimer(timer) }
+    fun deleteHistoryEntry(history: HistoryEntity) = viewModelScope.launch { historyRepository.delete(history); showMessage("Eliminado") }
 
     fun addInterval(timer: TimerEntity, label: String) = viewModelScope.launch {
         val minutes = (timer.remainingTime / 1000) / 60
         val seconds = (timer.remainingTime / 1000) % 60
         val timeStr = String.format("%02d:%02d", minutes, seconds)
         val newInterval = "$timeStr - $label"
-
-        val currentIntervals = if (timer.intervalsJson == "[]") mutableListOf<String>()
+        val currentIntervals = if (timer.intervalsJson == "[]") mutableListOf()
         else timer.intervalsJson.removeSurrounding("[", "]").split(", ").map { it.removeSurrounding("\"") }.toMutableList()
-
         currentIntervals.add(newInterval)
         val newIntervalsJson = "[\"${currentIntervals.joinToString("\", \"")}\"]"
-
         timerManager.updateTimer(timer.copy(intervalsJson = newIntervalsJson))
     }
 
-    // Preset management
+    // Presets
     fun saveAsPreset(name: String, duration: Long, color: Int, category: String, description: String = "") = viewModelScope.launch {
-        val preset = PresetEntity(
-            name = name,
-            durationMillis = duration,
-            color = color,
-            category = category,
-            description = description,
-            uid = auth.currentUser?.uid ?: ""
-        )
-        presetRepository.insert(preset)
+        presetRepository.insert(PresetEntity(name = name, durationMillis = duration, color = color, category = category, description = description, uid = auth.currentUser?.uid ?: ""))
         showMessage("Preset guardado")
     }
-
-    fun deletePreset(preset: PresetEntity) = viewModelScope.launch {
-        presetRepository.delete(preset)
-        showMessage("Preset eliminado")
+    fun deletePreset(preset: PresetEntity) = viewModelScope.launch { presetRepository.delete(preset); showMessage("Preset eliminado") }
+    fun startTimerFromPreset(preset: PresetEntity) = viewModelScope.launch {
+        timerManager.addTimer(preset.name, preset.durationMillis, preset.color, preset.category, preset.description)
+        showMessage("Temporizador añadido")
     }
 
-    fun startTimerFromPreset(preset: PresetEntity) = viewModelScope.launch {
-        timerManager.addTimer(
-            preset.name,
-            preset.durationMillis,
-            preset.color,
-            preset.category,
-            preset.description
-        )
-        showMessage("Temporizador añadido")
+    // --- EXPORT TOOLS ---
+
+    fun exportHistoryToCSV(items: List<HistoryEntity> = history.value) {
+        viewModelScope.launch {
+            if (items.isEmpty()) { showMessage("No hay datos"); return@launch }
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+            val csvHeader = "ID,Instrument,Category,Duration(ms),Completion Date,Notes\n"
+            val csvRows = items.joinToString("\n") { 
+                "${it.id},${it.timerName},${it.category},${it.durationMillis},${sdf.format(Date(it.completedAt))},\"${it.notes}\""
+            }
+            shareFile(csvHeader + csvRows, "MultiTimer_Export.csv", "text/csv")
+        }
+    }
+
+    fun exportHistoryToPDF(items: List<HistoryEntity> = history.value) {
+        viewModelScope.launch {
+            if (items.isEmpty()) { showMessage("No hay datos"); return@launch }
+
+            val pdfDocument = PdfDocument()
+            val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create() // A4 Size
+            val page = pdfDocument.startPage(pageInfo)
+            val canvas = page.canvas
+            val paint = Paint()
+            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+
+            // Header
+            paint.color = Color.BLACK
+            paint.textSize = 24f
+            paint.isFakeBoldText = true
+            canvas.drawText("MultiTimer PRO - Session Report", 50f, 50f, paint)
+            
+            paint.textSize = 12f
+            paint.isFakeBoldText = false
+            canvas.drawText("Generated on: ${sdf.format(Date())}", 50f, 80f, paint)
+
+            // Table Header
+            paint.isFakeBoldText = true
+            canvas.drawText("Instrument", 50f, 130f, paint)
+            canvas.drawText("Category", 200f, 130f, paint)
+            canvas.drawText("Duration", 350f, 130f, paint)
+            canvas.drawText("Completed At", 450f, 130f, paint)
+            
+            canvas.drawLine(50f, 140f, 550f, 140f, paint)
+
+            // Rows
+            paint.isFakeBoldText = false
+            var y = 170f
+            items.take(20).forEach { item -> // Limit to first page for now
+                canvas.drawText(item.timerName.take(15), 50f, y, paint)
+                canvas.drawText(item.category, 200f, y, paint)
+                canvas.drawText(formatMillisToTime(item.durationMillis), 350f, y, paint)
+                canvas.drawText(SimpleDateFormat("dd/MM", Locale.getDefault()).format(Date(item.completedAt)), 450f, y, paint)
+                y += 30f
+            }
+
+            pdfDocument.finishPage(page)
+
+            try {
+                val fileName = "MultiTimer_Report_${System.currentTimeMillis()}.pdf"
+                val file = File(context.cacheDir, fileName)
+                pdfDocument.writeTo(FileOutputStream(file))
+                pdfDocument.close()
+                shareFileUri(file, "application/pdf")
+            } catch (e: Exception) {
+                Log.e(TAG, "PDF failed", e)
+                showMessage("Error al generar PDF")
+            }
+        }
+    }
+
+    private fun shareFile(content: String, fileName: String, mimeType: String) {
+        val file = File(context.cacheDir, fileName)
+        file.writeText(content)
+        shareFileUri(file, mimeType)
+    }
+
+    private fun shareFileUri(file: File, mimeType: String) {
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = mimeType
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        val chooser = Intent.createChooser(intent, "Exportar Reporte").apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(chooser)
+    }
+
+    private fun formatMillisToTime(millis: Long): String {
+        val hours = TimeUnit.MILLISECONDS.toHours(millis)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
+        return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
     }
 }
