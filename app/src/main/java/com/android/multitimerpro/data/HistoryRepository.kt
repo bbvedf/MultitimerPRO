@@ -81,7 +81,7 @@ class HistoryRepository @Inject constructor(
                 "category" to history.category,
                 "color" to history.color,
                 "notes" to history.notes,
-                "intervalsJson" to "[]"
+                "intervalsJson" to history.intervalsJson // CORREGIDO: Usamos el valor real de la entidad
             )
 
             firestore.collection("users")
