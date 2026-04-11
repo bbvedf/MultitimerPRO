@@ -166,25 +166,28 @@ fun HistoryDetailScreen(
 
             item { Spacer(modifier = Modifier.height(12.dp)) }
 
+            // IMPORTANTE: Invertimos el cálculo porque el temporizador es regresivo
             itemsIndexed(intervals) { index, interval ->
                 val currentParts = interval.split(" - ")
                 val currentTimeStr = currentParts.getOrNull(0) ?: "00:00:00"
                 val label = currentParts.getOrNull(1) ?: "Sin marca"
                 
-                // Calcular Lap Time (Relativo)
-                val currentMillis = parseTimeToMillis(currentTimeStr)
-                val previousMillis = if (index > 0) {
-                    parseTimeToMillis(intervals[index - 1].split(" - ").getOrNull(0) ?: "00:00:00")
+                // Cálculo de tramo real para temporizador regresivo:
+                // El primer tramo es (Duración Total - Primera Marca)
+                // Los siguientes son (Marca Anterior - Marca Actual)
+                val currentRemainingMs = parseTimeToMillis(currentTimeStr)
+                val lapMillis = if (index == 0) {
+                    item.durationMillis - currentRemainingMs
                 } else {
-                    0L
+                    val previousRemainingMs = parseTimeToMillis(intervals[index - 1].split(" - ").getOrNull(0) ?: "00:00:00")
+                    previousRemainingMs - currentRemainingMs
                 }
-                val lapMillis = (currentMillis - previousMillis).coerceAtLeast(0L)
 
                 HistoryIntervalItem(
                     index = index + 1,
                     label = label,
                     absoluteTime = formatToThreeBlocks(currentTimeStr),
-                    lapTime = formatMillisToTime(lapMillis)
+                    lapTime = formatMillisToTime(lapMillis.coerceAtLeast(0L))
                 )
             }
         }
@@ -239,12 +242,12 @@ fun HistoryIntervalItem(index: Int, label: String, absoluteTime: String, lapTime
                 )
                 Column {
                     Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                    Text(text = "Marca: $absoluteTime", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "En pantalla: $absoluteTime", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(text = lapTime, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black)
-                Text(text = "TRAMO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                Text(text = "DURACIÓN TRAMO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
             }
         }
     }

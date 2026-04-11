@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
@@ -41,9 +43,17 @@ fun LiveTimerScreen(
     val timers by viewModel.allTimers.collectAsState()
     val timer = timers.find { it.id == timerId } ?: return
 
+    val currentIntervals = remember(timer.intervalsJson) {
+        if (timer.intervalsJson == "[]" || timer.intervalsJson.isBlank()) emptyList<String>()
+        else timer.intervalsJson.removeSurrounding("[", "]").split(", ").map { it.removeSurrounding("\"") }
+    }
+
     var showAddMarkDialog by remember { mutableStateOf(false) }
     var markLabel by remember { mutableStateOf("") }
     
+    // Generar nombre por defecto incremental (m01, m02...)
+    val nextMarkName = "m${String.format(Locale.getDefault(), "%02d", currentIntervals.size + 1)}"
+
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
     val isDark = isDarkModeOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
 
@@ -64,7 +74,7 @@ fun LiveTimerScreen(
                     onValueChange = { markLabel = it },
                     placeholder = { 
                         Text(
-                            "Nombre de la marca", 
+                            "Por defecto: $nextMarkName", 
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         ) 
                     },
@@ -76,16 +86,16 @@ fun LiveTimerScreen(
                         cursorColor = MaterialTheme.colorScheme.primary,
                         focusedIndicatorColor = MaterialTheme.colorScheme.primary,
                         unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    ),
+                    singleLine = true
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
-                    if (markLabel.isNotBlank()) {
-                        viewModel.addInterval(timer, markLabel)
-                        markLabel = ""
-                        showAddMarkDialog = false
-                    }
+                    val finalLabel = if (markLabel.isBlank()) nextMarkName else markLabel
+                    viewModel.addInterval(timer, finalLabel)
+                    markLabel = ""
+                    showAddMarkDialog = false
                 }) {
                     Text("AÑADIR", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
@@ -99,7 +109,12 @@ fun LiveTimerScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Column(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
@@ -174,7 +189,6 @@ fun LiveTimerScreen(
                     val minutes = (timer.remainingTime % 3600000) / 60000
                     val seconds = (timer.remainingTime % 60000) / 1000
                     
-                    // UNIFICADO A HH:MM:SS
                     val timeStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
 
                     Text(
@@ -182,7 +196,7 @@ fun LiveTimerScreen(
                         style = MaterialTheme.typography.displayLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 54.sp // Adjusted for HH:MM:SS
+                        fontSize = 54.sp
                     )
                     Text(
                         text = timer.status,
@@ -227,7 +241,6 @@ fun LiveTimerScreen(
                     val metaMinutes = (timer.duration % 3600000) / 60000
                     val metaSeconds = (timer.duration % 60000) / 1000
                     
-                    // UNIFICADO A HH:MM:SS
                     val metaStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", metaHours, metaMinutes, metaSeconds)
 
                     Text(
@@ -316,7 +329,10 @@ fun LiveTimerScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant, 
                     letterSpacing = 2.sp
                 )
-                TextButton(onClick = { showAddMarkDialog = true }) {
+                TextButton(onClick = { 
+                    markLabel = "" // Limpiar para usar el placeholder
+                    showAddMarkDialog = true 
+                }) {
                     Text(
                         text = "AÑADIR MARCA", 
                         style = MaterialTheme.typography.labelSmall, 
@@ -327,12 +343,8 @@ fun LiveTimerScreen(
             }
 
             // Dynamic Intervals
-            val intervals = if (timer.intervalsJson == "[]") emptyList<String>()
-            else timer.intervalsJson.removeSurrounding("[", "]").split(", ").map { it.removeSurrounding("\"") }
-
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(intervals.size) { index ->
-                    val interval = intervals[index]
+            Column(modifier = Modifier.fillMaxWidth()) {
+                currentIntervals.forEachIndexed { index, interval ->
                     val parts = interval.split(" - ")
                     val time = parts.getOrNull(0) ?: ""
                     val label = parts.getOrNull(1) ?: ""
@@ -340,10 +352,12 @@ fun LiveTimerScreen(
                         number = String.format(Locale.getDefault(), "%02d", index + 1),
                         name = label,
                         time = time,
-                        color = if (index == intervals.size - 1) NeonGreen else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        color = if (index == currentIntervals.size - 1) NeonGreen else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
             }
+            
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
