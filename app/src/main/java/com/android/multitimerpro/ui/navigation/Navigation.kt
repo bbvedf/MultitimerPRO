@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,33 +27,34 @@ import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.GoogleAuthClient
 import com.android.multitimerpro.ui.screens.*
 import com.android.multitimerpro.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 
-sealed class Screen(val route: String, val label: String, val icon: ImageVector? = null) {
-    object Timers : Screen("timers", "TIMERS", Icons.Default.Timer)
-    object Presets : Screen("presets", "PRESETS", Icons.Default.LibraryBooks)
-    object Stats : Screen("stats", "STATS", Icons.Default.BarChart)
-    object History : Screen("history", "HISTORIAL", Icons.Default.History)
-    object Settings : Screen("settings", "AJUSTES", Icons.Default.Settings)
-    object Login : Screen("login", "LOGIN")
-    object CreateTimer : Screen("create_timer?timerId={timerId}", "CREATE") {
+sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector? = null) {
+    object Timers : Screen("timers", R.string.nav_timers, Icons.Default.Timer)
+    object Presets : Screen("presets", R.string.nav_presets, Icons.Default.LibraryBooks)
+    object Stats : Screen("stats", R.string.nav_stats, Icons.Default.BarChart)
+    object History : Screen("history", R.string.nav_history, Icons.Default.History)
+    object Settings : Screen("settings", R.string.nav_settings, Icons.Default.Settings)
+    object Login : Screen("login", R.string.app_name)
+    object CreateTimer : Screen("create_timer?timerId={timerId}", R.string.timer_new) {
         fun createRoute(timerId: String? = null) = if (timerId != null) "create_timer?timerId=$timerId" else "create_timer"
     }
-    object LiveTimer : Screen("live_timer/{timerId}", "LIVE") {
+    object LiveTimer : Screen("live_timer/{timerId}", R.string.start) {
         fun createRoute(timerId: String) = "live_timer/$timerId"
     }
-    object HistoryDetail : Screen("history_detail/{historyId}", "DETAIL") {
+    object HistoryDetail : Screen("history_detail/{historyId}", R.string.history_duration) {
         fun createRoute(historyId: String) = "history_detail/$historyId"
     }
 }
 
 @Composable
 fun MainNavigation(
-    viewModel: TimerViewModel, // Recibimos el ViewModel de la Activity
+    viewModel: TimerViewModel,
     onGoogleSignIn: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -98,7 +100,7 @@ fun MainNavigation(
                             },
                             label = {
                                 Text(
-                                    screen.label,
+                                    stringResource(screen.labelRes),
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp

@@ -17,12 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.theme.*
 import java.util.Locale
@@ -34,6 +37,7 @@ fun CreateTimerScreen(
     timerId: String? = null,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val timers by viewModel.allTimers.collectAsState()
     val existingTimer = remember(timerId, timers) {
         timers.find { it.id == timerId }
@@ -61,7 +65,12 @@ fun CreateTimerScreen(
     var description by remember { mutableStateOf(existingTimer?.description ?: "") }
 
     val colors = listOf(NeonBlue, NeonGreen, NeonPurple, Color(0xFFFF6B6B), Color(0xFFFFD93D), Color(0xFF6BCB77))
-    val categories = listOf("GENERAL", "TRABAJO", "OCIO", "OTROS")
+    val categories = listOf(
+        Pair("GENERAL", R.string.cat_general),
+        Pair("TRABAJO", R.string.cat_work),
+        Pair("OCIO", R.string.cat_leisure),
+        Pair("OTROS", R.string.cat_other)
+    )
 
     Column(
         modifier = Modifier
@@ -83,7 +92,7 @@ fun CreateTimerScreen(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = if (timerId == null) "NUEVO INSTRUMENTO" else "EDITAR INSTRUMENTO",
+                text = stringResource(if (timerId == null) R.string.timer_new else R.string.timer_edit),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 2.sp
@@ -94,7 +103,7 @@ fun CreateTimerScreen(
 
         // Name Input
         Text(
-            text = "NOMBRE DEL TEMPORIZADOR",
+            text = stringResource(R.string.timer_name_label),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp
@@ -114,7 +123,7 @@ fun CreateTimerScreen(
             ),
             placeholder = { 
                 Text(
-                    "Ej. Sesión Deep Work", 
+                    stringResource(R.string.timer_name_placeholder), 
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 ) 
             }
@@ -124,18 +133,18 @@ fun CreateTimerScreen(
 
         // Category Selection
         Text(
-            text = "CATEGORÍA",
+            text = stringResource(R.string.timer_category_label),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp
         )
         Spacer(modifier = Modifier.height(12.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(categories) { category ->
+            items(categories) { (internalName, labelRes) ->
                 FilterChip(
-                    selected = selectedCategory == category,
-                    onClick = { selectedCategory = category },
-                    label = { Text(category) },
+                    selected = selectedCategory == internalName,
+                    onClick = { selectedCategory = internalName },
+                    label = { Text(stringResource(labelRes)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
                         selectedLabelColor = if (isDark) DeepBlack else Color.White,
@@ -151,7 +160,7 @@ fun CreateTimerScreen(
 
         // Time Picker
         Text(
-            text = "DURACIÓN",
+            text = stringResource(R.string.timer_duration_label),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp
@@ -164,7 +173,7 @@ fun CreateTimerScreen(
             TimeInput(
                 value = hours, 
                 onValueChange = { if (it.length <= 2) hours = it }, 
-                label = "HH",
+                label = stringResource(R.string.hours_label_full),
                 isDark = isDark
             )
             Text(
@@ -175,7 +184,7 @@ fun CreateTimerScreen(
             TimeInput(
                 value = minutes, 
                 onValueChange = { if (it.length <= 2) minutes = it }, 
-                label = "MM",
+                label = stringResource(R.string.minutes_label_full),
                 isDark = isDark
             )
             Text(
@@ -186,7 +195,7 @@ fun CreateTimerScreen(
             TimeInput(
                 value = seconds, 
                 onValueChange = { if (it.length <= 2) seconds = it }, 
-                label = "SS",
+                label = stringResource(R.string.seconds_label_full),
                 isDark = isDark
             )
         }
@@ -195,7 +204,7 @@ fun CreateTimerScreen(
 
         // Color Selection
         Text(
-            text = "COLOR",
+            text = stringResource(R.string.timer_color_label),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp
@@ -229,6 +238,7 @@ fun CreateTimerScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         // Action Buttons
+        val requiredMsg = stringResource(R.string.timer_required_msg)
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(
                 onClick = {
@@ -261,14 +271,13 @@ fun CreateTimerScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
-                    text = if (timerId == null) "CREAR TEMPORIZADOR" else "GUARDAR CAMBIOS",
+                    text = stringResource(if (timerId == null) R.string.timer_create_btn else R.string.timer_save_btn),
                     color = if (isDark) DeepBlack else Color.White,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
             }
 
-            // AHORA VISIBLE SIEMPRE (Creación y Edición)
             OutlinedButton(
                 onClick = {
                     val h = hours.toLongOrNull() ?: 0L
@@ -278,7 +287,7 @@ fun CreateTimerScreen(
                     if (name.isNotBlank() && totalMs > 0) {
                         viewModel.saveAsPreset(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
                     } else {
-                        viewModel.showMessage("Nombre y duración requeridos")
+                        viewModel.showMessage(requiredMsg)
                     }
                 },
                 modifier = Modifier
@@ -289,7 +298,7 @@ fun CreateTimerScreen(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
             ) {
                 Text(
-                    text = "GUARDAR COMO PRESET",
+                    text = stringResource(R.string.timer_preset_btn),
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )

@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.components.TimerCard
@@ -57,20 +59,20 @@ fun MultiTimerHomeScreen(
                 ) {
                     Column {
                         Text(
-                            text = "ESTADO",
+                            text = stringResource(R.string.home_status),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 2.sp
                         )
                         Text(
-                            text = "Instrumentos\nActivos",
+                            text = stringResource(R.string.home_active_instruments),
                             style = MaterialTheme.typography.displaySmall,
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
-                        text = "${timers.count { it.status == "LIVE" }} ACTIVOS",
+                        text = "${timers.count { it.status == "LIVE" }} ${stringResource(R.string.home_actives_suffix)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier

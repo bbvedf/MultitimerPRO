@@ -25,9 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.theme.*
@@ -63,7 +65,7 @@ fun LiveTimerScreen(
             containerColor = MaterialTheme.colorScheme.surface,
             title = { 
                 Text(
-                    "AÑADIR MARCA", 
+                    stringResource(R.string.live_add_mark), 
                     color = MaterialTheme.colorScheme.onSurface, 
                     fontWeight = FontWeight.Bold
                 ) 
@@ -74,7 +76,7 @@ fun LiveTimerScreen(
                     onValueChange = { markLabel = it },
                     placeholder = { 
                         Text(
-                            "Por defecto: $nextMarkName", 
+                            stringResource(R.string.live_mark_default, nextMarkName), 
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         ) 
                     },
@@ -97,12 +99,12 @@ fun LiveTimerScreen(
                     markLabel = ""
                     showAddMarkDialog = false
                 }) {
-                    Text("AÑADIR", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.add), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddMarkDialog = false }) {
-                    Text("CANCELAR", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
@@ -129,7 +131,7 @@ fun LiveTimerScreen(
                     )
                 }
                 Text(
-                    text = "MULTITIMER PRO",
+                    text = stringResource(R.string.main_title),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
@@ -224,14 +226,14 @@ fun LiveTimerScreen(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = timer.description.ifBlank { "Sin descripción" },
+                        text = timer.description.ifBlank { stringResource(R.string.live_no_desc) },
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "META", 
+                        text = stringResource(R.string.live_target), 
                         style = MaterialTheme.typography.labelSmall, 
                         color = MaterialTheme.colorScheme.onSurfaceVariant, 
                         letterSpacing = 1.sp
@@ -269,7 +271,7 @@ fun LiveTimerScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (timer.status == "LIVE") "PAUSAR" else "INICIAR",
+                        text = if (timer.status == "LIVE") stringResource(R.string.live_pause) else stringResource(R.string.live_start),
                         color = if (isDark) DeepBlack else Color.White,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 1.sp
@@ -297,7 +299,7 @@ fun LiveTimerScreen(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 val progressPercent = if (timer.duration > 0) ((timer.remainingTime.toFloat() / timer.duration.toFloat()) * 100).toInt() else 0
                 StatMiniCard(
-                    title = "PROGRESO",
+                    title = stringResource(R.string.live_progress),
                     value = "$progressPercent%",
                     icon = Icons.Default.TrendingUp,
                     color = NeonGreen,
@@ -307,7 +309,7 @@ fun LiveTimerScreen(
                 val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
                 val endTime = Date(System.currentTimeMillis() + timer.remainingTime)
                 StatMiniCard(
-                    title = "FINALIZA",
+                    title = stringResource(R.string.live_ends_at),
                     value = sdf.format(endTime),
                     icon = Icons.Default.Timer,
                     color = MaterialTheme.colorScheme.primary,
@@ -324,7 +326,7 @@ fun LiveTimerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "INTERVALOS", 
+                    text = stringResource(R.string.live_intervals), 
                     style = MaterialTheme.typography.labelSmall, 
                     color = MaterialTheme.colorScheme.onSurfaceVariant, 
                     letterSpacing = 2.sp
@@ -334,7 +336,7 @@ fun LiveTimerScreen(
                     showAddMarkDialog = true 
                 }) {
                     Text(
-                        text = "AÑADIR MARCA", 
+                        text = stringResource(R.string.live_add_mark),
                         style = MaterialTheme.typography.labelSmall, 
                         color = MaterialTheme.colorScheme.primary, 
                         fontWeight = FontWeight.Bold

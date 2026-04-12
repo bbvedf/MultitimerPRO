@@ -9,7 +9,9 @@ import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.FileProvider
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.multitimerpro.service.TimerService
@@ -28,9 +30,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-
-// Import added for persistent filters
-import com.android.multitimerpro.ui.screens.TimeFilter
 
 @HiltViewModel
 class TimerViewModel @Inject constructor(
@@ -56,10 +55,10 @@ class TimerViewModel @Inject constructor(
     private val _historyShowFilters = MutableStateFlow(false)
     val historyShowFilters: StateFlow<Boolean> = _historyShowFilters.asStateFlow()
 
-    private val _historySelectedCategory = MutableStateFlow("TODAS")
+    private val _historySelectedCategory = MutableStateFlow("ALL")
     val historySelectedCategory: StateFlow<String> = _historySelectedCategory.asStateFlow()
 
-    private val _historySelectedTimeFilter = MutableStateFlow(TimeFilter.TODO)
+    private val _historySelectedTimeFilter = MutableStateFlow(TimeFilter.ALL)
     val historySelectedTimeFilter: StateFlow<TimeFilter> = _historySelectedTimeFilter.asStateFlow()
 
     fun setHistoryShowFilters(show: Boolean) { _historyShowFilters.value = show }
@@ -74,17 +73,17 @@ class TimerViewModel @Inject constructor(
     ) { historyItems, selectedCategory, selectedTimeFilter ->
         val now = System.currentTimeMillis()
         historyItems.filter { item ->
-            val categoryMatch = selectedCategory == "TODAS" || item.category == selectedCategory
+            val categoryMatch = selectedCategory == "ALL" || item.category == selectedCategory
             val timeMatch = when (selectedTimeFilter) {
-                TimeFilter.TODO -> true
-                TimeFilter.HOY -> {
+                TimeFilter.ALL -> true
+                TimeFilter.TODAY -> {
                     val itemCal = Calendar.getInstance().apply { timeInMillis = item.completedAt }
                     val nowCal = Calendar.getInstance()
                     itemCal.get(Calendar.DAY_OF_YEAR) == nowCal.get(Calendar.DAY_OF_YEAR) &&
                     itemCal.get(Calendar.YEAR) == nowCal.get(Calendar.YEAR)
                 }
-                TimeFilter.SEMANA -> item.completedAt >= (now - (7 * 24 * 60 * 60 * 1000L))
-                TimeFilter.MES -> item.completedAt >= (now - (30 * 24 * 60 * 60 * 1000L))
+                TimeFilter.WEEK -> item.completedAt >= (now - (7 * 24 * 60 * 60 * 1000L))
+                TimeFilter.MONTH -> item.completedAt >= (now - (30 * 24 * 60 * 60 * 1000L))
             }
             categoryMatch && timeMatch
         }
@@ -119,6 +118,18 @@ class TimerViewModel @Inject constructor(
 
     private val _userPhotoUrl = MutableStateFlow(auth.currentUser?.photoUrl?.toString() ?: "")
     val userPhotoUrl = _userPhotoUrl.asStateFlow()
+
+    // --- Language State ---
+    private val _currentLanguage = MutableStateFlow(AppCompatDelegate.getApplicationLocales().toLanguageTags().ifBlank { "en" })
+    val currentLanguage = _currentLanguage.asStateFlow()
+
+    fun setLanguage(languageCode: String) {
+        viewModelScope.launch {
+            val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
+            AppCompatDelegate.setApplicationLocales(appLocale)
+            _currentLanguage.value = languageCode
+        }
+    }
 
     init {
         val currentUser = auth.currentUser
@@ -255,7 +266,7 @@ class TimerViewModel @Inject constructor(
         // Filter by time and selected category
         val sevenDaysAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
         historyItems.filter { 
-            it.completedAt >= sevenDaysAgo && (selectedCategory == "TODAS" || it.category == selectedCategory)
+            it.completedAt >= sevenDaysAgo && (selectedCategory == "ALL" || it.category == selectedCategory)
         }.forEach { item ->
             val dayKey = sdf.format(Date(item.completedAt)).uppercase()
             if (result.containsKey(dayKey)) {

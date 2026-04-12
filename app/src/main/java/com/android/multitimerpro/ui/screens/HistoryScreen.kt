@@ -18,19 +18,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.HistoryEntity
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.data.TimeFilter
 import com.android.multitimerpro.ui.components.DeleteHistoryConfirmationDialog
 import com.android.multitimerpro.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
-
-enum class TimeFilter { TODO, HOY, SEMANA, MES }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,30 +42,29 @@ fun HistoryScreen(
     val historyItems by viewModel.history.collectAsState()
     var historyToDelete by remember { mutableStateOf<HistoryEntity?>(null) }
     
-    // Using persistent states from ViewModel
     val showFilters by viewModel.historyShowFilters.collectAsState()
     val selectedCategory by viewModel.historySelectedCategory.collectAsState()
     val selectedTimeFilter by viewModel.historySelectedTimeFilter.collectAsState()
     
     val categories = remember(historyItems) {
         val uniqueCats = historyItems.map { it.category }.distinct().sorted()
-        listOf("TODAS") + uniqueCats
+        listOf("ALL") + uniqueCats
     }
 
     val filteredItems = remember(historyItems, selectedCategory, selectedTimeFilter) {
         val now = System.currentTimeMillis()
         historyItems.filter { item ->
-            val categoryMatch = selectedCategory == "TODAS" || item.category == selectedCategory
+            val categoryMatch = selectedCategory == "ALL" || item.category == selectedCategory
             val timeMatch = when (selectedTimeFilter) {
-                TimeFilter.TODO -> true
-                TimeFilter.HOY -> {
+                TimeFilter.ALL -> true
+                TimeFilter.TODAY -> {
                     val itemCal = Calendar.getInstance().apply { timeInMillis = item.completedAt }
                     val nowCal = Calendar.getInstance()
                     itemCal.get(Calendar.DAY_OF_YEAR) == nowCal.get(Calendar.DAY_OF_YEAR) &&
                     itemCal.get(Calendar.YEAR) == nowCal.get(Calendar.YEAR)
                 }
-                TimeFilter.SEMANA -> item.completedAt >= (now - (7 * 24 * 60 * 60 * 1000L))
-                TimeFilter.MES -> item.completedAt >= (now - (30 * 24 * 60 * 60 * 1000L))
+                TimeFilter.WEEK -> item.completedAt >= (now - (7 * 24 * 60 * 60 * 1000L))
+                TimeFilter.MONTH -> item.completedAt >= (now - (30 * 24 * 60 * 60 * 1000L))
             }
             categoryMatch && timeMatch
         }
@@ -91,8 +91,8 @@ fun HistoryScreen(
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("HISTORIAL DE ACTIVIDAD", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
-                        Text("Sesiones", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.history_activity), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.history_sessions), style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
                     }
                     IconButton(
                         onClick = { viewModel.setHistoryShowFilters(!showFilters) },
@@ -108,26 +108,26 @@ fun HistoryScreen(
                     Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
                         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("PERIODO TEMPORAL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.history_period), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    items(TimeFilter.values()) { filter ->
+                                    items(TimeFilter.entries) { filter ->
                                         FilterChip(
                                             selected = selectedTimeFilter == filter, 
                                             onClick = { viewModel.setHistorySelectedTimeFilter(filter) }, 
-                                            label = { Text(filter.name) }, 
+                                            label = { Text(translateTimeFilter(filter)) }, 
                                             border = null
                                         )
                                     }
                                 }
                             }
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("CATEGORÍA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.history_category), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     items(categories) { category ->
                                         FilterChip(
                                             selected = selectedCategory == category, 
                                             onClick = { viewModel.setHistorySelectedCategory(category) }, 
-                                            label = { Text(category) }, 
+                                            label = { Text(translateCategory(category)) }, 
                                             border = null
                                         )
                                     }
@@ -144,7 +144,7 @@ fun HistoryScreen(
                                 ) {
                                     Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp), tint = if (MaterialTheme.colorScheme.background == DeepBlack) Color.Black else Color.White)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("REPORTE PDF", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = if (MaterialTheme.colorScheme.background == DeepBlack) Color.Black else Color.White)
+                                    Text(stringResource(R.string.history_pdf), fontWeight = FontWeight.Bold, fontSize = 11.sp, color = if (MaterialTheme.colorScheme.background == DeepBlack) Color.Black else Color.White)
                                 }
                                 Button(
                                     onClick = { viewModel.exportHistoryToCSV(filteredItems) },
@@ -154,7 +154,7 @@ fun HistoryScreen(
                                 ) {
                                     Icon(Icons.AutoMirrored.Filled.ListAlt, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("DATOS CSV", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface)
+                                    Text(stringResource(R.string.history_csv), fontWeight = FontWeight.Bold, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface)
                                 }
                             }
                         }
@@ -165,8 +165,9 @@ fun HistoryScreen(
             item {
                 Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
                     Column(modifier = Modifier.padding(24.dp)) {
-                        val filterText = if (selectedCategory == "TODAS") selectedTimeFilter.name else "${selectedTimeFilter.name} • $selectedCategory"
-                        Text(text = "TIEMPO ENFOCADO ($filterText)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 2.sp)
+                        val categoryText = if (selectedCategory == "ALL") stringResource(R.string.category_all) else translateCategory(selectedCategory)
+                        val periodText = translateTimeFilter(selectedTimeFilter)
+                        Text(text = stringResource(R.string.history_focused_time, "$periodText • $categoryText"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 2.sp)
                         val totalFilteredTime = filteredItems.sumOf { it.durationMillis }
                         Text(text = formatMillisToTime(totalFilteredTime), style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = (-2).sp)
                     }
@@ -174,7 +175,7 @@ fun HistoryScreen(
             }
 
             if (filteredItems.isEmpty()) {
-                item { Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) { Text("No hay sesiones con estos filtros", color = MaterialTheme.colorScheme.onSurfaceVariant) } }
+                item { Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) { Text(stringResource(R.string.history_no_sessions), color = MaterialTheme.colorScheme.onSurfaceVariant) } }
             } else {
                 items(filteredItems) { item ->
                     HistoryEntryCard(item = item, onDelete = { historyToDelete = item }, onClick = { onNavigateToDetail(item.id) })
@@ -182,6 +183,28 @@ fun HistoryScreen(
             }
             item { Spacer(modifier = Modifier.height(100.dp)) }
         }
+    }
+}
+
+@Composable
+private fun translateTimeFilter(filter: TimeFilter): String {
+    return when(filter) {
+        TimeFilter.ALL -> stringResource(R.string.filter_all)
+        TimeFilter.TODAY -> stringResource(R.string.filter_today)
+        TimeFilter.WEEK -> stringResource(R.string.filter_week)
+        TimeFilter.MONTH -> stringResource(R.string.filter_month)
+    }
+}
+
+@Composable
+private fun translateCategory(internalName: String): String {
+    return when(internalName.uppercase()) {
+        "ALL" -> stringResource(R.string.category_all)
+        "GENERAL" -> stringResource(R.string.cat_general)
+        "WORK" -> stringResource(R.string.cat_work)
+        "LEISURE" -> stringResource(R.string.cat_leisure)
+        "OTHER" -> stringResource(R.string.cat_other)
+        else -> internalName
     }
 }
 
@@ -198,12 +221,12 @@ fun HistoryEntryCard(item: HistoryEntity, onDelete: () -> Unit, onClick: () -> U
                     }
                     Column {
                         Text(text = item.timerName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                        Text(text = "${item.category} • $dateStr", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = "${translateCategory(item.category)} • $dateStr", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(text = formatMillisToTimeShort(item.durationMillis), style = MaterialTheme.typography.headlineSmall, color = Color(item.color), fontWeight = FontWeight.Bold)
-                    Text(text = "DURACIÓN", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                    Text(text = stringResource(R.string.history_duration), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))

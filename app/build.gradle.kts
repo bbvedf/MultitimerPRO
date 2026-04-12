@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.media)
+    implementation("androidx.appcompat:appcompat:1.7.0") // Added for Locale/Language support
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
@@ -57,7 +58,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage") // Added Storage
+    implementation("com.google.firebase:firebase-storage")
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
@@ -69,7 +70,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-text-google-fonts:1.7.0")
 
     // Coil
-    implementation(libs.coil.compose) // Added Coil
+    implementation(libs.coil.compose)
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

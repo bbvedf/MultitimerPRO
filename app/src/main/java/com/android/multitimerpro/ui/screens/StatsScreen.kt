@@ -2,6 +2,8 @@ package com.android.multitimerpro.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -24,11 +26,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.data.TimeFilter
 import com.android.multitimerpro.ui.theme.*
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -53,7 +58,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
 
     val categoriesList = remember(historyItems) {
         val uniqueCats = historyItems.map { it.category }.distinct().sorted()
-        listOf("TODAS") + uniqueCats
+        listOf("ALL") + uniqueCats
     }
 
     val categoriesStats = statsByCategory.map { (name, time) ->
@@ -79,14 +84,14 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "ANÁLISIS DE RENDIMIENTO",
+                        text = stringResource(R.string.stats_performance_analysis),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         letterSpacing = 2.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Estadísticas",
+                        text = stringResource(R.string.stats_title),
                         style = MaterialTheme.typography.headlineLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
@@ -122,26 +127,26 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                 ) {
                     Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("PERIODO TEMPORAL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.history_period), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                items(TimeFilter.values()) { filter ->
+                                items(TimeFilter.entries) { filter ->
                                     FilterChip(
                                         selected = selectedTimeFilter == filter,
                                         onClick = { viewModel.setHistorySelectedTimeFilter(filter) },
-                                        label = { Text(filter.name) },
+                                        label = { Text(translateTimeFilterLocal(filter)) },
                                         border = null
                                     )
                                 }
                             }
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("CATEGORÍA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.history_category), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 items(categoriesList) { category ->
                                     FilterChip(
                                         selected = selectedCategory == category,
                                         onClick = { viewModel.setHistorySelectedCategory(category) },
-                                        label = { Text(category) },
+                                        label = { Text(translateCategoryLocal(category)) },
                                         border = null
                                     )
                                 }
@@ -166,7 +171,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("TIEMPO TOTAL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.stats_total_time), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             text = formatMillisToTime(totalTimeSpent),
                             style = MaterialTheme.typography.displaySmall,
@@ -176,7 +181,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                         )
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("SESIONES", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.stats_sessions), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             text = "${filteredHistory.size}",
                             style = MaterialTheme.typography.headlineMedium,
@@ -198,7 +203,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("PROMEDIO SESIÓN", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                        Text(stringResource(R.string.stats_avg_session), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
                         Text(text = formatMillisToTimeShort(averageSessionTime), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
@@ -209,7 +214,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("DÍA MÁS ACTIVO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                        Text(stringResource(R.string.stats_peak_day), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
                         Text(text = mostProductiveDay, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
@@ -236,7 +241,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                         Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = NeonPurple, modifier = Modifier.size(20.dp))
                     }
                     Column {
-                        Text("TEMPORIZADOR ESTRELLA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                        Text(stringResource(R.string.stats_star_timer), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
                         Text(text = topTimerName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = NeonPurple)
                     }
                 }
@@ -253,13 +258,13 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = "Rendimiento Diario",
+                        text = stringResource(R.string.stats_daily_performance),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "Tiempo enfocado por día (7d)",
+                        text = stringResource(R.string.stats_daily_desc),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -273,7 +278,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         activityLast7Days.forEach { (day, time) ->
-                            val progress = time.LosslessToFloat() / maxDayTime.toFloat()
+                            val progress = time.toFloat() / maxDayTime.toFloat()
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -329,7 +334,7 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                 ) {
                     Column(modifier = Modifier.padding(24.dp)) {
                         Text(
-                            text = "Distribución por Categoría",
+                            text = stringResource(R.string.stats_category_dist),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -360,12 +365,18 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
-                                    Text(stat.name, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
+                                    Text(translateCategoryLocal(stat.name), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 Text("${(stat.percentage * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
+                }
+            }
+        } else {
+            item {
+                Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
+                    Text(stringResource(R.string.stats_no_data), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -374,9 +385,9 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 InsightCard(
-                    title = "ANÁLISIS DE ENFOQUE",
-                    description = if (categoriesStats.isEmpty()) "Comienza a completar sesiones para ver tu rendimiento filtrado." 
-                                 else "Tu mayor inversión de tiempo en este periodo es ${categoriesStats.first().name}.",
+                    title = stringResource(R.string.stats_focus_analysis),
+                    description = if (categoriesStats.isEmpty()) stringResource(R.string.stats_start_sessions) 
+                                 else stringResource(R.string.stats_top_investment, translateCategoryLocal(categoriesStats.first().name)),
                     icon = Icons.AutoMirrored.Filled.TrendingUp,
                     accentColor = NeonOrange
                 )
@@ -385,8 +396,8 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                 val hasActivityToday = activityLast7Days.entries.lastOrNull()?.value ?: 0L > 0
                 if (hasActivityToday) {
                     InsightCard(
-                        title = "PRODUCTIVIDAD HOY",
-                        description = "¡Buen trabajo! Has mantenido el enfoque hoy. Continúa con este ritmo.",
+                        title = stringResource(R.string.stats_today_prod),
+                        description = stringResource(R.string.stats_today_msg),
                         icon = Icons.Default.Bolt,
                         accentColor = NeonRed
                     )
@@ -398,7 +409,27 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
     }
 }
 
-private fun Long.LosslessToFloat(): Float = this.toFloat()
+@Composable
+private fun translateTimeFilterLocal(filter: TimeFilter): String {
+    return when(filter) {
+        TimeFilter.ALL -> stringResource(R.string.filter_all)
+        TimeFilter.TODAY -> stringResource(R.string.filter_today)
+        TimeFilter.WEEK -> stringResource(R.string.filter_week)
+        TimeFilter.MONTH -> stringResource(R.string.filter_month)
+    }
+}
+
+@Composable
+private fun translateCategoryLocal(internalName: String): String {
+    return when(internalName.uppercase()) {
+        "ALL" -> stringResource(R.string.category_all)
+        "GENERAL" -> stringResource(R.string.cat_general)
+        "WORK" -> stringResource(R.string.cat_work)
+        "LEISURE" -> stringResource(R.string.cat_leisure)
+        "OTHER" -> stringResource(R.string.cat_other)
+        else -> internalName
+    }
+}
 
 @Composable
 fun CategoryBar(stat: CategoryStat, modifier: Modifier = Modifier) {
@@ -419,7 +450,7 @@ fun CategoryBar(stat: CategoryStat, modifier: Modifier = Modifier) {
                 )
         )
         Text(
-            text = stat.name.uppercase(),
+            text = translateCategoryLocal(stat.name).uppercase(),
             style = MaterialTheme.typography.labelSmall,
             fontSize = 7.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

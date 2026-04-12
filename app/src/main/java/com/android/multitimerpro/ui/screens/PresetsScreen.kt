@@ -16,10 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.PresetEntity
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.components.DeletePresetConfirmationDialog
@@ -52,14 +55,14 @@ fun PresetsScreen(
             
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = "PLANTILLAS RÁPIDAS",
+                    text = stringResource(R.string.presets_title),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Presets Guardados",
+                    text = stringResource(R.string.presets_saved),
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
@@ -83,8 +86,8 @@ fun PresetsScreen(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
                         )
                         Text(
-                            "No hay presets todavía.\nGuarda tus configuraciones favoritas.",
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            stringResource(R.string.presets_no_presets) + "\n" + stringResource(R.string.presets_add_msg),
+                            textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -181,7 +184,7 @@ fun SmallPresetCard(
                 ) {
                     Text(
                         text = timeStr, 
-                        style = MaterialTheme.typography.titleLarge, // Adjusted size for HH:MM:SS
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface, 
                         fontWeight = FontWeight.Bold
                     )
