@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.multitimerpro.service.TimerService
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -112,12 +113,44 @@ class TimerViewModel @Inject constructor(
 
     private val auth = FirebaseAuth.getInstance()
 
+    // --- User Profile State ---
+    private val _userDisplayName = MutableStateFlow(auth.currentUser?.displayName ?: "")
+    val userDisplayName = _userDisplayName.asStateFlow()
+
+    private val _userPhotoUrl = MutableStateFlow(auth.currentUser?.photoUrl?.toString() ?: "")
+    val userPhotoUrl = _userPhotoUrl.asStateFlow()
+
     init {
         val currentUser = auth.currentUser
         _isAuthenticated.value = currentUser != null
         
         if (currentUser != null) {
             syncUserAndData(currentUser.uid, currentUser.email ?: "")
+        }
+    }
+
+    fun updateProfile(name: String, photoUrl: String) {
+        viewModelScope.launch {
+            val user = auth.currentUser ?: return@launch
+            try {
+                val profileUpdates = userProfileChangeRequest {
+                    displayName = name
+                    photoUri = Uri.parse(photoUrl)
+                }
+                user.updateProfile(profileUpdates).await()
+                
+                // Update Firestore
+                firestore.collection("users").document(user.uid).update(
+                    mapOf("displayName" to name, "photoUrl" to photoUrl)
+                ).await()
+                
+                _userDisplayName.value = name
+                _userPhotoUrl.value = photoUrl
+                showMessage("Perfil actualizado")
+            } catch (e: Exception) {
+                Log.e(TAG, "Update profile failed", e)
+                showMessage("Error al actualizar perfil")
+            }
         }
     }
 
@@ -147,9 +180,15 @@ class TimerViewModel @Inject constructor(
                     System.currentTimeMillis()
                 }
                 val userMap = mutableMapOf<String, Any>("uid" to uid, "email" to finalEmail, "createdAt" to createdAt)
-                auth.currentUser?.displayName?.let { userMap["displayName"] = it }
+                auth.currentUser?.displayName?.let { 
+                    userMap["displayName"] = it
+                    _userDisplayName.value = it
+                }
                 val photoUrl = auth.currentUser?.photoUrl?.toString()
-                if (photoUrl != null && photoUrl.startsWith("http")) userMap["photoUrl"] = photoUrl
+                if (photoUrl != null && photoUrl.startsWith("http")) {
+                    userMap["photoUrl"] = photoUrl
+                    _userPhotoUrl.value = photoUrl
+                }
                 userDocRef.set(userMap, SetOptions.merge()).await()
                 timerManager.reclaimLocalTimers(uid)
                 timerManager.syncFromCloud(uid)
