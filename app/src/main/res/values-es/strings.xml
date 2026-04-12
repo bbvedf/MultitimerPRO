@@ -7,7 +7,7 @@
     <string name="nav_timers">RELOJES</string>
     <string name="nav_presets">PRESETS</string>
     <string name="nav_stats">STATS</string>
-    <string name="nav_history">HISTORIAL</string>
+    <string name="nav_history">RÉCORD</string>
     <string name="nav_settings">AJUSTES</string>
 
     <!-- Home Screen -->
@@ -62,6 +62,12 @@
     <string name="history_focused_time">TIEMPO ENFOCADO (%1$s)</string>
     <string name="history_no_sessions">No hay sesiones con estos filtros</string>
     <string name="history_duration">DURACIÓN</string>
+
+    <!-- Time Filters -->
+    <string name="filter_all">TODAS</string>
+    <string name="filter_today">HOY</string>
+    <string name="filter_week">SEMANA</string>
+    <string name="filter_month">MES</string>
 
     <!-- History Detail Screen -->
     <string name="detail_title">DETALLE DE SESIÓN</string>

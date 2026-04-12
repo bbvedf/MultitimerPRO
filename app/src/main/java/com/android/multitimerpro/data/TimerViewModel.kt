@@ -124,11 +124,9 @@ class TimerViewModel @Inject constructor(
     val currentLanguage = _currentLanguage.asStateFlow()
 
     fun setLanguage(languageCode: String) {
-        viewModelScope.launch {
-            val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
-            AppCompatDelegate.setApplicationLocales(appLocale)
-            _currentLanguage.value = languageCode
-        }
+        val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
+        AppCompatDelegate.setApplicationLocales(appLocale)
+        _currentLanguage.value = languageCode
     }
 
     init {

@@ -110,7 +110,7 @@ fun HistoryScreen(
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(stringResource(R.string.history_period), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    items(TimeFilter.entries) { filter ->
+                                    items(TimeFilter.values()) { filter ->
                                         FilterChip(
                                             selected = selectedTimeFilter == filter, 
                                             onClick = { viewModel.setHistorySelectedTimeFilter(filter) }, 
