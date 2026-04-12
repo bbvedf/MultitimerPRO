@@ -7,7 +7,7 @@
     <string name="nav_timers">RELOJES</string>
     <string name="nav_presets">PRESETS</string>
     <string name="nav_stats">STATS</string>
-    <string name="nav_history">RÉCORD</string>
+    <string name="nav_history">HISTORIAL</string>
     <string name="nav_settings">AJUSTES</string>
 
     <!-- Home Screen -->

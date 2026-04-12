@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MultiTimer Pro</string>
+    <string name="main_title">MULTITIMER PRO</string>
+
+    <!-- Navigation -->
+    <string name="nav_timers">CRONÔMETROS</string>
+    <string name="nav_presets">PRESETS</string>
+    <string name="nav_stats">STATS</string>
+    <string name="nav_history">HISTÓRICO</string>
+    <string name="nav_settings">CONFIG</string>
+
+    <!-- Home Screen -->
+    <string name="home_status">ESTADO</string>
+    <string name="home_active_instruments">Instrumentos\nAtivos</string>
+    <string name="home_actives_suffix">ATIVOS</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">AJUSTES DO SISTEMA</string>
+    <string name="operator_account">CONTA DE OPERADOR</string>
+    <string name="unknown_operator">Operador Desconhecido</string>
+    <string name="no_email">Sem e-mail</string>
+    <string name="visual_preferences">PREFERÊNCIAS VISUAIS</string>
+    <string name="dark_mode">Modo Escuro</string>
+    <string name="light_mode">Modo Claro</string>
+    <string name="language">IDIOMA</string>
+    <string name="snooze_config">CONFIGURAÇÃO SNOOZE (MIN)</string>
+    <string name="snooze_1">Snooze 1</string>
+    <string name="snooze_2">Snooze 2</string>
+    <string name="actions">AÇÕES</string>
+    <string name="logout">SAIR</string>
+    <string name="edit_profile">EDITAR PERFIL</string>
+    <string name="operator_name">Nome do Operador</string>
+    <string name="version_info">MultiTimer PRO v1.0.0</string>
+
+    <!-- Stats Screen -->
+    <string name="stats_performance_analysis">ANÁLISE DE DESEMPENHO</string>
+    <string name="stats_title">Estatísticas</string>
+    <string name="stats_total_time">TEMPO TOTAL</string>
+    <string name="stats_sessions">SESSÕES</string>
+    <string name="stats_avg_session">MÉDIA SESSÃO</string>
+    <string name="stats_peak_day">DIA DE PICO</string>
+    <string name="stats_star_timer">CRONÔMETRO ESTRELA</string>
+    <string name="stats_daily_performance">Rendimento Diário</string>
+    <string name="stats_daily_desc">Tempo de foco por dia (7d)</string>
+    <string name="stats_category_dist">Distribuição por Categoria</string>
+    <string name="stats_focus_analysis">ANÁLISIS DE FOCO</string>
+    <string name="stats_today_prod">PRODUTIVIDADE HOJE</string>
+    <string name="stats_no_data">Sem dados para este período</string>
+    <string name="stats_start_sessions">Inicie sessões para ver suas análises.</string>
+    <string name="stats_today_msg">Bom trabalho! Você manteve o foco hoje. Continue assim.</string>
+    <string name="stats_dominant_cat">Sua categoria principal é %1$s.</string>
+    <string name="stats_top_investment">Seu maior investimento de tempo é %1$s.</string>
+
+    <!-- History Screen -->
+    <string name="history_activity">HISTÓRICO DE ATIVIDADE</string>
+    <string name="history_sessions">Sessões</string>
+    <string name="history_period">PERÍODO</string>
+    <string name="history_category">CATEGORIA</string>
+    <string name="history_pdf">RELATÓRIO PDF</string>
+    <string name="history_csv">DADOS CSV</string>
+    <string name="history_focused_time">TEMPO DE FOCO (%1$s)</string>
+    <string name="history_no_sessions">Nenhuma sessão encontrada</string>
+    <string name="history_duration">DURAÇÃO</string>
+
+    <!-- History Detail Screen -->
+    <string name="detail_title">DETALHE DA SESSÃO</string>
+    <string name="detail_category">CATEGORIA</string>
+    <string name="detail_total_duration">DURAÇÃO TOTAL</string>
+    <string name="detail_date">DATA</string>
+    <string name="detail_finished_at">FINALIZADO ÀS</string>
+    <string name="detail_notes_title">NOTAS DA SESSÃO</string>
+    <string name="detail_notes_placeholder">Adicionar comentários...</string>
+    <string name="detail_intervals_breakdown">DETALHE DOS INTERVALOS</string>
+    <string name="detail_on_screen">Na tela: %1$s</string>
+    <string name="detail_lap_duration">DURAÇÃO DA VOLTA</string>
+    <string name="detail_no_label">Sem etiqueta</string>
+
+    <!-- Presets Screen -->
+    <string name="presets_title">MODELOS RÁPIDOS</string>
+    <string name="presets_saved">Presets Salvos</string>
+    <string name="presets_no_presets">Nenhum preset salvo</string>
+    <string name="presets_add_msg">Crie cronômetros e salve-os como presets.</string>
+
+    <!-- Live Timer / Detail -->
+    <string name="live_add_mark">ADICIONAR MARCA</string>
+    <string name="live_no_desc">Sem descrição</string>
+    <string name="live_target">META</string>
+    <string name="live_pause">PAUSAR</string>
+    <string name="live_start">INICIAR</string>
+    <string name="live_progress">PROGRESSO</string>
+    <string name="live_ends_at">TERMINA ÀS</string>
+    <string name="live_intervals">INTERVALOS</string>
+    <string name="live_mark_default">Padrão: %1$s</string>
+
+    <!-- Create/Edit Timer -->
+    <string name="timer_new">NOVO INSTRUMENTO</string>
+    <string name="timer_edit">EDITAR INSTRUMENTO</string>
+    <string name="timer_name_label">NOME DO TIMER</string>
+    <string name="timer_category_label">CATEGORIA</string>
+    <string name="timer_duration_label">DURAÇÃO</string>
+    <string name="timer_color_label">COR</string>
+    <string name="timer_desc_label">DESCRIÇÃO</string>
+    <string name="timer_name_placeholder">Ex. Sessão de Trabalho</string>
+    <string name="timer_create_btn">CRIAR TIMER</string>
+    <string name="timer_save_btn">SALVAR ALTERAÇÕES</string>
+    <string name="timer_preset_btn">SALVAR COMO PRESET</string>
+    <string name="timer_required_msg">Nome e duração obrigatórios</string>
+
+    <!-- Categories -->
+    <string name="cat_general">GERAL</string>
+    <string name="cat_work">TRABALHO</string>
+    <string name="cat_leisure">LAZER</string>
+    <string name="cat_other">OUTROS</string>
+    <string name="category_all">TODAS</string>
+
+    <!-- Time Filters -->
+    <string name="filter_all">TODAS</string>
+    <string name="filter_today">HOJE</string>
+    <string name="filter_week">SEMANA</string>
+    <string name="filter_month">MÊS</string>
+
+    <!-- System Statuses -->
+    <string name="status_ready">PRONTO</string>
+    <string name="status_live">EM CURSO</string>
+    <string name="status_paused">EM PAUSA</string>
+    <string name="status_finished">FINALIZADO</string>
+
+    <!-- General / Dialogs -->
+    <string name="cancel">CANCELAR</string>
+    <string name="save">SALVAR</string>
+    <string name="delete">Excluir</string>
+    <string name="start">Iniciar</string>
+    <string name="pause">Pausa</string>
+    <string name="reset">Reset</string>
+    <string name="confirm">Confirmar</string>
+    <string name="add">ADICIONAR</string>
+    <string name="hours_label_full">HH</string>
+    <string name="minutes_label_full">MM</string>
+    <string name="seconds_label_full">SS</string>
+    <string name="hours_label">H</string>
+    <string name="minutes_label">M</string>
+    <string name="seconds_label">S</string>
+</resources>
