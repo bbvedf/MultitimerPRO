@@ -1,25 +1,32 @@
 package com.android.multitimerpro.ui.screens
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Snooze
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.components.LogoutConfirmationDialog
 import com.android.multitimerpro.ui.theme.*
@@ -32,7 +39,13 @@ fun SettingsScreen(
 ) {
     val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
+    
+    val userDisplayName by viewModel.userDisplayName.collectAsState()
+    val userPhotoUrl by viewModel.userPhotoUrl.collectAsState()
+    
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showProfileDialog by remember { mutableStateOf(false) }
+    
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
     val snooze1 by viewModel.snooze1.collectAsState()
     val snooze2 by viewModel.snooze2.collectAsState()
@@ -48,6 +61,18 @@ fun SettingsScreen(
         )
     }
 
+    if (showProfileDialog) {
+        EditProfileDialog(
+            currentName = userDisplayName,
+            currentAvatar = userPhotoUrl,
+            onDismiss = { showProfileDialog = false },
+            onConfirm = { name, avatar ->
+                viewModel.updateProfile(name, avatar)
+                showProfileDialog = false
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,141 +80,65 @@ fun SettingsScreen(
             .padding(24.dp)
     ) {
         // Header
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = onBack) {
-                Icon(
-                    Icons.Default.ArrowBack, 
-                    contentDescription = null, 
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "AJUSTES DEL SISTEMA",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                letterSpacing = 2.sp
-            )
+            Text("AJUSTES DEL SISTEMA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 2.sp)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         // User Profile Section
-        Text(
-            text = "CUENTA DE OPERADOR",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp
-        )
-
+        Text("CUENTA DE OPERADOR", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         Spacer(modifier = Modifier.height(16.dp))
 
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showProfileDialog = true },
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier.size(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Default.Person, 
-                            contentDescription = null, 
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                UserAvatar(photoUrl = userPhotoUrl, size = 56.dp)
                 Spacer(modifier = Modifier.width(16.dp))
-
-                Column {
-                    Text(
-                        text = user?.displayName ?: "Operador Desconocido",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = user?.email ?: "Sin email",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = userDisplayName.ifBlank { "Operador" }, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                    Text(text = user?.email ?: "Sin email", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Theme Section
-        Text(
-            text = "PREFERENCIAS VISUALES",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp
-        )
-
+        Text("PREFERENCIAS VISUALES", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         Spacer(modifier = Modifier.height(12.dp))
-
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = if (isDarkModeOverride == true) Icons.Default.DarkMode else Icons.Default.LightMode,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    Icon(imageVector = if (isDarkModeOverride == true) Icons.Default.DarkMode else Icons.Default.LightMode, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = if (isDarkModeOverride == true) "Modo Oscuro" else "Modo Claro",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Text(text = if (isDarkModeOverride == true) "Modo Oscuro" else "Modo Claro", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                 }
-                Switch(
-                    checked = isDarkModeOverride ?: false,
-                    onCheckedChange = { viewModel.toggleTheme(it) },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                    )
-                )
+                Switch(checked = isDarkModeOverride ?: false, onCheckedChange = { viewModel.toggleTheme(it) }, colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary, checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)))
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Snooze Section
-        Text(
-            text = "CONFIGURACIÓN DE SNOOZE (MIN)",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp
-        )
-
+        Text("CONFIGURACIÓN DE SNOOZE (MIN)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         Spacer(modifier = Modifier.height(12.dp))
-
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surface,
@@ -220,47 +169,125 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Actions
-        Text(
-            text = "ACCIONES",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp
-        )
-
+        Text("ACCIONES", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(
             onClick = { showLogoutDialog = true },
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFF4B4B).copy(alpha = 0.1f),
-                contentColor = Color(0xFFFF4B4B)
-            ),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4B4B).copy(alpha = 0.1f), contentColor = Color(0xFFFF4B4B)),
             shape = RoundedCornerShape(12.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4B4B).copy(alpha = 0.3f))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "CERRAR SESIÓN (LOGOUT)",
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
+                Text("CERRAR SESIÓN (LOGOUT)", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             }
         }
 
         Spacer(modifier = Modifier.weight(1f))
-
-        // Version Info
-        Text(
-            text = "MultiTimer PRO v1.0.0",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        Text("MultiTimer PRO v1.0.0", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f), modifier = Modifier.align(Alignment.CenterHorizontally))
     }
 }
+
+@Composable
+fun UserAvatar(photoUrl: String, size: androidx.compose.ui.unit.Dp) {
+    Surface(
+        modifier = Modifier.size(size),
+        shape = RoundedCornerShape(size / 4),
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        if (photoUrl.startsWith("http")) {
+            AsyncImage(model = photoUrl, contentDescription = null, modifier = Modifier.fillMaxSize())
+        } else {
+            val icon = avatarPresets.find { it.id == photoUrl }?.icon ?: Icons.Default.Person
+            val color = avatarPresets.find { it.id == photoUrl }?.color ?: MaterialTheme.colorScheme.primary
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize().background(color.copy(alpha = 0.1f))) {
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(size / 2))
+            }
+        }
+    }
+}
+
+@Composable
+fun EditProfileDialog(
+    currentName: String,
+    currentAvatar: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String) -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+    var selectedAvatar by remember { mutableStateOf(currentAvatar) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(28.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+        ) {
+            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("EDITAR PERFIL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Avatar Selection
+                LazyVerticalGrid(columns = GridCells.Fixed(4), modifier = Modifier.height(140.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(avatarPresets) { avatar ->
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (selectedAvatar == avatar.id) avatar.color.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .clickable { selectedAvatar = avatar.id }
+                                .border(if (selectedAvatar == avatar.id) 2.dp else 0.dp, avatar.color, RoundedCornerShape(12.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(avatar.icon, contentDescription = null, tint = if (selectedAvatar == avatar.id) avatar.color else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(24.dp))
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nombre de Operador") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary)
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text("CANCELAR") }
+                    Button(
+                        onClick = { onConfirm(name, selectedAvatar) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("GUARDAR")
+                    }
+                }
+            }
+        }
+    }
+}
+
+data class AvatarPreset(val id: String, val icon: ImageVector, val color: Color)
+
+val avatarPresets = listOf(
+    AvatarPreset("robot", Icons.Default.SmartToy, NeonBlue),
+    AvatarPreset("timer", Icons.Default.Timer, NeonGreen),
+    AvatarPreset("star", Icons.Default.Grade, NeonOrange),
+    AvatarPreset("bolt", Icons.Default.Bolt, NeonRed),
+    AvatarPreset("ninja", Icons.Default.Shield, NeonPurple),
+    AvatarPreset("space", Icons.Default.RocketLaunch, NeonBlueDim),
+    AvatarPreset("gear", Icons.Default.Settings, NeonGreenDim),
+    AvatarPreset("key", Icons.Default.VpnKey, Color.Gray)
+)
 
 @Composable
 fun SnoozeInput(value: String, onValueChange: (String) -> Unit) {

@@ -57,6 +57,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage") // Added Storage
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
@@ -66,6 +67,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation("androidx.compose.ui:ui-text-google-fonts:1.7.0")
+
+    // Coil
+    implementation(libs.coil.compose) // Added Coil
 
     // Navigation
     implementation(libs.androidx.navigation.compose)

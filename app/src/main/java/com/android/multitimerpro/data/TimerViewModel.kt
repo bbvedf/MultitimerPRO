@@ -185,7 +185,7 @@ class TimerViewModel @Inject constructor(
                     _userDisplayName.value = it
                 }
                 val photoUrl = auth.currentUser?.photoUrl?.toString()
-                if (photoUrl != null && photoUrl.startsWith("http")) {
+                if (photoUrl != null) {
                     userMap["photoUrl"] = photoUrl
                     _userPhotoUrl.value = photoUrl
                 }
