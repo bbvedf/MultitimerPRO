@@ -65,6 +65,30 @@ class TimerViewModel @Inject constructor(
     fun setHistorySelectedCategory(category: String) { _historySelectedCategory.value = category }
     fun setHistorySelectedTimeFilter(filter: TimeFilter) { _historySelectedTimeFilter.value = filter }
 
+    // --- Filtered History Logic ---
+    val filteredHistory: StateFlow<List<HistoryEntity>> = combine(
+        history,
+        historySelectedCategory,
+        historySelectedTimeFilter
+    ) { historyItems, selectedCategory, selectedTimeFilter ->
+        val now = System.currentTimeMillis()
+        historyItems.filter { item ->
+            val categoryMatch = selectedCategory == "TODAS" || item.category == selectedCategory
+            val timeMatch = when (selectedTimeFilter) {
+                TimeFilter.TODO -> true
+                TimeFilter.HOY -> {
+                    val itemCal = Calendar.getInstance().apply { timeInMillis = item.completedAt }
+                    val nowCal = Calendar.getInstance()
+                    itemCal.get(Calendar.DAY_OF_YEAR) == nowCal.get(Calendar.DAY_OF_YEAR) &&
+                    itemCal.get(Calendar.YEAR) == nowCal.get(Calendar.YEAR)
+                }
+                TimeFilter.SEMANA -> item.completedAt >= (now - (7 * 24 * 60 * 60 * 1000L))
+                TimeFilter.MES -> item.completedAt >= (now - (30 * 24 * 60 * 60 * 1000L))
+            }
+            categoryMatch && timeMatch
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // Theme state
     private val _isDarkMode = MutableStateFlow<Boolean?>(null)
     val isDarkMode: StateFlow<Boolean?> = _isDarkMode.asStateFlow()
@@ -141,13 +165,67 @@ class TimerViewModel @Inject constructor(
         showMessage("Cambios guardados")
     }
 
-    // Stats
-    val totalTimeSpent: StateFlow<Long> = history.map { list ->
+    // Stats (Updated to use filteredHistory)
+    val totalTimeSpent: StateFlow<Long> = filteredHistory.map { list ->
         list.sumOf { it.durationMillis }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
-    val statsByCategory: StateFlow<Map<String, Long>> = history.map { list ->
+    val statsByCategory: StateFlow<Map<String, Long>> = filteredHistory.map { list ->
         list.groupBy { it.category }.mapValues { entry -> entry.value.sumOf { it.durationMillis } }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // --- Advanced Metrics for Stats Screen ---
+    val averageSessionTime: StateFlow<Long> = filteredHistory.map { list ->
+        if (list.isEmpty()) 0L else list.sumOf { it.durationMillis } / list.size
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
+    val mostProductiveDay: StateFlow<String> = filteredHistory.map { list ->
+        if (list.isEmpty()) "---" else {
+            val sdf = SimpleDateFormat("EEEE", Locale.getDefault())
+            list.groupBy { sdf.format(Date(it.completedAt)) }
+                .maxByOrNull { it.value.sumOf { item -> item.durationMillis } }
+                ?.key?.uppercase() ?: "---"
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "---")
+
+    val topTimerName: StateFlow<String> = filteredHistory.map { list ->
+        if (list.isEmpty()) "---" else {
+            list.groupBy { it.timerName }
+                .maxByOrNull { it.value.sumOf { item -> item.durationMillis } }
+                ?.key ?: "---"
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "---")
+
+    // --- Time series for activity chart (Last 7 days, respecting category filter) ---
+    val activityLast7Days: StateFlow<Map<String, Long>> = combine(
+        history,
+        historySelectedCategory
+    ) { historyItems, selectedCategory ->
+        val result = mutableMapOf<String, Long>()
+        val sdf = SimpleDateFormat("EE", Locale.getDefault())
+        
+        // Initialize last 7 days with 0 (in local order)
+        val last7DaysKeys = mutableListOf<String>()
+        for (i in 0 until 7) {
+            val tempCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
+            val dayKey = sdf.format(tempCal.time).uppercase()
+            last7DaysKeys.add(dayKey)
+            result[dayKey] = 0L
+        }
+        
+        // Filter by time and selected category
+        val sevenDaysAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
+        historyItems.filter { 
+            it.completedAt >= sevenDaysAgo && (selectedCategory == "TODAS" || it.category == selectedCategory)
+        }.forEach { item ->
+            val dayKey = sdf.format(Date(item.completedAt)).uppercase()
+            if (result.containsKey(dayKey)) {
+                result[dayKey] = (result[dayKey] ?: 0L) + item.durationMillis
+            }
+        }
+        
+        // Return in chronological order (oldest to newest)
+        last7DaysKeys.reversed().associateWith { result[it] ?: 0L }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     // Auth actions... (Google SignIn, Email Login, etc.)

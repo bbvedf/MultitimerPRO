@@ -8,6 +8,8 @@ val NeonBlueDim = Color(0xFF00C0EA)
 val NeonGreen = Color(0xFF2FF801)
 val NeonGreenDim = Color(0xFF106E00)
 val NeonPurple = Color(0xFF89A5FF)
+val NeonOrange = Color(0xFFFF9F0A) // Añadido para mayor contraste en stats
+val NeonRed = Color(0xFFFF3B30)    // Añadido para alertas/inspección
 
 // Colores Modo Oscuro (Obsidian)
 val DeepBlack = Color(0xFF0E0E0E)
@@ -25,3 +27,5 @@ val OnSurfaceVariantLight = Color(0xFF8E8E93)
 val NeonBlueDark = Color(0xFF007AFF) // Versión más legible para fondo blanco
 val NeonGreenDark = Color(0xFF248A1C)
 val NeonPurpleDark = Color(0xFF5856D6)
+val NeonOrangeDark = Color(0xFFFF9500)
+val NeonRedDark = Color(0xFFFF2D55)
