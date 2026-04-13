@@ -141,4 +141,69 @@
     <string name="hours_label">H</string>
     <string name="minutes_label">M</string>
     <string name="seconds_label">S</string>
+
+    <!-- Gamification -->
+    <string name="stats_tab_analysis">ANÁLISE</string>
+    <string name="stats_tab_achievements">REGISTROS</string>
+    <string name="gamification_help_title">PROTOCOLO OPERACIONAL</string>
+    <string name="gamification_help_desc">A progressão do sistema é baseada na execução focada:\n\n• 1 MINUTO DE FOCO = 1 XP\n• MEDALHA DESBLOQUEADA = 500 XP\n• SEQUÊNCIA DIÁRIA = +50 XP BÔNUS\n\nAcumule XP para aumentar seu nível de Operador e desbloquear privilégios no sistema.</string>
+    <string name="new_medal_unlocked">CONQUISTA DESBLOQUEADA</string>
+    <string name="protocol_understood">PROTOCOLO COMPREENDIDO</string>
+    <string name="xp_to_next_level">%1$d XP PARA O PRÓXIMO NÍVEL</string>
+    <string name="operational_achievements_title">CONQUISTAS OPERACIONAIS</string>
+    <string name="rank_novice">OPERADOR NOVIÇO</string>
+    <string name="rank_technician">TÉCNICO SR.</string>
+    <string name="rank_master">MESTRE DO SISTEMA</string>
+    <string name="rank_architect">GRANDE ARQUITETO</string>
+
+    <string name="medal_deep_work">Mestre do Deep Work</string>
+    <string name="medal_deep_work_desc">Conclua uma sessão de mais de 2 horas</string>
+    <string name="medal_early_bird">Madrugador</string>
+    <string name="medal_early_bird_desc">Termine uma sessão antes das 07:00</string>
+    <string name="medal_night_owl">Coruja</string>
+    <string name="medal_night_owl_desc">Termine uma sessão depois das 23:00</string>
+    <string name="medal_weekend">Guerreiro do Fim de Semana</string>
+    <string name="medal_weekend_desc">Mantenha o foco no sábado ou domingo</string>
+    <string name="medal_collector">Colecionador de Categorias</string>
+    <string name="medal_collector_desc">Use pelo menos 4 categorias diferentes</string>
+    <string name="medal_veteran">Veterano do Foco</string>
+    <string name="medal_veteran_desc">Alcance 100 horas totais de foco</string>
+    <string name="medal_hyperfocus">Hiperfoco</string>
+    <string name="medal_hyperfocus_desc">Conclua 5 sessões em um único dia</string>
+    <string name="medal_consistency">Rei da Consistência</string>
+    <string name="medal_consistency_desc">Mantenha uma sequência de foco de 7 dias</string>
+
+    <!-- Notifications -->
+    <string name="notif_running_channel">Instrumentos Ativos</string>
+    <string name="notif_running_desc">Monitoramento de cronômetros em curso.</string>
+    <string name="notif_alarm_channel">Alarmes Finais</string>
+    <string name="notif_alarm_desc">Alertas críticos para cronômetros finalizados.</string>
+    <string name="notif_active_instrument">Instrumento ativo • %1$s</string>
+    <string name="notif_in_progress">Instrumento em progresso • %1$s</string>
+    <string name="notif_timer_finished">TEMPO ESGOTADO!</string>
+    <string name="notif_timer_completed">\'%1$s\' completou seu ciclo.</string>
+    <string name="notif_pause">PAUSAR</string>
+    <string name="notif_resume">RETOMAR</string>
+    <string name="notif_ok">OK</string>
+    <string name="notif_default_name">Timer</string>
+
+    <!-- ViewModel Messages -->
+    <string name="msg_profile_updated">Perfil atualizado</string>
+    <string name="msg_profile_error">Erro ao atualizar perfil</string>
+    <string name="msg_session_started">Sessão iniciada</string>
+    <string name="msg_deleted">Excluído</string>
+    <string name="msg_welcome">Bem-vindo!</string>
+    <string name="msg_no_data">Sem dados</string>
+    <string name="msg_pdf_error">Erro ao gerar PDF</string>
+    <string name="msg_snooze_added">Snooze: +%1$d min</string>
+    <string name="msg_preset_saved">Preset salvo</string>
+    <string name="msg_preset_deleted">Preset excluído</string>
+    <string name="msg_timer_added">Timer adicionado</string>
+
+    <string name="msg_logout_confirm">Tem certeza de que deseja sair? Você precisará se identificar novamente para sincronizar seus dados de operador.</string>
+    <string name="msg_delete_timer_confirm">Tem certeza de que deseja excluir \'%1$s\'? Esta ação não pode ser desfeita.</string>
+    <string name="msg_delete_preset_confirm">Tem certeza de que deseja excluir o modelo \'%1$s\'? Não afetará os cronômetros que já estão em curso.</string>
+    <string name="msg_delete_history_confirm">Tem certeza de que deseja excluir o registro de \'%1$s\'? Esta ação não pode ser desfeita.</string>
+
+    <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

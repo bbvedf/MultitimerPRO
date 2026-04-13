@@ -203,7 +203,7 @@ private fun translateCategory(internalName: String): String {
         "GENERAL" -> stringResource(R.string.cat_general)
         "WORK" -> stringResource(R.string.cat_work)
         "LEISURE" -> stringResource(R.string.cat_leisure)
-        "OTHER" -> stringResource(R.string.cat_other)
+        "OTHERS" -> stringResource(R.string.cat_other)
         else -> internalName
     }
 }

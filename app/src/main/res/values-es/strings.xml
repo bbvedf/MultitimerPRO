@@ -172,4 +172,34 @@
     <string name="medal_hyperfocus_desc">Completa 5 sesiones en un solo día</string>
     <string name="medal_consistency">Rey de la Consistencia</string>
     <string name="medal_consistency_desc">Mantén una racha de enfoque de 7 días</string>
+    <!-- Notificaciones -->
+    <string name="notif_running_channel">Instrumentos activos</string>
+    <string name="notif_running_desc">Monitoreo de tiempos en curso.</string>
+    <string name="notif_alarm_channel">Alarmas finales</string>
+    <string name="notif_alarm_desc">Avisos críticos de tiempo agotado.</string>
+    <string name="notif_active_instrument">Instrumento activo • %1$s</string>
+    <string name="notif_in_progress">Instrumento en curso • %1$s</string>
+    <string name="notif_timer_finished">¡TIEMPO FINALIZADO!</string>
+    <string name="notif_timer_completed">\'%1$s\' ha completado su ciclo.</string>
+    <string name="notif_pause">PAUSAR</string>
+    <string name="notif_resume">REANUDAR</string>
+    <string name="notif_ok">OK</string>
+    <string name="notif_default_name">Temporizador</string>
+
+    <!-- Mensajes de ViewModel -->
+    <string name="msg_profile_updated">Perfil actualizado</string>
+    <string name="msg_profile_error">Error al actualizar perfil</string>
+    <string name="msg_session_started">Sesión iniciada</string>
+    <string name="msg_deleted">Eliminado</string>
+    <string name="msg_welcome">¡Bienvenido!</string>
+    <string name="msg_no_data">No hay datos</string>
+    <string name="msg_pdf_error">Error al generar PDF</string>
+    <string name="msg_snooze_added">Snooze: +%1$d min</string>
+    <string name="msg_preset_saved">Preset guardado</string>
+    <string name="msg_preset_deleted">Preset eliminado</string>
+    <string name="msg_timer_added">Temporizador añadido</string>
+    <string name="msg_logout_confirm">¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a identificarte para sincronizar tus datos de operador.</string>
+    <string name="msg_delete_timer_confirm">¿Estás seguro de que quieres eliminar \'%1$s\'? Esta acción no se puede deshacer.</string>
+    <string name="msg_delete_preset_confirm">¿Estás seguro de que quieres eliminar la plantilla \'%1$s\'? No afectará a los temporizadores que ya estén en curso.</string>
+    <string name="msg_delete_history_confirm">¿Estás seguro de que quieres eliminar el registro de \'%1$s\'? Esta acción no se puede deshacer.</string>
 </resources>

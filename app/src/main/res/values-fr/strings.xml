@@ -141,4 +141,69 @@
     <string name="hours_label">H</string>
     <string name="minutes_label">M</string>
     <string name="seconds_label">S</string>
+
+    <!-- Gamification -->
+    <string name="stats_tab_analysis">ANALYSE</string>
+    <string name="stats_tab_achievements">JOURNAUX</string>
+    <string name="gamification_help_title">PROTOCOLE OPÉRATIONNEL</string>
+    <string name="gamification_help_desc">La progression du système est basée sur une exécution concentrée :\n\n• 1 MINUTE DE FOCUS = 1 XP\n• MÉDAILLE DÉVERROUILLÉE = 500 XP\n• SÉRIE QUOTIDIENNE = +50 XP BONUS\n\nAccumulez des XP pour améliorer votre rang d\'opérateur et débloquer des privilèges système.</string>
+    <string name="new_medal_unlocked">SUCCÈS DÉVERROUILLÉ</string>
+    <string name="protocol_understood">PROTOCOLE COMPRIS</string>
+    <string name="xp_to_next_level">%1$d XP JUSQU\'AU NIVEAU SUIVANT</string>
+    <string name="operational_achievements_title">SUCCÈS OPÉRATIONNELS</string>
+    <string name="rank_novice">OPÉRATEUR NOVICE</string>
+    <string name="rank_technician">SR. TECHNICIEN</string>
+    <string name="rank_master">MAÎTRE DU SYSTÈME</string>
+    <string name="rank_architect">GRAND ARCHITECTE</string>
+
+    <string name="medal_deep_work">Maître du Travail Profond</string>
+    <string name="medal_deep_work_desc">Terminer une session de +2 heures</string>
+    <string name="medal_early_bird">Lève-tard</string>
+    <string name="medal_early_bird_desc">Terminer une session avant 07h00</string>
+    <string name="medal_night_owl">Oiseau de nuit</string>
+    <string name="medal_night_owl_desc">Terminer une session après 23h00</string>
+    <string name="medal_weekend">Guerrier du Week-end</string>
+    <string name="medal_weekend_desc">Garder le focus pendant le samedi ou le dimanche</string>
+    <string name="medal_collector">Collecteur de Catégories</string>
+    <string name="medal_collector_desc">Utiliser au moins 4 catégories différentes</string>
+    <string name="medal_veteran">Vétéran du Focus</string>
+    <string name="medal_veteran_desc">Atteindre 100 heures totales de focus</string>
+    <string name="medal_hyperfocus">Hyperfocus</string>
+    <string name="medal_hyperfocus_desc">Terminer 5 sessions en une seule journée</string>
+    <string name="medal_consistency">Roi de la Constance</string>
+    <string name="medal_consistency_desc">Maintenir une série de focus de 7 jours</string>
+
+    <!-- Notifications -->
+    <string name="notif_running_channel">Instruments Actifs</string>
+    <string name="notif_running_desc">Surveillance des chronos en cours.</string>
+    <string name="notif_alarm_channel">Alarmes Finales</string>
+    <string name="notif_alarm_desc">Alertes critiques pour les chronos terminés.</string>
+    <string name="notif_active_instrument">Instrument actif • %1$s</string>
+    <string name="notif_in_progress">Instrument en cours • %1$s</string>
+    <string name="notif_timer_finished">TEMPS ÉCOULÉ !</string>
+    <string name="notif_timer_completed">\'%1$s\' a terminé son cycle.</string>
+    <string name="notif_pause">PAUSE</string>
+    <string name="notif_resume">REPRENDRE</string>
+    <string name="notif_ok">OK</string>
+    <string name="notif_default_name">Chrono</string>
+
+    <!-- ViewModel Messages -->
+    <string name="msg_profile_updated">Profil mis à jour</string>
+    <string name="msg_profile_error">Erreur lors de la mise à jour du profil</string>
+    <string name="msg_session_started">Session démarrée</string>
+    <string name="msg_deleted">Supprimé</string>
+    <string name="msg_welcome">Bienvenue !</string>
+    <string name="msg_no_data">Aucune donnée</string>
+    <string name="msg_pdf_error">Erreur lors de la génération du PDF</string>
+    <string name="msg_snooze_added">Snooze: +%1$d min</string>
+    <string name="msg_preset_saved">Preset enregistré</string>
+    <string name="msg_preset_deleted">Preset supprimé</string>
+    <string name="msg_timer_added">Chrono ajouté</string>
+
+    <string name="msg_logout_confirm">Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous ré-identifier pour synchroniser vos données d\'opérateur.</string>
+    <string name="msg_delete_timer_confirm">Êtes-vous sûr de vouloir supprimer \'%1$s\' ? Cette action est irréversible.</string>
+    <string name="msg_delete_preset_confirm">Êtes-vous sûr de vouloir supprimer le modèle \'%1$s\' ? Cela n\'affectera pas les chronos déjà en cours.</string>
+    <string name="msg_delete_history_confirm">Êtes-vous sûr de vouloir supprimer l\'enregistrement de \'%1$s\' ? Cette action est irréversible.</string>
+
+    <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

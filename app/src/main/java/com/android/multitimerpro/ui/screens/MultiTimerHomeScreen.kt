@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.multitimerpro.R
+import androidx.compose.ui.res.stringResource
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.components.TimerCard
@@ -79,6 +81,31 @@ fun MultiTimerHomeScreen(
                             .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
+                }
+            }
+
+            if (timers.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Icon(
+                                Icons.Default.Add, 
+                                contentDescription = null, 
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                            )
+                            Text(
+                                stringResource(R.string.presets_no_presets) + "\n" + stringResource(R.string.presets_add_msg),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
 

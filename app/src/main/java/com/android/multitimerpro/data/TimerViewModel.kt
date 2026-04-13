@@ -14,6 +14,7 @@ import androidx.core.content.FileProvider
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.multitimerpro.R
 import com.android.multitimerpro.service.TimerService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
@@ -127,6 +128,12 @@ class TimerViewModel @Inject constructor(
         val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
         AppCompatDelegate.setApplicationLocales(appLocale)
         _currentLanguage.value = languageCode
+        
+        // Notificar al servicio para actualizar notificaciones y canales
+        val intent = Intent(context, TimerService::class.java).apply {
+            action = TimerService.ACTION_REFRESH_NOTIFICATIONS
+        }
+        context.startService(intent)
     }
 
     init {
@@ -155,10 +162,10 @@ class TimerViewModel @Inject constructor(
                 
                 _userDisplayName.value = name
                 _userPhotoUrl.value = photoUrl
-                showMessage("Perfil actualizado")
+                showMessage(context.getString(R.string.msg_profile_updated))
             } catch (e: Exception) {
                 Log.e(TAG, "Update profile failed", e)
-                showMessage("Error al actualizar perfil")
+                showMessage(context.getString(R.string.msg_profile_error))
             }
         }
     }
@@ -210,7 +217,7 @@ class TimerViewModel @Inject constructor(
 
     suspend fun updateHistory(history: HistoryEntity) {
         historyRepository.update(history)
-        showMessage("Cambios guardados")
+        showMessage(context.getString(R.string.save))
     }
 
     // Stats (Updated to use filteredHistory)
@@ -289,7 +296,7 @@ class TimerViewModel @Inject constructor(
                     _isAuthenticated.value = true
                     _authError.value = null
                     syncUserAndData(auth.currentUser?.uid ?: "", auth.currentUser?.email ?: "")
-                    showMessage("¡Bienvenido!")
+                    showMessage(context.getString(R.string.msg_welcome))
                 }
             }.onFailure { e ->
                 _authError.value = "Error: ${e.localizedMessage}"
@@ -305,7 +312,7 @@ class TimerViewModel @Inject constructor(
                 _isAuthenticated.value = true
                 _authError.value = null
                 syncUserAndData(auth.currentUser?.uid ?: "", email)
-                showMessage("Sesión iniciada")
+                showMessage(context.getString(R.string.msg_session_started))
             } catch (e: Exception) {
                 _authError.value = e.localizedMessage
             }
@@ -319,7 +326,7 @@ class TimerViewModel @Inject constructor(
                 _isAuthenticated.value = true
                 _authError.value = null
                 syncUserAndData(auth.currentUser?.uid ?: "", email)
-                showMessage("Cuenta creada")
+                showMessage(context.getString(R.string.msg_welcome))
             } catch (e: Exception) {
                 _authError.value = e.localizedMessage
             }
@@ -330,7 +337,7 @@ class TimerViewModel @Inject constructor(
         viewModelScope.launch {
             googleAuthClient.signOut()
             _isAuthenticated.value = false
-            showMessage("Sesión cerrada")
+            showMessage(context.getString(R.string.logout))
         }
     }
 
@@ -354,13 +361,13 @@ class TimerViewModel @Inject constructor(
         val additionalMs = minutes * 60 * 1000L
         timerManager.updateTimer(timer.copy(remainingTime = additionalMs, status = "LIVE"))
         startService()
-        showMessage("Snooze: +$minutes min")
+        showMessage(context.getString(R.string.msg_snooze_added, minutes))
     }
 
     fun updateTimer(timer: TimerEntity) = viewModelScope.launch { timerManager.updateTimer(timer) }
-    fun delete(timer: TimerEntity) = viewModelScope.launch { timerManager.deleteTimer(timer); showMessage("Eliminado") }
+    fun delete(timer: TimerEntity) = viewModelScope.launch { timerManager.deleteTimer(timer); showMessage(context.getString(R.string.msg_deleted)) }
     fun resetTimer(timer: TimerEntity) = viewModelScope.launch { timerManager.resetTimer(timer) }
-    fun deleteHistoryEntry(history: HistoryEntity) = viewModelScope.launch { historyRepository.delete(history); showMessage("Eliminado") }
+    fun deleteHistoryEntry(history: HistoryEntity) = viewModelScope.launch { historyRepository.delete(history); showMessage(context.getString(R.string.msg_deleted)) }
 
     fun addInterval(timer: TimerEntity, label: String) = viewModelScope.launch {
         val minutes = (timer.remainingTime / 1000) / 60
@@ -377,19 +384,19 @@ class TimerViewModel @Inject constructor(
     // Presets
     fun saveAsPreset(name: String, duration: Long, color: Int, category: String, description: String = "") = viewModelScope.launch {
         presetRepository.insert(PresetEntity(name = name, durationMillis = duration, color = color, category = category, description = description, uid = auth.currentUser?.uid ?: ""))
-        showMessage("Preset guardado")
+        showMessage(context.getString(R.string.msg_preset_saved))
     }
-    fun deletePreset(preset: PresetEntity) = viewModelScope.launch { presetRepository.delete(preset); showMessage("Preset eliminado") }
+    fun deletePreset(preset: PresetEntity) = viewModelScope.launch { presetRepository.delete(preset); showMessage(context.getString(R.string.msg_preset_deleted)) }
     fun startTimerFromPreset(preset: PresetEntity) = viewModelScope.launch {
         timerManager.addTimer(preset.name, preset.durationMillis, preset.color, preset.category, preset.description)
-        showMessage("Temporizador añadido")
+        showMessage(context.getString(R.string.msg_timer_added))
     }
 
     // --- EXPORT TOOLS ---
 
     fun exportHistoryToCSV(items: List<HistoryEntity> = history.value) {
         viewModelScope.launch {
-            if (items.isEmpty()) { showMessage("No hay datos"); return@launch }
+            if (items.isEmpty()) { showMessage(context.getString(R.string.msg_no_data)); return@launch }
             val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             val csvHeader = "ID,Instrument,Category,Duration(ms),Completion Date,Notes\n"
             val csvRows = items.joinToString("\n") { 
@@ -450,7 +457,7 @@ class TimerViewModel @Inject constructor(
                 shareFileUri(file, "application/pdf")
             } catch (e: Exception) {
                 Log.e(TAG, "PDF failed", e)
-                showMessage("Error al generar PDF")
+                showMessage(context.getString(R.string.msg_pdf_error))
             }
         }
     }

@@ -181,7 +181,7 @@ fun LiveTimerScreen(
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = timer.category.uppercase(),
+                        text = translateCategoryLocal(timer.category).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 3.sp
@@ -201,7 +201,7 @@ fun LiveTimerScreen(
                         fontSize = 54.sp
                     )
                     Text(
-                        text = timer.status,
+                        text = translateStatusLocal(timer.status),
                         style = MaterialTheme.typography.labelSmall,
                         color = timerColor,
                         fontWeight = FontWeight.Bold,
@@ -361,6 +361,29 @@ fun LiveTimerScreen(
             
             Spacer(modifier = Modifier.height(100.dp))
         }
+    }
+}
+
+@Composable
+private fun translateCategoryLocal(internalName: String): String {
+    return when(internalName.uppercase()) {
+        "ALL" -> stringResource(R.string.category_all)
+        "GENERAL" -> stringResource(R.string.cat_general)
+        "WORK" -> stringResource(R.string.cat_work)
+        "LEISURE" -> stringResource(R.string.cat_leisure)
+        "OTHERS" -> stringResource(R.string.cat_other)
+        else -> internalName
+    }
+}
+
+@Composable
+private fun translateStatusLocal(status: String): String {
+    return when (status.uppercase()) {
+        "READY" -> stringResource(R.string.status_ready)
+        "LIVE" -> stringResource(R.string.status_live)
+        "PAUSED" -> stringResource(R.string.status_paused)
+        "FINISHED" -> stringResource(R.string.status_finished)
+        else -> status
     }
 }
 

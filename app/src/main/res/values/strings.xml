@@ -172,5 +172,37 @@
     <string name="medal_consistency">Consistency King</string>
     <string name="medal_consistency_desc">Maintain a 7-day focus streak</string>
 
+    <!-- Notifications -->
+    <string name="notif_running_channel">Active Instruments</string>
+    <string name="notif_running_desc">Monitoring of timers in progress.</string>
+    <string name="notif_alarm_channel">Final Alarms</string>
+    <string name="notif_alarm_desc">Critical alerts for finished timers.</string>
+    <string name="notif_active_instrument">Active instrument • %1$s</string>
+    <string name="notif_in_progress">Instrument in progress • %1$s</string>
+    <string name="notif_timer_finished">TIME FINISHED!</string>
+    <string name="notif_timer_completed">\'%1$s\' has completed its cycle.</string>
+    <string name="notif_pause">PAUSE</string>
+    <string name="notif_resume">RESUME</string>
+    <string name="notif_ok">OK</string>
+    <string name="notif_default_name">Timer</string>
+
+    <!-- ViewModel Messages -->
+    <string name="msg_profile_updated">Profile updated</string>
+    <string name="msg_profile_error">Error updating profile</string>
+    <string name="msg_session_started">Session started</string>
+    <string name="msg_deleted">Deleted</string>
+    <string name="msg_welcome">Welcome!</string>
+    <string name="msg_no_data">No data</string>
+    <string name="msg_pdf_error">Error generating PDF</string>
+    <string name="msg_snooze_added">Snooze: +%1$d min</string>
+    <string name="msg_preset_saved">Preset saved</string>
+    <string name="msg_preset_deleted">Preset deleted</string>
+    <string name="msg_timer_added">Timer added</string>
+
+    <string name="msg_logout_confirm">Are you sure you want to log out? You will need to re-identify to sync your operator data.</string>
+    <string name="msg_delete_timer_confirm">Are you sure you want to delete \'%1$s\'? This action cannot be undone.</string>
+    <string name="msg_delete_preset_confirm">Are you sure you want to delete the template \'%1$s\'? It will not affect timers already in progress.</string>
+    <string name="msg_delete_history_confirm">Are you sure you want to delete the record of \'%1$s\'? This action cannot be undone.</string>
+
     <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

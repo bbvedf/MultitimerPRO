@@ -19,9 +19,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.theme.*
 import java.util.Locale
+
+@Composable
+private fun translateStatus(status: String): String {
+    return when(status.uppercase()) {
+        "READY" -> stringResource(R.string.status_ready)
+        "LIVE" -> stringResource(R.string.status_live)
+        "PAUSED" -> stringResource(R.string.status_paused)
+        "FINISHED" -> stringResource(R.string.status_finished)
+        else -> status
+    }
+}
 
 @Composable
 fun TimerCard(
@@ -57,7 +70,7 @@ fun TimerCard(
                             maxLines = 1
                         )
                         Text(
-                            text = timer.status, 
+                            text = translateStatus(timer.status),
                             style = MaterialTheme.typography.labelSmall, 
                             color = Color(timer.color), 
                             fontWeight = FontWeight.Black, 

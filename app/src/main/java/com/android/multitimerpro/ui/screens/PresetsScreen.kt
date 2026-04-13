@@ -127,6 +127,18 @@ fun PresetsScreen(
 }
 
 @Composable
+private fun translateCategory(internalName: String): String {
+    return when(internalName.uppercase()) {
+        "ALL" -> stringResource(R.string.category_all)
+        "GENERAL" -> stringResource(R.string.cat_general)
+        "WORK" -> stringResource(R.string.cat_work)
+        "LEISURE" -> stringResource(R.string.cat_leisure)
+        "OTHER" -> stringResource(R.string.cat_other)
+        else -> internalName
+    }
+}
+
+@Composable
 fun SmallPresetCard(
     preset: PresetEntity, 
     isDark: Boolean,
@@ -169,7 +181,7 @@ fun SmallPresetCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = preset.category, 
+                    text = translateCategory(preset.category),
                     style = MaterialTheme.typography.labelSmall, 
                     color = MaterialTheme.colorScheme.onSurfaceVariant, 
                     fontSize = 9.sp
