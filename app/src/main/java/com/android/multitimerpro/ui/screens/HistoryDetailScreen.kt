@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.android.multitimerpro.R
 import com.android.multitimerpro.data.HistoryEntity
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.theme.*
@@ -76,7 +78,7 @@ fun HistoryDetailScreen(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "DETALLE DE SESIÓN",
+                    text = stringResource(R.string.detail_title),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     letterSpacing = 2.sp
@@ -111,10 +113,10 @@ fun HistoryDetailScreen(
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
 
-                    InfoRow(icon = Icons.Default.Category, label = "CATEGORÍA", value = item.category)
-                    InfoRow(icon = Icons.Default.Timer, label = "DURACIÓN TOTAL", value = formatMillisToTime(item.durationMillis))
-                    InfoRow(icon = Icons.Default.CalendarToday, label = "FECHA", value = dateFormat.format(Date(item.completedAt)))
-                    InfoRow(icon = Icons.Default.Timer, label = "FINALIZADO A LAS", value = timeFormat.format(Date(item.completedAt)))
+                    InfoRow(icon = Icons.Default.Category, label = stringResource(R.string.detail_category), value = translateCategoryLocal(item.category))
+                    InfoRow(icon = Icons.Default.Timer, label = stringResource(R.string.detail_total_duration), value = formatMillisToTime(item.durationMillis))
+                    InfoRow(icon = Icons.Default.CalendarToday, label = stringResource(R.string.detail_date), value = dateFormat.format(Date(item.completedAt)))
+                    InfoRow(icon = Icons.Default.Timer, label = stringResource(R.string.detail_finished_at), value = timeFormat.format(Date(item.completedAt)))
                 }
             }
         }
@@ -124,7 +126,7 @@ fun HistoryDetailScreen(
         // Notes Section
         item {
             Text(
-                text = "NOTAS DE SESIÓN",
+                text = stringResource(R.string.detail_notes_title),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp
@@ -148,7 +150,7 @@ fun HistoryDetailScreen(
                     unfocusedIndicatorColor = Color.Transparent
                 ),
                 shape = RoundedCornerShape(16.dp),
-                placeholder = { Text("Añade comentarios sobre esta sesión...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }
+                placeholder = { Text(stringResource(R.string.detail_notes_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }
             )
         }
 
@@ -157,7 +159,7 @@ fun HistoryDetailScreen(
             
             item {
                 Text(
-                    text = "DESGLOSE DE INTERVALOS",
+                    text = stringResource(R.string.detail_intervals_breakdown),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp
@@ -170,7 +172,7 @@ fun HistoryDetailScreen(
             itemsIndexed(intervals) { index, interval ->
                 val currentParts = interval.split(" - ")
                 val currentTimeStr = currentParts.getOrNull(0) ?: "00:00:00"
-                val label = currentParts.getOrNull(1) ?: "Sin marca"
+                val label = currentParts.getOrNull(1) ?: stringResource(R.string.detail_no_label)
                 
                 // Cálculo de tramo real para temporizador regresivo:
                 // El primer tramo es (Duración Total - Primera Marca)
@@ -209,7 +211,7 @@ fun HistoryDetailScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
-                    text = "GUARDAR CAMBIOS",
+                    text = stringResource(R.string.timer_save_btn),
                     color = if (MaterialTheme.colorScheme.background == DeepBlack) DeepBlack else Color.White,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -242,12 +244,12 @@ fun HistoryIntervalItem(index: Int, label: String, absoluteTime: String, lapTime
                 )
                 Column {
                     Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                    Text(text = "En pantalla: $absoluteTime", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = stringResource(R.string.detail_on_screen, absoluteTime), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(text = lapTime, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black)
-                Text(text = "DURACIÓN TRAMO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                Text(text = stringResource(R.string.detail_lap_duration), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
             }
         }
     }
@@ -283,4 +285,16 @@ private fun parseTimeToMillis(timeStr: String): Long {
 private fun formatToThreeBlocks(timeStr: String): String {
     val parts = timeStr.split(":")
     return if (parts.size == 2) "00:$timeStr" else timeStr
+}
+
+@Composable
+private fun translateCategoryLocal(internalName: String): String {
+    return when(internalName.uppercase()) {
+        "ALL" -> stringResource(R.string.category_all)
+        "GENERAL" -> stringResource(R.string.cat_general)
+        "WORK" -> stringResource(R.string.cat_work)
+        "LEISURE" -> stringResource(R.string.cat_leisure)
+        "OTHER" -> stringResource(R.string.cat_other)
+        else -> internalName
+    }
 }

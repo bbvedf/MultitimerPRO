@@ -218,6 +218,10 @@ class TimerViewModel @Inject constructor(
         list.sumOf { it.durationMillis }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
+    val globalTotalTime: StateFlow<Long> = history.map { list ->
+        list.sumOf { it.durationMillis }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
     val statsByCategory: StateFlow<Map<String, Long>> = filteredHistory.map { list ->
         list.groupBy { it.category }.mapValues { entry -> entry.value.sumOf { it.durationMillis } }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
@@ -469,6 +473,141 @@ class TimerViewModel @Inject constructor(
         }
         context.startActivity(chooser)
     }
+
+    // --- GAMIFICATION ---
+    private val _newAchievementEvent = MutableSharedFlow<String>(replay = 0)
+    val newAchievementEvent = _newAchievementEvent.asSharedFlow()
+
+    private var lastMedalsCount = -1
+
+    val unlockedMedals: StateFlow<Set<String>> = history.map { list ->
+        val medals = mutableSetOf<String>()
+        val cal = Calendar.getInstance()
+        
+        // Medallas de Duración
+        if (list.any { it.durationMillis >= 2 * 3600000L }) medals.add("medal_deep_work")
+        
+        // Medallas de Horario
+        list.forEach { session ->
+            cal.timeInMillis = session.completedAt
+            val hour = cal.get(Calendar.HOUR_OF_DAY)
+            if (hour < 8) medals.add("medal_early_bird")
+            if (hour >= 23) medals.add("medal_night_owl")
+            
+            val day = cal.get(Calendar.DAY_OF_WEEK)
+            if (day == Calendar.SATURDAY || day == Calendar.SUNDAY) medals.add("medal_weekend")
+        }
+
+        // Medallas de Variedad
+        if (list.map { it.category }.distinct().size >= 4) medals.add("medal_collector")
+        
+        // Medallas de Volumen (100 horas = 360,000,000 ms)
+        if (list.sumOf { it.durationMillis } >= 100 * 3600000L) medals.add("medal_veteran")
+        
+        // Medallas de Intensidad Hoy
+        val todayStart = Calendar.getInstance().apply { 
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        if (list.count { it.completedAt >= todayStart } >= 5) medals.add("medal_hyperfocus")
+        
+        // Medallas de Constancia (Racha 7 días)
+        if (checkStreak(list)) medals.add("medal_consistency")
+        
+        // Notificar nuevo logro
+        if (lastMedalsCount != -1 && medals.size > lastMedalsCount) {
+            val newMedal = medals.subtract(unlockedMedals.value).firstOrNull()
+            newMedal?.let { viewModelScope.launch { _newAchievementEvent.emit(it) } }
+        }
+        lastMedalsCount = medals.size
+        medals
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    private fun checkStreak(history: List<HistoryEntity>): Boolean {
+        if (history.isEmpty()) return false
+        val uniqueDays = history.map { 
+            val c = Calendar.getInstance()
+            c.timeInMillis = it.completedAt
+            c.set(Calendar.HOUR_OF_DAY, 0)
+            c.set(Calendar.MINUTE, 0)
+            c.set(Calendar.SECOND, 0)
+            c.set(Calendar.MILLISECOND, 0)
+            c.timeInMillis
+        }.distinct().sortedDescending()
+        
+        if (uniqueDays.size < 7) return false
+        
+        var streak = 1
+        for (i in 0 until uniqueDays.size - 1) {
+            val diff = (uniqueDays[i] - uniqueDays[i+1]) / (1000 * 60 * 60 * 24)
+            if (diff == 1L) {
+                streak++
+                if (streak >= 7) return true
+            } else {
+                streak = 1
+            }
+        }
+        return false
+    }
+
+    val totalHoursFocused: StateFlow<Long> = history.map { list ->
+        list.sumOf { it.durationMillis } / 3600000L
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
+    val currentXP: StateFlow<Long> = combine(globalTotalTime, unlockedMedals, history) { time, medals, historyList ->
+        val minutesXP = time / 60000L
+        val medalsXP = medals.size * 500L
+        val streakXP = calculateCurrentStreak(historyList) * 50L
+        minutesXP + medalsXP + streakXP
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
+    private fun calculateCurrentStreak(history: List<HistoryEntity>): Int {
+        if (history.isEmpty()) return 0
+        val uniqueDays = history.map { 
+            val c = Calendar.getInstance()
+            c.timeInMillis = it.completedAt
+            c.set(Calendar.HOUR_OF_DAY, 0)
+            c.set(Calendar.MINUTE, 0)
+            c.set(Calendar.SECOND, 0)
+            c.set(Calendar.MILLISECOND, 0)
+            c.timeInMillis
+        }.distinct().sortedDescending()
+
+        var streak = 0
+        val today = Calendar.getInstance().apply { 
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        
+        // Si no hay sesión hoy ni ayer, la racha es 0
+        if (uniqueDays.first() < today - (24 * 60 * 60 * 1000L)) return 0
+        
+        for (i in 0 until uniqueDays.size - 1) {
+            if ((uniqueDays[i] - uniqueDays[i+1]) == (24 * 60 * 60 * 1000L)) {
+                streak++
+            } else break
+        }
+        return streak + 1 // +1 por el día actual
+    }
+
+    val currentRank: StateFlow<String> = currentXP.map { xp ->
+        when {
+            xp < 500 -> "rank_novice"
+            xp < 2000 -> "rank_technician"
+            xp < 5000 -> "rank_master"
+            else -> "rank_architect"
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "rank_novice")
+
+    val nextRankXP: StateFlow<Long> = currentXP.map { xp ->
+        when {
+            xp < 500 -> 500L
+            xp < 2000 -> 2000L
+            xp < 5000 -> 5000L
+            else -> 10000L // Cap final
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 500L)
 
     private fun formatMillisToTime(millis: Long): String {
         val hours = TimeUnit.MILLISECONDS.toHours(millis)

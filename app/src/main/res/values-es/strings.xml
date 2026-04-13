@@ -141,4 +141,35 @@
     <string name="hours_label">H</string>
     <string name="minutes_label">M</string>
     <string name="seconds_label">S</string>
+
+    <!-- Gamification -->
+    <string name="stats_tab_analysis">ANÁLISIS</string>
+    <string name="stats_tab_achievements">LOGROS</string>
+    <string name="gamification_help_title">PROTOCOLO OPERACIONAL</string>
+    <string name="gamification_help_desc">La progresión del sistema se basa en la ejecución enfocada:\n\n• 1 MINUTO DE ENFOQUE = 1 XP\n• MEDALLA DESBLOQUEADA = 500 XP\n• RACHA DIARIA = +50 XP EXTRA\n\nAcumula XP para subir de rango de Operador y desbloquear privilegios en el sistema.</string>
+    <string name="new_medal_unlocked">LOGRO DESBLOQUEADO</string>
+    <string name="protocol_understood">PROTOCOLO ENTENDIDO</string>
+    <string name="xp_to_next_level">%1$d XP PARA SIGUIENTE NIVEL</string>
+    <string name="operational_achievements_title">LOGROS OPERACIONALES</string>
+    <string name="rank_novice">OPERADOR NOVEL</string>
+    <string name="rank_technician">TÉCNICO SUPERIOR</string>
+    <string name="rank_master">MAESTRO DE SISTEMAS</string>
+    <string name="rank_architect">GRAN ARQUITECTO</string>
+
+    <string name="medal_deep_work">Maestro del Enfoque Profundo</string>
+    <string name="medal_deep_work_desc">Completa una sesión de más de 2 horas</string>
+    <string name="medal_early_bird">Madrugador</string>
+    <string name="medal_early_bird_desc">Termina una sesión antes de las 7:00 AM</string>
+    <string name="medal_night_owl">Búho Nocturno</string>
+    <string name="medal_night_owl_desc">Termina una sesión después de las 11:00 PM</string>
+    <string name="medal_weekend">Guerrero del Fin de Semana</string>
+    <string name="medal_weekend_desc">Mantén el enfoque en sábado o domingo</string>
+    <string name="medal_collector">Coleccionista de Categorías</string>
+    <string name="medal_collector_desc">Usa al menos 4 categorías diferentes</string>
+    <string name="medal_veteran">Veterano del Enfoque</string>
+    <string name="medal_veteran_desc">Alcanza las 100 horas totales de enfoque</string>
+    <string name="medal_hyperfocus">Hiperenfoque</string>
+    <string name="medal_hyperfocus_desc">Completa 5 sesiones en un solo día</string>
+    <string name="medal_consistency">Rey de la Consistencia</string>
+    <string name="medal_consistency_desc">Mantén una racha de enfoque de 7 días</string>
 </resources>
