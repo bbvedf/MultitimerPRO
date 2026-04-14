@@ -138,29 +138,14 @@ fun LiveTimerScreen(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
-                IconButton(onClick = { /* Profile */ }) {
-                    Surface(
-                        modifier = Modifier.size(32.dp), 
-                        shape = CircleShape, 
-                        color = MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                Icons.Default.MoreVert, 
-                                contentDescription = null, 
-                                tint = MaterialTheme.colorScheme.onSurface, 
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
+                Spacer(modifier = Modifier.width(48.dp)) // Spacer to balance the back button
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Circular Progress
             Box(
-                modifier = Modifier.fillMaxWidth().height(300.dp),
+                modifier = Modifier.fillMaxWidth().height(260.dp),
                 contentAlignment = Alignment.Center
             ) {
                 // Cálculo de progreso intuitivo:
@@ -174,7 +159,7 @@ fun LiveTimerScreen(
                 
                 val timerColor = Color(timer.color)
 
-                Canvas(modifier = Modifier.size(280.dp)) {
+                Canvas(modifier = Modifier.size(240.dp)) {
                     drawCircle(
                         color = if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(alpha = 0.05f),
                         style = Stroke(width = 12.dp.toPx())

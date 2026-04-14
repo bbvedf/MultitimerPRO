@@ -534,7 +534,7 @@ class TimerViewModel @Inject constructor(
         }
 
         // Medallas de Variedad
-        if (list.map { it.category }.distinct().size >= 4) medals.add("medal_collector")
+        if (list.map { it.category }.distinct().size >= 3) medals.add("medal_collector")
         
         // Medallas de Volumen (100 horas = 360,000,000 ms)
         if (list.sumOf { it.durationMillis } >= 100 * 3600000L) medals.add("medal_veteran")

@@ -383,7 +383,8 @@ fun MedalCard(id: String, isUnlocked: Boolean, modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Black,
                 color = if (isUnlocked) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                maxLines = 1 // Evitar saltos de línea que rompan el diseño
+                maxLines = 2,
+                minLines = 2
             )
             Text(
                 text = stringResource(translateMedalDescLocal(id)),

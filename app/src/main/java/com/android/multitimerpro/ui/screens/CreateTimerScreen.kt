@@ -354,7 +354,13 @@ fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String, isD
                     }
                 }
             },
-            modifier = Modifier.width(72.dp),
+            modifier = Modifier
+                .width(72.dp)
+                .onFocusChanged { 
+                    if (it.isFocused && value == "00") {
+                        onValueChange("")
+                    }
+                },
             textStyle = MaterialTheme.typography.displaySmall.copy(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground
