@@ -192,7 +192,7 @@ fun LiveTimerScreen(
                         style = MaterialTheme.typography.displayLarge,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 54.sp
+                        fontSize = 48.sp
                     )
                     Text(
                         text = translateStatusLocal(timer.status),
