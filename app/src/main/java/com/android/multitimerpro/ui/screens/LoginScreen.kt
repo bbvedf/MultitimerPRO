@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -55,7 +56,7 @@ fun LoginScreen(
         ) {
             Icon(
                 imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
-                contentDescription = "Toggle Theme",
+                contentDescription = stringResource(R.string.login_toggle_theme),
                 tint = if (isDark) Color.White else Color.Black
             )
         }
@@ -68,14 +69,14 @@ fun LoginScreen(
             // Real Logo from resources
             Image(
                 painter = painterResource(id = logoRes),
-                contentDescription = "MultiTimer PRO Logo",
+                contentDescription = stringResource(R.string.login_logo_desc),
                 modifier = Modifier
                     .size(120.dp)
                     .padding(bottom = 16.dp)
             )
 
             Text(
-                text = "MultiTimer PRO",
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
@@ -93,7 +94,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                 ) {
                     Text(
-                        text = "ERROR: $error",
+                        text = stringResource(R.string.login_error_prefix, error),
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.padding(12.dp)
@@ -121,7 +122,7 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "Continue with Google", 
+                        text = stringResource(R.string.login_google_btn), 
                         color = Color.Black, 
                         fontWeight = FontWeight.Bold
                     )
@@ -133,7 +134,7 @@ fun LoginScreen(
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
                 Text(
-                    text = " OR ",
+                    text = stringResource(R.string.login_or_separator),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -148,7 +149,7 @@ fun LoginScreen(
                 value = email,
                 onValueChange = { email = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("EMAIL IDENTIFIER", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)) },
+                label = { Text(stringResource(R.string.login_email_label), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
@@ -167,7 +168,7 @@ fun LoginScreen(
                 value = password,
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("ACCESS KEY", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)) },
+                label = { Text(stringResource(R.string.login_password_label), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -201,7 +202,7 @@ fun LoginScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "INITIALIZE SYSTEM",
+                    text = stringResource(R.string.login_btn),
                     style = MaterialTheme.typography.titleMedium,
                     color = if (isDark) DeepBlack else Color.White,
                     fontWeight = FontWeight.Black
@@ -211,10 +212,10 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "New operator? ", color = MaterialTheme.colorScheme.onBackground)
+                Text(text = stringResource(R.string.login_new_operator), color = MaterialTheme.colorScheme.onBackground)
                 TextButton(onClick = onRegisterClick) {
                     Text(
-                        text = "Register now", 
+                        text = stringResource(R.string.login_register_now),
                         color = MaterialTheme.colorScheme.primary, 
                         fontWeight = FontWeight.Bold, 
                         fontSize = 16.sp

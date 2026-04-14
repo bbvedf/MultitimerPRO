@@ -201,6 +201,18 @@
     <string name="msg_timer_added">Timer aggiunto</string>
     <string name="status_snoozed">SOSPESO</string>
 
+    <!-- Login Screen -->
+    <string name="login_logo_desc">Logo MultiTimer PRO</string>
+    <string name="login_google_btn">Continua con Google</string>
+    <string name="login_or_separator"> O </string>
+    <string name="login_email_label">IDENTIFICATIVO E-MAIL</string>
+    <string name="login_password_label">CHIAVE DI ACCESSO</string>
+    <string name="login_btn">INIZIALIZZA SISTEMA</string>
+    <string name="login_new_operator">Nuovo operatore? </string>
+    <string name="login_register_now">Registrati ora</string>
+    <string name="login_toggle_theme">Cambia tema</string>
+    <string name="login_error_prefix">ERRORE: %1$s</string>
+
     <string name="msg_logout_confirm">Sei sicuro di voler disconnetterti? Dovrai identificarti di nuovo per sincronizzare i dati dell\'operatore.</string>
     <string name="msg_delete_timer_confirm">Sei sicuro di voler eliminare \'%1$s\'? Questa azione non può essere annullata.</string>
     <string name="msg_delete_preset_confirm">Sei sicuro di voler eliminare il modello \'%1$s\'? Non influenzerà i timer già in corso.</string>

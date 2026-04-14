@@ -201,6 +201,18 @@
     <string name="msg_timer_added">Timer hinzugefügt</string>
     <string name="status_snoozed">SCHLUMMERN</string>
 
+    <!-- Login Screen -->
+    <string name="login_logo_desc">MultiTimer PRO Logo</string>
+    <string name="login_google_btn">Mit Google fortfahren</string>
+    <string name="login_or_separator"> ODER </string>
+    <string name="login_email_label">E-MAIL-KENNUNG</string>
+    <string name="login_password_label">ZUGRIFFSSCHLÜSSEL</string>
+    <string name="login_btn">SYSTEM INITIALISIEREN</string>
+    <string name="login_new_operator">Neuer Operator? </string>
+    <string name="login_register_now">Jetzt registrieren</string>
+    <string name="login_toggle_theme">Thema umschalten</string>
+    <string name="login_error_prefix">FEHLER: %1$s</string>
+
     <string name="msg_logout_confirm">Sind Sie sicher, dass Sie sich abmelden möchten? Sie müssen sich erneut identifizieren, um Ihre Operator-Daten zu synchronisieren.</string>
     <string name="msg_delete_timer_confirm">Sind Sie sicher, dass Sie \'%1$s\' löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <string name="msg_delete_preset_confirm">Sind Sie sicher, dass Sie die Vorlage \'%1$s\' löschen möchten? Dies hat keine Auswirkungen auf bereits laufende Timer.</string>

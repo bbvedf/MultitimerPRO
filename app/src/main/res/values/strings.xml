@@ -200,6 +200,18 @@
     <string name="msg_timer_added">Timer added</string>
     <string name="status_snoozed">SNOOZED</string>
 
+    <!-- Login Screen -->
+    <string name="login_logo_desc">MultiTimer PRO Logo</string>
+    <string name="login_google_btn">Continue with Google</string>
+    <string name="login_or_separator"> OR </string>
+    <string name="login_email_label">EMAIL IDENTIFIER</string>
+    <string name="login_password_label">ACCESS KEY</string>
+    <string name="login_btn">INITIALIZE SYSTEM</string>
+    <string name="login_new_operator">New operator? </string>
+    <string name="login_register_now">Register now</string>
+    <string name="login_toggle_theme">Toggle Theme</string>
+    <string name="login_error_prefix">ERROR: %1$s</string>
+
     <string name="msg_logout_confirm">Are you sure you want to log out? You will need to re-identify to sync your operator data.</string>
     <string name="msg_delete_timer_confirm">Are you sure you want to delete \'%1$s\'? This action cannot be undone.</string>
     <string name="msg_delete_preset_confirm">Are you sure you want to delete the template \'%1$s\'? It will not affect timers already in progress.</string>

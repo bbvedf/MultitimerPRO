@@ -199,6 +199,18 @@
     <string name="msg_preset_deleted">Preset eliminado</string>
     <string name="msg_timer_added">Temporizador añadido</string>
     <string name="status_snoozed">POSPUESTO</string>
+
+    <!-- Login Screen -->
+    <string name="login_logo_desc">Logo de MultiTimer PRO</string>
+    <string name="login_google_btn">Continuar con Google</string>
+    <string name="login_or_separator"> O </string>
+    <string name="login_email_label">IDENTIFICADOR DE EMAIL</string>
+    <string name="login_password_label">CLAVE DE ACCESO</string>
+    <string name="login_btn">INICIALIZAR SISTEMA</string>
+    <string name="login_new_operator">¿Usuario nuevo? </string>
+    <string name="login_register_now">Regístrate ahora</string>
+    <string name="login_toggle_theme">Cambiar tema</string>
+    <string name="login_error_prefix">ERROR: %1$s</string>
     <string name="msg_logout_confirm">¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a identificarte para sincronizar tus datos de operador.</string>
     <string name="msg_delete_timer_confirm">¿Estás seguro de que quieres eliminar \'%1$s\'? Esta acción no se puede deshacer.</string>
     <string name="msg_delete_preset_confirm">¿Estás seguro de que quieres eliminar la plantilla \'%1$s\'? No afectará a los temporizadores que ya estén en curso.</string>

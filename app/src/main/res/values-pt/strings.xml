@@ -201,6 +201,18 @@
     <string name="msg_timer_added">Timer adicionado</string>
     <string name="status_snoozed">ADIADO</string>
 
+    <!-- Login Screen -->
+    <string name="login_logo_desc">Logotipo MultiTimer PRO</string>
+    <string name="login_google_btn">Continuar com Google</string>
+    <string name="login_or_separator"> OU </string>
+    <string name="login_email_label">IDENTIFICADOR DE E-MAIL</string>
+    <string name="login_password_label">CHAVE DE ACESSO</string>
+    <string name="login_btn">INICIALIZAR SISTEMA</string>
+    <string name="login_new_operator">Novo operador? </string>
+    <string name="login_register_now">Registe-se agora</string>
+    <string name="login_toggle_theme">Alternar tema</string>
+    <string name="login_error_prefix">ERRO: %1$s</string>
+
     <string name="msg_logout_confirm">Tem certeza de que deseja sair? Você precisará se identificar novamente para sincronizar seus dados de operador.</string>
     <string name="msg_delete_timer_confirm">Tem certeza de que deseja excluir \'%1$s\'? Esta ação não pode ser desfeita.</string>
     <string name="msg_delete_preset_confirm">Tem certeza de que deseja excluir o modelo \'%1$s\'? Não afetará os cronômetros que já estão em curso.</string>

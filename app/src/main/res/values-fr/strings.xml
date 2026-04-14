@@ -201,6 +201,18 @@
     <string name="msg_timer_added">Chrono ajouté</string>
     <string name="status_snoozed">REPEATER</string>
 
+    <!-- Login Screen -->
+    <string name="login_logo_desc">Logo MultiTimer PRO</string>
+    <string name="login_google_btn">Continuer avec Google</string>
+    <string name="login_or_separator"> OU </string>
+    <string name="login_email_label">IDENTIFIANT E-MAIL</string>
+    <string name="login_password_label">CLÉ D\'ACCÈS</string>
+    <string name="login_btn">INITIALISER LE SYSTÈME</string>
+    <string name="login_new_operator">Nouvel opérateur ? </string>
+    <string name="login_register_now">S\'inscrire maintenant</string>
+    <string name="login_toggle_theme">Changer de thème</string>
+    <string name="login_error_prefix">ERREUR : %1$s</string>
+
     <string name="msg_logout_confirm">Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous ré-identifier pour synchroniser vos données d\'opérateur.</string>
     <string name="msg_delete_timer_confirm">Êtes-vous sûr de vouloir supprimer \'%1$s\' ? Cette action est irréversible.</string>
     <string name="msg_delete_preset_confirm">Êtes-vous sûr de vouloir supprimer le modèle \'%1$s\' ? Cela n\'affectera pas les chronos déjà en cours.</string>
