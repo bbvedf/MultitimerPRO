@@ -359,7 +359,14 @@ class TimerViewModel @Inject constructor(
 
     fun snoozeTimer(timer: TimerEntity, minutes: Int) = viewModelScope.launch {
         val additionalMs = minutes * 60 * 1000L
-        timerManager.updateTimer(timer.copy(remainingTime = additionalMs, status = "LIVE"))
+        // Si el tiempo de snooze es mayor que la duración original, actualizamos la duración 
+        // para que las estadísticas (porcentaje) tengan sentido.
+        val newDuration = if (additionalMs > timer.duration) additionalMs else timer.duration
+        timerManager.updateTimer(timer.copy(
+            remainingTime = additionalMs, 
+            duration = newDuration,
+            status = "LIVE"
+        ))
         startService()
         showMessage(context.getString(R.string.msg_snooze_added, minutes))
     }
