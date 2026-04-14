@@ -162,7 +162,15 @@ fun LiveTimerScreen(
                 modifier = Modifier.fillMaxWidth().height(300.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val progress = if (timer.duration > 0) timer.remainingTime.toFloat() / timer.duration.toFloat() else 0f
+                // Cálculo de progreso intuitivo:
+                // Si es un snooze, mostramos el progreso de ese snooze específico (100% -> 0%)
+                // Si no es snooze, el progreso normal sobre la duración base.
+                val progress = if (timer.isSnoozed && timer.lastSnoozeDuration > 0) {
+                    timer.remainingTime.toFloat() / timer.lastSnoozeDuration.toFloat()
+                } else {
+                    if (timer.duration > 0) timer.remainingTime.toFloat() / timer.duration.toFloat() else 0f
+                }
+                
                 val timerColor = Color(timer.color)
 
                 Canvas(modifier = Modifier.size(280.dp)) {
@@ -297,7 +305,10 @@ fun LiveTimerScreen(
 
             // Stats Grid
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                val progressPercent = if (timer.duration > 0) ((timer.remainingTime.toFloat() / timer.duration.toFloat()) * 100).toInt() else 0
+                // Progreso real acumulado: (Duración actual - Tiempo restante) / Duración actual
+                val progressPercent = if (timer.duration > 0) {
+                    (((timer.duration - timer.remainingTime).toFloat() / timer.duration.toFloat()) * 100).toInt().coerceIn(0, 100)
+                } else 0
                 StatMiniCard(
                     title = stringResource(R.string.live_progress),
                     value = "$progressPercent%",

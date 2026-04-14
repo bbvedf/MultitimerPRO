@@ -199,6 +199,7 @@
     <string name="msg_preset_saved">Preset enregistré</string>
     <string name="msg_preset_deleted">Preset supprimé</string>
     <string name="msg_timer_added">Chrono ajouté</string>
+    <string name="status_snoozed">REPEATER</string>
 
     <string name="msg_logout_confirm">Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous ré-identifier pour synchroniser vos données d\'opérateur.</string>
     <string name="msg_delete_timer_confirm">Êtes-vous sûr de vouloir supprimer \'%1$s\' ? Cette action est irréversible.</string>

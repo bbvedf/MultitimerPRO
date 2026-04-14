@@ -77,6 +77,22 @@ fun TimerCard(
                             fontSize = 8.sp
                         )
 
+                        if (timer.isSnoozed) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.status_snoozed),
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 7.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
                         Spacer(modifier = Modifier.width(8.dp))
 
                         IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {

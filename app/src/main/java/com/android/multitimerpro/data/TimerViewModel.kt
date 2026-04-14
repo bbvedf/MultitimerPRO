@@ -140,6 +140,15 @@ class TimerViewModel @Inject constructor(
         val currentUser = auth.currentUser
         _isAuthenticated.value = currentUser != null
         
+        // Cargar snoozes desde SharedPreferences
+        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val s1 = prefs.getInt("snooze1", 5)
+        val s2 = prefs.getInt("snooze2", 10)
+        _snooze1.value = s1
+        _snooze2.value = s2
+        timerManager.snooze1Min = s1
+        timerManager.snooze2Min = s2
+
         if (currentUser != null) {
             syncUserAndData(currentUser.uid, currentUser.email ?: "")
         }
@@ -170,8 +179,16 @@ class TimerViewModel @Inject constructor(
         }
     }
 
-    fun setSnooze1(minutes: Int) { _snooze1.value = minutes }
-    fun setSnooze2(minutes: Int) { _snooze2.value = minutes }
+    fun setSnooze1(minutes: Int) { 
+        _snooze1.value = minutes 
+        timerManager.snooze1Min = minutes
+        context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putInt("snooze1", minutes).apply()
+    }
+    fun setSnooze2(minutes: Int) { 
+        _snooze2.value = minutes 
+        timerManager.snooze2Min = minutes
+        context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putInt("snooze2", minutes).apply()
+    }
 
     fun toggleTheme(isDark: Boolean) {
         _isDarkMode.value = isDark
@@ -359,19 +376,23 @@ class TimerViewModel @Inject constructor(
 
     fun snoozeTimer(timer: TimerEntity, minutes: Int) = viewModelScope.launch {
         val additionalMs = minutes * 60 * 1000L
-        // Si el tiempo de snooze es mayor que la duración original, actualizamos la duración 
-        // para que las estadísticas (porcentaje) tengan sentido.
-        val newDuration = if (additionalMs > timer.duration) additionalMs else timer.duration
+        val newDuration = timer.duration + additionalMs
         timerManager.updateTimer(timer.copy(
             remainingTime = additionalMs, 
             duration = newDuration,
-            status = "LIVE"
+            status = "LIVE",
+            isSnoozed = true,
+            lastSnoozeDuration = additionalMs // Guardamos para el cálculo del progreso visual
         ))
         startService()
         showMessage(context.getString(R.string.msg_snooze_added, minutes))
     }
 
-    fun updateTimer(timer: TimerEntity) = viewModelScope.launch { timerManager.updateTimer(timer) }
+    fun updateTimer(timer: TimerEntity) = viewModelScope.launch { 
+        // Al actualizar un timer manualmente (ej: desde edición), 
+        // establecemos la nueva baseDuration también para que el reset funcione.
+        timerManager.updateTimer(timer.copy(baseDuration = timer.duration)) 
+    }
     fun delete(timer: TimerEntity) = viewModelScope.launch { timerManager.deleteTimer(timer); showMessage(context.getString(R.string.msg_deleted)) }
     fun resetTimer(timer: TimerEntity) = viewModelScope.launch { timerManager.resetTimer(timer) }
     fun deleteHistoryEntry(history: HistoryEntity) = viewModelScope.launch { historyRepository.delete(history); showMessage(context.getString(R.string.msg_deleted)) }

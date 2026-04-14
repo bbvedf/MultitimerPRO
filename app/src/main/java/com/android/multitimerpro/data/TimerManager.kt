@@ -87,6 +87,9 @@ class TimerManager @Inject constructor(
                         color = doc.getLong("color")?.toInt() ?: Color.BLUE,
                         category = doc.getString("category") ?: "ENFOQUE",
                         intervalsJson = doc.getString("intervalsJson") ?: "[]",
+                        isSnoozed = doc.getBoolean("isSnoozed") ?: false,
+                        baseDuration = doc.getLong("baseDuration") ?: (doc.getLong("duration") ?: 0L),
+                        lastHistoryId = doc.getString("lastHistoryId")?.takeIf { it.isNotBlank() },
                         uid = doc.getString("uid") ?: uid,
                         createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
                     )
@@ -112,7 +115,8 @@ class TimerManager @Inject constructor(
                         uid = doc.getString("uid") ?: uid,
                         color = doc.getLong("color")?.toInt() ?: Color.BLUE,
                         notes = doc.getString("notes") ?: "",
-                        intervalsJson = doc.getString("intervalsJson") ?: "[]"
+                        intervalsJson = doc.getString("intervalsJson") ?: "[]",
+                        isSnoozed = doc.getBoolean("isSnoozed") ?: false
                     )
                     historyRepository.insert(history)
                 }
@@ -164,9 +168,7 @@ class TimerManager @Inject constructor(
     private fun handleTimerFinished(timer: TimerEntity) {
         serviceScope.launch(NonCancellable) {
             try {
-                val finishedTimer = timer.copy(remainingTime = 0, status = "FINISHED", intervalsJson = "[]")
-                repository.update(finishedTimer)
-                
+                // Notificar al servicio de la UI
                 val intent = Intent(context, TimerService::class.java).apply {
                     action = TimerService.ACTION_FINISH_NOTIFY
                     putExtra(TimerService.EXTRA_TIMER_NAME, timer.name)
@@ -178,15 +180,30 @@ class TimerManager @Inject constructor(
                 
                 val currentUid = auth.currentUser?.uid ?: timer.uid
                 
+                // Si el timer ya tenía un lastHistoryId, actualizamos ese registro en lugar de crear uno nuevo (caso Snooze)
                 val historyEntry = HistoryEntity(
+                    id = timer.lastHistoryId ?: UUID.randomUUID().toString(),
                     timerName = timer.name,
                     category = timer.category,
                     durationMillis = timer.duration,
                     uid = currentUid,
                     color = timer.color,
-                    intervalsJson = timer.intervalsJson // GUARDAMOS LOS INTERVALOS REALES
+                    intervalsJson = timer.intervalsJson,
+                    isSnoozed = timer.isSnoozed
                 )
-                historyRepository.insert(historyEntry)
+                
+                if (timer.lastHistoryId != null) {
+                    historyRepository.update(historyEntry)
+                } else {
+                    historyRepository.insert(historyEntry)
+                }
+
+                // Al finalizar, guardamos el ID del registro de historia para que si hay un snooze posterior, sepa qué editar
+                repository.update(timer.copy(
+                    remainingTime = 0,
+                    status = "FINISHED",
+                    lastHistoryId = historyEntry.id
+                ))
             } catch (e: Exception) {
                 Log.e(TAG, "Error al procesar fin de timer", e)
             }
@@ -204,6 +221,7 @@ class TimerManager @Inject constructor(
             name = name,
             duration = durationMs,
             remainingTime = durationMs,
+            baseDuration = durationMs,
             status = "READY",
             color = color,
             category = category,
@@ -227,6 +245,15 @@ class TimerManager @Inject constructor(
     }
 
     suspend fun resetTimer(timer: TimerEntity) {
-        repository.update(timer.copy(remainingTime = timer.duration, status = "READY", intervalsJson = "[]"))
+        val targetDuration = if (timer.baseDuration > 0) timer.baseDuration else timer.duration
+        repository.update(timer.copy(
+            duration = targetDuration,
+            remainingTime = targetDuration, 
+            status = "READY", 
+            intervalsJson = "[]",
+            isSnoozed = false,
+            lastHistoryId = null,
+            lastSnoozeDuration = 0L
+        ))
     }
 }

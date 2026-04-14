@@ -199,6 +199,7 @@
     <string name="msg_preset_saved">Preset gespeichert</string>
     <string name="msg_preset_deleted">Preset gelöscht</string>
     <string name="msg_timer_added">Timer hinzugefügt</string>
+    <string name="status_snoozed">SCHLUMMERN</string>
 
     <string name="msg_logout_confirm">Sind Sie sicher, dass Sie sich abmelden möchten? Sie müssen sich erneut identifizieren, um Ihre Operator-Daten zu synchronisieren.</string>
     <string name="msg_delete_timer_confirm">Sind Sie sicher, dass Sie \'%1$s\' löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.</string>

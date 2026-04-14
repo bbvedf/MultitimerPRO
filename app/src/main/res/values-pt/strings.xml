@@ -199,6 +199,7 @@
     <string name="msg_preset_saved">Preset salvo</string>
     <string name="msg_preset_deleted">Preset excluído</string>
     <string name="msg_timer_added">Timer adicionado</string>
+    <string name="status_snoozed">ADIADO</string>
 
     <string name="msg_logout_confirm">Tem certeza de que deseja sair? Você precisará se identificar novamente para sincronizar seus dados de operador.</string>
     <string name="msg_delete_timer_confirm">Tem certeza de que deseja excluir \'%1$s\'? Esta ação não pode ser desfeita.</string>

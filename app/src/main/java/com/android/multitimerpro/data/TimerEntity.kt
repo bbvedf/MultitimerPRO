@@ -15,6 +15,10 @@ data class TimerEntity(
     val category: String,
     val description: String = "",
     val intervalsJson: String = "[]",
+    val isSnoozed: Boolean = false,
+    val baseDuration: Long = 0,
+    val lastSnoozeDuration: Long = 0,
+    val lastHistoryId: String? = null,
     val uid: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )

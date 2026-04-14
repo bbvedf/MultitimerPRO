@@ -125,7 +125,13 @@ class TimerService : Service() {
                 serviceScope.launch {
                     timerManager.timers.value.find { it.id == timerId }?.let {
                         val additionalMs = minutes * 60 * 1000L
-                        timerManager.updateTimer(it.copy(remainingTime = additionalMs, status = "LIVE"))
+                        val newDuration = it.duration + additionalMs
+                        timerManager.updateTimer(it.copy(
+                            remainingTime = additionalMs, 
+                            duration = newDuration,
+                            status = "LIVE",
+                            isSnoozed = true
+                        ))
                     }
                 }
                 notificationManager.cancel(timerId.hashCode())

@@ -14,5 +14,6 @@ data class HistoryEntity(
     val uid: String = "",
     val color: Int,
     val notes: String = "",
-    val intervalsJson: String = "[]"
+    val intervalsJson: String = "[]",
+    val isSnoozed: Boolean = false
 )

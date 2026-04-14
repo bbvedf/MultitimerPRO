@@ -199,6 +199,7 @@
     <string name="msg_preset_saved">Preset salvato</string>
     <string name="msg_preset_deleted">Preset eliminato</string>
     <string name="msg_timer_added">Timer aggiunto</string>
+    <string name="status_snoozed">SOSPESO</string>
 
     <string name="msg_logout_confirm">Sei sicuro di voler disconnetterti? Dovrai identificarti di nuovo per sincronizzare i dati dell\'operatore.</string>
     <string name="msg_delete_timer_confirm">Sei sicuro di voler eliminare \'%1$s\'? Questa azione non può essere annullata.</string>

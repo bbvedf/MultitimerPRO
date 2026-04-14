@@ -73,6 +73,9 @@ class TimerRepository @Inject constructor(
             "color" to timer.color,
             "category" to timer.category,
             "intervalsJson" to timer.intervalsJson,
+            "isSnoozed" to timer.isSnoozed,
+            "baseDuration" to timer.baseDuration,
+            "lastHistoryId" to (timer.lastHistoryId ?: ""),
             "uid" to timer.uid,
             "createdAt" to timer.createdAt
         )

@@ -198,6 +198,7 @@
     <string name="msg_preset_saved">Preset guardado</string>
     <string name="msg_preset_deleted">Preset eliminado</string>
     <string name="msg_timer_added">Temporizador añadido</string>
+    <string name="status_snoozed">POSPUESTO</string>
     <string name="msg_logout_confirm">¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a identificarte para sincronizar tus datos de operador.</string>
     <string name="msg_delete_timer_confirm">¿Estás seguro de que quieres eliminar \'%1$s\'? Esta acción no se puede deshacer.</string>
     <string name="msg_delete_preset_confirm">¿Estás seguro de que quieres eliminar la plantilla \'%1$s\'? No afectará a los temporizadores que ya estén en curso.</string>

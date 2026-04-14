@@ -198,6 +198,7 @@
     <string name="msg_preset_saved">Preset saved</string>
     <string name="msg_preset_deleted">Preset deleted</string>
     <string name="msg_timer_added">Timer added</string>
+    <string name="status_snoozed">SNOOZED</string>
 
     <string name="msg_logout_confirm">Are you sure you want to log out? You will need to re-identify to sync your operator data.</string>
     <string name="msg_delete_timer_confirm">Are you sure you want to delete \'%1$s\'? This action cannot be undone.</string>
