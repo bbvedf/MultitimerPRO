@@ -18,8 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.multitimerpro.R
-import androidx.compose.ui.res.stringResource
-import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.TimerEntity
 import com.android.multitimerpro.ui.components.TimerCard
