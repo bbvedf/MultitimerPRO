@@ -123,6 +123,31 @@ fun AnalysisTab(viewModel: TimerViewModel) {
             }
         }
 
+        item {
+            AnimatedVisibility(visible = showFilters) {
+                Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(R.string.history_period), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(TimeFilter.entries.toTypedArray()) { filter ->
+                                    FilterChip(selected = selectedTimeFilter == filter, onClick = { viewModel.setHistorySelectedTimeFilter(filter) }, label = { Text(stringResource(translateTimeFilterLocal(filter))) }, border = null)
+                                }
+                            }
+                        }
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(R.string.history_category), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(categoriesList) { category ->
+                                    FilterChip(selected = selectedCategory == category, onClick = { viewModel.setHistorySelectedCategory(category) }, label = { Text(translateCategory(category)) }, border = null)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         if (totalTimeSpent == 0L) {
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(top = 80.dp), contentAlignment = Alignment.Center) {
@@ -133,30 +158,6 @@ fun AnalysisTab(viewModel: TimerViewModel) {
                 }
             }
         } else {
-            item {
-                AnimatedVisibility(visible = showFilters) {
-                    Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
-                        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(stringResource(R.string.history_period), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    items(TimeFilter.entries.toTypedArray()) { filter ->
-                                        FilterChip(selected = selectedTimeFilter == filter, onClick = { viewModel.setHistorySelectedTimeFilter(filter) }, label = { Text(translateTimeFilterLocal(filter)) }, border = null)
-                                    }
-                                }
-                            }
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(stringResource(R.string.history_category), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    items(categoriesList) { category ->
-                                        FilterChip(selected = selectedCategory == category, onClick = { viewModel.setHistorySelectedCategory(category) }, label = { Text(translateCategory(category)) }, border = null)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
 
             item {
                 Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
@@ -361,11 +362,38 @@ fun AchievementsTab(viewModel: TimerViewModel) {
 fun MedalCard(id: String, isUnlocked: Boolean, modifier: Modifier = Modifier) {
     val color = if (isUnlocked) NeonOrange else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
     val icon = getMedalIcon(id)
-    Surface(modifier = modifier, color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.3f))) {
-        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(modifier = Modifier.size(48.dp).clip(CircleShape).background(color.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp)) }
-            Text(text = stringResource(translateMedalLocal(id)).uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = if (isUnlocked) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-            Text(text = stringResource(translateMedalDescLocal(id)), style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), textAlign = TextAlign.Center, lineHeight = 10.sp, maxLines = 2)
+    Surface(
+        modifier = modifier.height(140.dp), // Altura fija para consistencia
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(24.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.3f))
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center // Centrado vertical
+        ) {
+            Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(color.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) { 
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp)) 
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(translateMedalLocal(id)).uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = if (isUnlocked) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 1 // Evitar saltos de línea que rompan el diseño
+            )
+            Text(
+                text = stringResource(translateMedalDescLocal(id)),
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 7.sp, // Un pelín más pequeña
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center,
+                lineHeight = 9.sp,
+                maxLines = 2
+            )
         }
     }
 }
@@ -414,11 +442,11 @@ private fun translateMedalDescLocal(medal: String) = when(medal) {
     else -> R.string.app_name
 }
 
-private fun translateTimeFilterLocal(filter: TimeFilter): String = when (filter) {
-    TimeFilter.ALL -> "TODAS"
-    TimeFilter.TODAY -> "HOY"
-    TimeFilter.WEEK -> "SEMANA"
-    TimeFilter.MONTH -> "MES"
+private fun translateTimeFilterLocal(filter: TimeFilter): Int = when (filter) {
+    TimeFilter.ALL -> R.string.filter_all
+    TimeFilter.TODAY -> R.string.filter_today
+    TimeFilter.WEEK -> R.string.filter_week
+    TimeFilter.MONTH -> R.string.filter_month
 }
 
 private fun formatMillisToTime(millis: Long): String {

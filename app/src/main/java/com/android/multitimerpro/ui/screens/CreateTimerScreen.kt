@@ -340,31 +340,27 @@ fun CreateTimerScreen(
 
 @Composable
 fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String, isDark: Boolean) {
-    var textFieldValueState by remember(value) {
-        mutableStateOf(TextFieldValue(text = value))
-    }
-
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+        
         TextField(
-            value = textFieldValueState,
+            value = value,
             onValueChange = {
-                if (it.text.all { char -> char.isDigit() }) {
-                    textFieldValueState = it
-                    onValueChange(it.text)
+                val digitsOnly = it.filter { char -> char.isDigit() }
+                if (digitsOnly.length <= 2) {
+                    onValueChange(digitsOnly)
+                    if (digitsOnly.length == 2) {
+                        focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Next)
+                    }
                 }
             },
-            modifier = Modifier
-                .width(64.dp)
-                .onFocusChanged { focusState ->
-                    if (focusState.isFocused) {
-                        textFieldValueState = textFieldValueState.copy(
-                            selection = TextRange(0, textFieldValueState.text.length)
-                        )
-                    }
-                },
+            modifier = Modifier.width(72.dp),
             textStyle = MaterialTheme.typography.displaySmall.copy(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground
+            ),
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword
             ),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
