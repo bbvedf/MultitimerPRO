@@ -113,6 +113,12 @@
     <string name="timer_preset_btn">GUARDAR COMO PRESET</string>
     <string name="timer_required_msg">Nombre y duración requeridos</string>
 
+    <!-- Diálogo de descartar cambios -->
+    <string name="create_discard_title">¿Descartar cambios?</string>
+    <string name="create_discard_msg">Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?</string>
+    <string name="create_discard_confirm">DESCARTAR</string>
+    <string name="create_discard_cancel">SEGUIR EDITANDO</string>
+
     <!-- Categories -->
     <string name="cat_general">GENERAL</string>
     <string name="cat_work">TRABAJO</string>

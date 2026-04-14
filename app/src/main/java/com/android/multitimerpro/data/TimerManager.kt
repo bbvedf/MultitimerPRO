@@ -189,7 +189,7 @@ class TimerManager @Inject constructor(
                     uid = currentUid,
                     color = timer.color,
                     intervalsJson = timer.intervalsJson,
-                    isSnoozed = timer.isSnoozed
+                    isSnoozed = timer.isSnoozed || (timer.lastHistoryId != null && timer.isSnoozed) // Asegurar permanencia
                 )
                 
                 if (timer.lastHistoryId != null) {

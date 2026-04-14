@@ -28,6 +28,7 @@ import com.android.multitimerpro.data.HistoryEntity
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.TimeFilter
 import com.android.multitimerpro.ui.components.DeleteHistoryConfirmationDialog
+import com.android.multitimerpro.ui.components.translateCategory
 import com.android.multitimerpro.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -122,12 +123,16 @@ fun HistoryScreen(
                             }
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(stringResource(R.string.history_category), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                LazyRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    contentPadding = PaddingValues(end = 16.dp)
+                                ) {
                                     items(categories) { category ->
                                         FilterChip(
                                             selected = selectedCategory == category, 
                                             onClick = { viewModel.setHistorySelectedCategory(category) }, 
-                                            label = { Text(translateCategory(category)) }, 
+                                            label = { Text(translateCategory(category), maxLines = 1) },
                                             border = null
                                         )
                                     }
@@ -175,7 +180,31 @@ fun HistoryScreen(
             }
 
             if (filteredItems.isEmpty()) {
-                item { Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) { Text(stringResource(R.string.history_no_sessions), color = MaterialTheme.colorScheme.onSurfaceVariant) } }
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 80.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.History,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                            )
+                            Text(
+                                text = stringResource(R.string.history_no_sessions),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             } else {
                 items(filteredItems) { item ->
                     HistoryEntryCard(item = item, onDelete = { historyToDelete = item }, onClick = { onNavigateToDetail(item.id) })
@@ -197,18 +226,6 @@ private fun translateTimeFilter(filter: TimeFilter): String {
 }
 
 @Composable
-private fun translateCategory(internalName: String): String {
-    return when(internalName.uppercase()) {
-        "ALL" -> stringResource(R.string.category_all)
-        "GENERAL" -> stringResource(R.string.cat_general)
-        "WORK" -> stringResource(R.string.cat_work)
-        "LEISURE" -> stringResource(R.string.cat_leisure)
-        "OTHERS" -> stringResource(R.string.cat_other)
-        else -> internalName
-    }
-}
-
-@Composable
 fun HistoryEntryCard(item: HistoryEntity, onDelete: () -> Unit, onClick: () -> Unit) {
     val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
     val dateStr = dateFormat.format(Date(item.completedAt))
@@ -223,8 +240,19 @@ fun HistoryEntryCard(item: HistoryEntity, onDelete: () -> Unit, onClick: () -> U
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(text = item.timerName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                             if (item.isSnoozed) {
-                                Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), shape = RoundedCornerShape(4.dp)) {
-                                    Text(stringResource(R.string.status_snoozed), modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                Surface(
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                    shape = RoundedCornerShape(4.dp),
+                                    border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.status_snoozed).uppercase(),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontSize = 7.sp,
+                                        fontWeight = FontWeight.Black
+                                    )
                                 }
                             }
                         }

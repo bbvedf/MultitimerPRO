@@ -1,6 +1,7 @@
 package com.android.multitimerpro.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.ui.components.*
 import com.android.multitimerpro.ui.theme.*
 import java.util.Locale
 
@@ -67,10 +69,37 @@ fun CreateTimerScreen(
     val colors = listOf(NeonBlue, NeonGreen, NeonPurple, Color(0xFFFF6B6B), Color(0xFFFFD93D), Color(0xFF6BCB77))
     val categories = listOf(
         Pair("GENERAL", R.string.cat_general),
-        Pair("TRABAJO", R.string.cat_work),
-        Pair("OCIO", R.string.cat_leisure),
-        Pair("OTROS", R.string.cat_other)
+        Pair("WORK", R.string.cat_work),
+        Pair("LEISURE", R.string.cat_leisure),
+        Pair("OTHERS", R.string.cat_other)
     )
+
+    var showDiscardDialog by remember { mutableStateOf(false) }
+
+    val hasChanges = remember(existingTimer, name, hours, minutes, seconds, selectedColor, selectedCategory, description) {
+        val currentDuration = (hours.toLongOrNull() ?: 0) * 3600000 + (minutes.toLongOrNull() ?: 0) * 60000 + (seconds.toLongOrNull() ?: 0) * 1000
+        val originalDuration = existingTimer?.duration ?: 0L
+        
+        name != (existingTimer?.name ?: "") ||
+        currentDuration != originalDuration ||
+        selectedColor.toArgb() != (existingTimer?.color ?: NeonBlue.toArgb()) ||
+        selectedCategory != (existingTimer?.category ?: "GENERAL") ||
+        description != (existingTimer?.description ?: "")
+    }
+
+    BackHandler(enabled = hasChanges) {
+        showDiscardDialog = true
+    }
+
+    if (showDiscardDialog) {
+        DiscardChangesDialog(
+            onConfirm = {
+                showDiscardDialog = false
+                onBack()
+            },
+            onDismiss = { showDiscardDialog = false }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -83,7 +112,9 @@ fun CreateTimerScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = onBack) {
+            IconButton(onClick = {
+                if (hasChanges) showDiscardDialog = true else onBack()
+            }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack, 
                     contentDescription = null, 

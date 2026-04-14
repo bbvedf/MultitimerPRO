@@ -26,6 +26,7 @@ import com.android.multitimerpro.R
 import com.android.multitimerpro.data.PresetEntity
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.components.DeletePresetConfirmationDialog
+import com.android.multitimerpro.ui.components.translateCategory
 import com.android.multitimerpro.ui.theme.*
 import java.util.Locale
 
@@ -123,18 +124,6 @@ fun PresetsScreen(
         ) {
             Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(32.dp))
         }
-    }
-}
-
-@Composable
-private fun translateCategory(internalName: String): String {
-    return when(internalName.uppercase()) {
-        "ALL" -> stringResource(R.string.category_all)
-        "GENERAL" -> stringResource(R.string.cat_general)
-        "WORK" -> stringResource(R.string.cat_work)
-        "LEISURE" -> stringResource(R.string.cat_leisure)
-        "OTHER" -> stringResource(R.string.cat_other)
-        else -> internalName
     }
 }
 

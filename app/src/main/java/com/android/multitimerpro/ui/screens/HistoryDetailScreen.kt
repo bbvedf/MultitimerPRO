@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import com.android.multitimerpro.R
 import com.android.multitimerpro.data.HistoryEntity
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.ui.components.*
 import com.android.multitimerpro.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -113,7 +114,7 @@ fun HistoryDetailScreen(
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
 
-                    InfoRow(icon = Icons.Default.Category, label = stringResource(R.string.detail_category), value = translateCategoryLocal(item.category))
+                    InfoRow(icon = Icons.Default.Category, label = stringResource(R.string.detail_category), value = translateCategory(item.category))
                     InfoRow(icon = Icons.Default.Timer, label = stringResource(R.string.detail_total_duration), value = formatMillisToTime(item.durationMillis))
                     InfoRow(icon = Icons.Default.CalendarToday, label = stringResource(R.string.detail_date), value = dateFormat.format(Date(item.completedAt)))
                     InfoRow(icon = Icons.Default.Timer, label = stringResource(R.string.detail_finished_at), value = timeFormat.format(Date(item.completedAt)))
@@ -287,14 +288,3 @@ private fun formatToThreeBlocks(timeStr: String): String {
     return if (parts.size == 2) "00:$timeStr" else timeStr
 }
 
-@Composable
-private fun translateCategoryLocal(internalName: String): String {
-    return when(internalName.uppercase()) {
-        "ALL" -> stringResource(R.string.category_all)
-        "GENERAL" -> stringResource(R.string.cat_general)
-        "WORK" -> stringResource(R.string.cat_work)
-        "LEISURE" -> stringResource(R.string.cat_leisure)
-        "OTHERS" -> stringResource(R.string.cat_other)
-        else -> internalName
-    }
-}

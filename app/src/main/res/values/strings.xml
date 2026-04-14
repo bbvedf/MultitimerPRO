@@ -106,6 +106,12 @@
     <string name="timer_preset_btn">SAVE AS PRESET</string>
     <string name="timer_required_msg">Name and duration required</string>
 
+    <!-- Discard Changes Dialog -->
+    <string name="create_discard_title">Discard changes?</string>
+    <string name="create_discard_msg">You have unsaved changes. Are you sure you want to leave?</string>
+    <string name="create_discard_confirm">DISCARD</string>
+    <string name="create_discard_cancel">KEEP EDITING</string>
+
     <!-- Categories -->
     <string name="cat_general">GENERAL</string>
     <string name="cat_work">WORK</string>

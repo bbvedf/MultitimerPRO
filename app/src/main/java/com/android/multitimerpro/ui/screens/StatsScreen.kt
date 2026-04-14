@@ -3,8 +3,6 @@ package com.android.multitimerpro.ui.screens
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -29,71 +28,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.android.multitimerpro.R
-import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.TimeFilter
-import com.android.multitimerpro.ui.theme.*
-import kotlinx.coroutines.flow.collectLatest
-import java.util.Locale
-import java.util.concurrent.TimeUnit
+import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.ui.components.translateCategory
+import com.android.multitimerpro.ui.theme.NeonOrange
+import com.android.multitimerpro.ui.theme.NeonPurple
 
 @Composable
-fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
+fun StatsScreen(viewModel: TimerViewModel) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf(stringResource(R.string.stats_tab_analysis), stringResource(R.string.stats_tab_achievements))
-    var activeAchievementId by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
-        viewModel.newAchievementEvent.collectLatest { achievementId ->
-            activeAchievementId = achievementId
-        }
-    }
-
-    if (activeAchievementId != null) {
-        AchievementUnlockedDialog(
-            achievementId = activeAchievementId!!,
-            onDismiss = { activeAchievementId = null }
-        )
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Spacer(modifier = Modifier.height(64.dp))
-        
-        // Tab Selector
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(if (selectedTab == index) MaterialTheme.colorScheme.primary else Color.Transparent)
-                        .clickable { selectedTab = index },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = if (selectedTab == index) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.primary,
+            indicator = { tabPositions ->
+                if (selectedTab < tabPositions.size) {
+                    TabRowDefaults.SecondaryIndicator(
+                        Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
+            },
+            divider = {}
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = { Text(title, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal) }
+                )
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         AnimatedContent(
             targetState = selectedTab,
@@ -110,41 +79,6 @@ fun StatsScreen(viewModel: TimerViewModel = hiltViewModel()) {
                 AnalysisTab(viewModel)
             } else {
                 AchievementsTab(viewModel)
-            }
-        }
-    }
-}
-
-@Composable
-fun AchievementUnlockedDialog(achievementId: String, onDismiss: () -> Unit) {
-    val medalIcon = getMedalIcon(achievementId)
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f, targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(tween(1000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "scale"
-    )
-
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(
-            modifier = Modifier.padding(24.dp).fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(32.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = androidx.compose.foundation.BorderStroke(2.dp, NeonOrange)
-        ) {
-            Column(modifier = Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                Text(text = stringResource(R.string.new_medal_unlocked), style = MaterialTheme.typography.labelSmall, color = NeonOrange, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
-                Box(modifier = Modifier.size(120.dp).scale(scale).clip(CircleShape).background(NeonOrange.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
-                    Icon(imageVector = medalIcon, contentDescription = null, tint = NeonOrange, modifier = Modifier.size(64.dp))
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = stringResource(translateMedalLocal(achievementId)).uppercase(), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = stringResource(translateMedalDescLocal(achievementId)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-                }
-                Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = NeonOrange), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.protocol_understood), color = Color.Black, fontWeight = FontWeight.Bold)
-                }
             }
         }
     }
@@ -169,15 +103,16 @@ fun AnalysisTab(viewModel: TimerViewModel) {
         listOf("ALL") + uniqueCats
     }
 
-    val categoriesStats = statsByCategory.map { (name, time) ->
-        val percentage = if (totalTimeSpent > 0) time.toFloat() / totalTimeSpent else 0f
-        CategoryStat(name, percentage, false)
-    }.sortedByDescending { it.percentage }
+    val categoriesStats = remember(statsByCategory, totalTimeSpent) {
+        statsByCategory.map { (name, time) ->
+            val percentage = if (totalTimeSpent > 0) time.toFloat() / totalTimeSpent else 0f
+            CategoryStat(name, percentage, false)
+        }.sortedByDescending { it.percentage }
+    }
 
     LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-        // Header
         item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = stringResource(R.string.stats_performance_analysis), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
                     Text(text = stringResource(R.string.stats_title), style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
@@ -188,140 +123,141 @@ fun AnalysisTab(viewModel: TimerViewModel) {
             }
         }
 
-        // Filters
-        item {
-            AnimatedVisibility(visible = showFilters) {
+        if (totalTimeSpent == 0L) {
+            item {
+                Box(modifier = Modifier.fillMaxWidth().padding(top = 80.dp), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Icon(Icons.Default.Analytics, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+                        Text(text = stringResource(R.string.stats_no_data) + "\n" + stringResource(R.string.stats_start_sessions), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        } else {
+            item {
+                AnimatedVisibility(visible = showFilters) {
+                    Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
+                        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(stringResource(R.string.history_period), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    items(TimeFilter.entries.toTypedArray()) { filter ->
+                                        FilterChip(selected = selectedTimeFilter == filter, onClick = { viewModel.setHistorySelectedTimeFilter(filter) }, label = { Text(translateTimeFilterLocal(filter)) }, border = null)
+                                    }
+                                }
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(stringResource(R.string.history_category), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    items(categoriesList) { category ->
+                                        FilterChip(selected = selectedCategory == category, onClick = { viewModel.setHistorySelectedCategory(category) }, label = { Text(translateCategory(category)) }, border = null)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
                 Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
-                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(stringResource(R.string.history_period), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                items(TimeFilter.entries) { filter ->
-                                    FilterChip(selected = selectedTimeFilter == filter, onClick = { viewModel.setHistorySelectedTimeFilter(filter) }, label = { Text(translateTimeFilterLocal(filter)) }, border = null)
-                                }
-                            }
+                    Row(modifier = Modifier.padding(24.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column {
+                            Text(stringResource(R.string.stats_total_time), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(formatMillisToTime(totalTimeSpent), style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                         }
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(stringResource(R.string.history_category), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                items(categoriesList) { category ->
-                                    FilterChip(selected = selectedCategory == category, onClick = { viewModel.setHistorySelectedCategory(category) }, label = { Text(translateCategoryLocal(category)) }, border = null)
-                                }
-                            }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(stringResource(R.string.stats_sessions), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("${filteredHistory.size}", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
-        }
 
-        // Summary
-        item {
-            Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
-                Row(modifier = Modifier.padding(24.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                        Text(stringResource(R.string.stats_total_time), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(formatMillisToTime(totalTimeSpent), style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(stringResource(R.string.stats_sessions), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("${filteredHistory.size}", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                    }
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    MetricCard(stringResource(R.string.stats_avg_session), formatMillisToTimeShort(averageSessionTime), Modifier.weight(1f))
+                    MetricCard(stringResource(R.string.stats_peak_day), mostProductiveDay, Modifier.weight(1f))
                 }
             }
-        }
 
-        // Metrics Row
-        item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                MetricCard(stringResource(R.string.stats_avg_session), formatMillisToTimeShort(averageSessionTime), Modifier.weight(1f))
-                MetricCard(stringResource(R.string.stats_peak_day), mostProductiveDay, Modifier.weight(1f))
-            }
-        }
-
-        // Top Timer Badge
-        item {
-            Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
-                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(NeonPurple.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = NeonPurple, modifier = Modifier.size(20.dp))
-                    }
-                    Column {
-                        Text(stringResource(R.string.stats_star_timer), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
-                        Text(text = topTimerName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = NeonPurple)
-                    }
-                }
-            }
-        }
-
-        // Activity Last 7 Days
-        item {
-            Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Text(text = stringResource(R.string.stats_daily_performance), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(text = stringResource(R.string.stats_daily_desc), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(24.dp))
-                    val maxDayTime = activityLast7Days.values.maxOrNull()?.coerceAtLeast(1L) ?: 1L
-                    activityLast7Days.forEach { (day, time) ->
-                        val progress = time.toFloat() / maxDayTime.toFloat()
-                        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text(day, modifier = Modifier.width(32.dp), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                            Box(modifier = Modifier.weight(1f).height(10.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)) {
-                                Box(modifier = Modifier.fillMaxWidth(progress.coerceIn(0.02f, 1f)).fillMaxHeight().clip(CircleShape).background(Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)))))
-                            }
-                            Text(formatMillisToTimeShort(time), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+            item {
+                Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(NeonPurple.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = NeonPurple, modifier = Modifier.size(20.dp))
+                        }
+                        Column {
+                            Text(stringResource(R.string.stats_star_timer), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                            Text(text = topTimerName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = NeonPurple)
                         }
                     }
                 }
             }
-        }
 
-        // Distribution by Category (RESTAURADO)
-        if (categoriesStats.isNotEmpty()) {
             item {
                 Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
                     Column(modifier = Modifier.padding(24.dp)) {
-                        Text(text = stringResource(R.string.stats_category_dist), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Row(modifier = Modifier.fillMaxWidth().height(180.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-                            categoriesStats.take(5).forEach { stat ->
-                                CategoryBar(stat, modifier = Modifier.weight(1f))
+                        Text(text = stringResource(R.string.stats_daily_performance), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.stats_daily_desc), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.height(24.dp))
+                        val maxDayTime = activityLast7Days.values.maxOrNull()?.coerceAtLeast(1L) ?: 1L
+                        for ((day, time) in activityLast7Days) {
+                            val progress = time.toFloat() / maxDayTime.toFloat()
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(day, modifier = Modifier.width(32.dp), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                Box(modifier = Modifier.weight(1f).height(10.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)) {
+                                    Box(modifier = Modifier.fillMaxWidth(progress.coerceIn(0.02f, 1f)).fillMaxHeight().clip(CircleShape).background(Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)))))
+                                }
+                                Text(formatMillisToTimeShort(time), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
             }
-        }
 
-        // Focus Analysis Badges (RESTAURADO)
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(text = stringResource(R.string.stats_focus_analysis), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
-                
-                // Dominant Category Badge
-                if (categoriesStats.isNotEmpty()) {
+            if (categoriesStats.isNotEmpty()) {
+                item {
+                    Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
+                        Column(modifier = Modifier.padding(24.dp)) {
+                            Text(text = stringResource(R.string.stats_category_dist), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(32.dp))
+                            Row(modifier = Modifier.fillMaxWidth().height(180.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+                                for (stat in categoriesStats.take(5)) {
+                                    CategoryBar(stat, modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(text = stringResource(R.string.stats_focus_analysis), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
+                    
+                    if (categoriesStats.isNotEmpty()) {
+                        AnalysisBadge(
+                            icon = Icons.Default.Category,
+                            color = MaterialTheme.colorScheme.primary,
+                            text = stringResource(R.string.stats_dominant_cat, translateCategory(categoriesStats.first().name))
+                        )
+                    }
+                    
                     AnalysisBadge(
-                        icon = Icons.Default.Category,
-                        color = MaterialTheme.colorScheme.primary,
-                        text = stringResource(R.string.stats_dominant_cat, translateCategoryLocal(categoriesStats.first().name))
+                        icon = Icons.Default.Timer,
+                        color = NeonOrange,
+                        text = stringResource(R.string.stats_top_investment, topTimerName)
                     )
                 }
-                
-                // Top Investment Badge
-                AnalysisBadge(
-                    icon = Icons.Default.Timer,
-                    color = NeonOrange,
-                    text = stringResource(R.string.stats_top_investment, topTimerName)
-                )
             }
-        }
 
-        // Today Productivity (RESTAURADO)
-        item {
-            Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))) {
-                Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = stringResource(R.string.stats_today_prod), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = stringResource(R.string.stats_today_msg), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface)
+            item {
+                Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))) {
+                    Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = stringResource(R.string.stats_today_prod), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = stringResource(R.string.stats_today_msg), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface)
+                    }
                 }
             }
         }
@@ -331,7 +267,7 @@ fun AnalysisTab(viewModel: TimerViewModel) {
 }
 
 @Composable
-fun AnalysisBadge(icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, text: String) {
+fun AnalysisBadge(icon: ImageVector, color: Color, text: String) {
     Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(20.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(color.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
@@ -346,7 +282,7 @@ fun AnalysisBadge(icon: androidx.compose.ui.graphics.vector.ImageVector, color: 
 fun CategoryBar(stat: CategoryStat, modifier: Modifier = Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(modifier = Modifier.fillMaxWidth(0.6f).height(140.dp * stat.percentage.coerceIn(0.05f, 1f)).clip(RoundedCornerShape(6.dp)).background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)))))
-        Text(text = translateCategoryLocal(stat.name).uppercase(), style = MaterialTheme.typography.labelSmall, fontSize = 7.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Black, maxLines = 1)
+        Text(text = translateCategory(stat.name).uppercase(), style = MaterialTheme.typography.labelSmall, fontSize = 7.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Black, maxLines = 1)
     }
 }
 
@@ -381,7 +317,7 @@ fun AchievementsTab(viewModel: TimerViewModel) {
 
     LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
         item {
-            Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(28.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
+            Surface(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(28.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
                 Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.MilitaryTech, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
@@ -478,38 +414,23 @@ private fun translateMedalDescLocal(medal: String) = when(medal) {
     else -> R.string.app_name
 }
 
-@Composable
-private fun translateTimeFilterLocal(filter: TimeFilter) = when(filter) {
-    TimeFilter.ALL -> stringResource(R.string.filter_all)
-    TimeFilter.TODAY -> stringResource(R.string.filter_today)
-    TimeFilter.WEEK -> stringResource(R.string.filter_week)
-    TimeFilter.MONTH -> stringResource(R.string.filter_month)
-}
-
-@Composable
-private fun translateCategoryLocal(internalName: String): String {
-    return when(internalName.uppercase()) {
-        "ALL" -> stringResource(R.string.category_all)
-        "GENERAL" -> stringResource(R.string.cat_general)
-        "WORK" -> stringResource(R.string.cat_work)
-        "LEISURE" -> stringResource(R.string.cat_leisure)
-        "OTHERS" -> stringResource(R.string.cat_other)
-        else -> internalName
-    }
+private fun translateTimeFilterLocal(filter: TimeFilter): String = when (filter) {
+    TimeFilter.ALL -> "TODAS"
+    TimeFilter.TODAY -> "HOY"
+    TimeFilter.WEEK -> "SEMANA"
+    TimeFilter.MONTH -> "MES"
 }
 
 private fun formatMillisToTime(millis: Long): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(millis)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
-    return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
+    val h = millis / 3600000
+    val m = (millis % 3600000) / 60000
+    val s = (millis % 60000) / 1000
+    return "%02d:%02d:%02d".format(h, m, s)
 }
 
 private fun formatMillisToTimeShort(millis: Long): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(millis)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
-    return if (hours > 0) String.format(Locale.getDefault(), "%dh %dm", hours, minutes)
-    else String.format(Locale.getDefault(), "%dm", minutes)
+    val m = millis / 60000
+    return "${m}m"
 }
 
 data class CategoryStat(val name: String, val percentage: Float, val isActive: Boolean)

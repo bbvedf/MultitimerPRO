@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.data.TimerEntity
+import com.android.multitimerpro.ui.components.*
 import com.android.multitimerpro.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -189,7 +190,7 @@ fun LiveTimerScreen(
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = translateCategoryLocal(timer.category).uppercase(),
+                        text = translateCategory(timer.category).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 3.sp
@@ -372,18 +373,6 @@ fun LiveTimerScreen(
             
             Spacer(modifier = Modifier.height(100.dp))
         }
-    }
-}
-
-@Composable
-private fun translateCategoryLocal(internalName: String): String {
-    return when(internalName.uppercase()) {
-        "ALL" -> stringResource(R.string.category_all)
-        "GENERAL" -> stringResource(R.string.cat_general)
-        "WORK" -> stringResource(R.string.cat_work)
-        "LEISURE" -> stringResource(R.string.cat_leisure)
-        "OTHERS" -> stringResource(R.string.cat_other)
-        else -> internalName
     }
 }
 

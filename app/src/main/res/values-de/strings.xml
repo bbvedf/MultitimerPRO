@@ -107,6 +107,12 @@
     <string name="timer_preset_btn">ALS PRESET SPEICHERN</string>
     <string name="timer_required_msg">Name und Dauer erforderlich</string>
 
+    <!-- Discard Changes Dialog -->
+    <string name="create_discard_title">Änderungen verwerfen?</string>
+    <string name="create_discard_msg">Sie haben nicht gespeicherte Änderungen. Sind Sie sicher, dass Sie gehen wollen?</string>
+    <string name="create_discard_confirm">VERWERFEN</string>
+    <string name="create_discard_cancel">BEARBEITUNG FORTSETZEN</string>
+
     <!-- Categories -->
     <string name="cat_general">ALLGEMEIN</string>
     <string name="cat_work">ARBEIT</string>
