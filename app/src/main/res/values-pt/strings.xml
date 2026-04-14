@@ -171,7 +171,7 @@
     <string name="medal_weekend">Guerreiro do Fim de Semana</string>
     <string name="medal_weekend_desc">Mantenha o foco no sábado ou domingo</string>
     <string name="medal_collector">Colecionador de Categorias</string>
-    <string name="medal_collector_desc">Use pelo menos 4 categorias diferentes</string>
+    <string name="medal_collector_desc">Use pelo menos 3 categorias diferentes</string>
     <string name="medal_veteran">Veterano do Foco</string>
     <string name="medal_veteran_desc">Alcance 100 horas totais de foco</string>
     <string name="medal_hyperfocus">Hiperfoco</string>

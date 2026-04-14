@@ -340,15 +340,27 @@ fun CreateTimerScreen(
 
 @Composable
 fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String, isDark: Boolean) {
+    var isFocused by remember { mutableStateOf(false) }
+    var textFieldValue by remember { mutableStateOf(value) }
+
+    // Sincronizar con el valor externo solo si no tenemos el foco
+    LaunchedEffect(value) {
+        if (!isFocused) {
+            textFieldValue = value
+        }
+    }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
         
         TextField(
-            value = value,
-            onValueChange = {
-                val digitsOnly = it.filter { char -> char.isDigit() }
+            value = textFieldValue,
+            onValueChange = { newValue ->
+                val digitsOnly = newValue.filter { it.isDigit() }
                 if (digitsOnly.length <= 2) {
-                    onValueChange(digitsOnly)
+                    textFieldValue = digitsOnly
+                    onValueChange(digitsOnly.ifEmpty { "0" })
+                    
                     if (digitsOnly.length == 2) {
                         focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Next)
                     }
@@ -357,13 +369,15 @@ fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String, isD
             modifier = Modifier
                 .width(72.dp)
                 .onFocusChanged { 
-                    if (it.isFocused && value == "00") {
-                        onValueChange("")
+                    isFocused = it.isFocused
+                    if (it.isFocused && (textFieldValue == "0" || textFieldValue == "00")) {
+                        textFieldValue = ""
                     }
                 },
             textStyle = MaterialTheme.typography.displaySmall.copy(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 32.sp
             ),
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                 keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword

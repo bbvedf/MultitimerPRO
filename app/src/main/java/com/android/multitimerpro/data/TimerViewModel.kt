@@ -121,7 +121,13 @@ class TimerViewModel @Inject constructor(
     val userPhotoUrl = _userPhotoUrl.asStateFlow()
 
     // --- Language State ---
-    private val _currentLanguage = MutableStateFlow(AppCompatDelegate.getApplicationLocales().toLanguageTags().ifBlank { "en" })
+    private val _currentLanguage = MutableStateFlow(
+        if (!AppCompatDelegate.getApplicationLocales().isEmpty) {
+            AppCompatDelegate.getApplicationLocales().toLanguageTags()
+        } else {
+            java.util.Locale.getDefault().language
+        }
+    )
     val currentLanguage = _currentLanguage.asStateFlow()
 
     fun setLanguage(languageCode: String) {

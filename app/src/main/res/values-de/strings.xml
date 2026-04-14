@@ -171,7 +171,7 @@
     <string name="medal_weekend">Wochenend-Krieger</string>
     <string name="medal_weekend_desc">Bleibe am Samstag oder Sonntag fokussiert</string>
     <string name="medal_collector">Kategorien-Sammler</string>
-    <string name="medal_collector_desc">Verwende mindestens 4 verschiedene Kategorien</string>
+    <string name="medal_collector_desc">Verwende mindestens 3 verschiedene Kategorien</string>
     <string name="medal_veteran">Fokus-Veteran</string>
     <string name="medal_veteran_desc">Erreiche insgesamt 100 Stunden Fokus</string>
     <string name="medal_hyperfocus">Hyperfokus</string>

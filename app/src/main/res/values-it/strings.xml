@@ -171,7 +171,7 @@
     <string name="medal_weekend">Guerriero del Weekend</string>
     <string name="medal_weekend_desc">Mantieni il focus durante sabato o domenica</string>
     <string name="medal_collector">Collezionista di Categorie</string>
-    <string name="medal_collector_desc">Usa almeno 4 categorie diverse</string>
+    <string name="medal_collector_desc">Usa almeno 3 categorie diverse</string>
     <string name="medal_veteran">Veterano del Focus</string>
     <string name="medal_veteran_desc">Raggiungi 100 ore totali di focus</string>
     <string name="medal_hyperfocus">Iperfocus</string>

@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -368,20 +369,40 @@ val avatarPresets = listOf(
 
 @Composable
 fun SnoozeInput(value: String, onValueChange: (String) -> Unit) {
+    var isFocused by remember { mutableStateOf(false) }
+    var textFieldValue by remember { mutableStateOf(value) }
+
+    // Sincronizar con el valor externo solo si no tenemos el foco
+    LaunchedEffect(value) {
+        if (!isFocused) {
+            textFieldValue = value
+        }
+    }
+
     TextField(
-        value = value,
-        onValueChange = {
-            val digitsOnly = it.filter { char -> char.isDigit() }
-            if (digitsOnly.length <= 3) { // Permitimos hasta 999 min
-                onValueChange(digitsOnly)
+        value = textFieldValue,
+        onValueChange = { newValue ->
+            val digitsOnly = newValue.filter { it.isDigit() }
+            if (digitsOnly.length <= 3) {
+                textFieldValue = digitsOnly
+                // Notificamos al padre, pero mantenemos nuestro estado local "" si está vacío
+                onValueChange(digitsOnly.ifEmpty { "0" })
             }
         },
-        modifier = Modifier.width(80.dp),
+        modifier = Modifier
+            .width(64.dp)
+            .onFocusChanged { 
+                isFocused = it.isFocused
+                if (it.isFocused && (textFieldValue == "0" || textFieldValue == "00")) {
+                    textFieldValue = ""
+                }
+            },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
         singleLine = true,
         textStyle = LocalTextStyle.current.copy(
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 14.sp
         ),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,

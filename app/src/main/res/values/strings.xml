@@ -170,7 +170,7 @@
     <string name="medal_weekend">Weekend Warrior</string>
     <string name="medal_weekend_desc">Keep focus during Saturday or Sunday</string>
     <string name="medal_collector">Category Collector</string>
-    <string name="medal_collector_desc">Use at least 4 different categories</string>
+    <string name="medal_collector_desc">Use at least 3 different categories</string>
     <string name="medal_veteran">Focus Veteran</string>
     <string name="medal_veteran_desc">Reach 100 total hours of focus</string>
     <string name="medal_hyperfocus">Hyperfocus</string>

@@ -171,7 +171,7 @@
     <string name="medal_weekend">Guerrero del Fin de Semana</string>
     <string name="medal_weekend_desc">Mantén el enfoque en sábado o domingo</string>
     <string name="medal_collector">Coleccionista de Categorías</string>
-    <string name="medal_collector_desc">Usa al menos 4 categorías diferentes</string>
+    <string name="medal_collector_desc">Usa al menos 3 categorías diferentes</string>
     <string name="medal_veteran">Veterano del Enfoque</string>
     <string name="medal_veteran_desc">Alcanza las 100 horas totales de enfoque</string>
     <string name="medal_hyperfocus">Hiperenfoque</string>
