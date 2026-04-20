@@ -30,6 +30,11 @@ class TimerManager @Inject constructor(
     private val _timers = MutableStateFlow<List<TimerEntity>>(emptyList())
     val timers: StateFlow<List<TimerEntity>> = _timers.asStateFlow()
 
+    private fun isProUser(): Boolean {
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        return prefs.getBoolean("is_pro", false)
+    }
+
     var snooze1Min: Int = 5
     var snooze2Min: Int = 10
 
@@ -64,7 +69,7 @@ class TimerManager @Inject constructor(
                 val orphans = allTimers.filter { it.uid.isBlank() }
                 Log.d(TAG, "[VINCULACION] DB local tiene ${allTimers.size} timers. Reclamando ${orphans.size} para $uid")
                 orphans.forEach { timer ->
-                    repository.update(timer.copy(uid = uid))
+                    repository.update(timer.copy(uid = uid), isPro = isProUser())
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error reclamando timers locales", e)
@@ -93,7 +98,8 @@ class TimerManager @Inject constructor(
                         uid = doc.getString("uid") ?: uid,
                         createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
                     )
-                    repository.insert(timer)
+                    // Al descargar de la nube, no forzamos resincronización (isPro = false para evitar bucles)
+                    repository.insert(timer, isPro = false)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Sync timers failed", e)
@@ -180,7 +186,7 @@ class TimerManager @Inject constructor(
                 
                 val currentUid = auth.currentUser?.uid ?: timer.uid
                 
-                // Si el timer ya tenía un lastHistoryId, actualizamos ese registro en lugar de crear uno nuevo (caso Snooze)
+                // Registro de historia
                 val historyEntry = HistoryEntity(
                     id = timer.lastHistoryId ?: UUID.randomUUID().toString(),
                     timerName = timer.name,
@@ -189,7 +195,7 @@ class TimerManager @Inject constructor(
                     uid = currentUid,
                     color = timer.color,
                     intervalsJson = timer.intervalsJson,
-                    isSnoozed = timer.isSnoozed || (timer.lastHistoryId != null && timer.isSnoozed) // Asegurar permanencia
+                    isSnoozed = timer.isSnoozed || (timer.lastHistoryId != null && timer.isSnoozed)
                 )
                 
                 if (timer.lastHistoryId != null) {
@@ -198,12 +204,12 @@ class TimerManager @Inject constructor(
                     historyRepository.insert(historyEntry)
                 }
 
-                // Al finalizar, guardamos el ID del registro de historia para que si hay un snooze posterior, sepa qué editar
+                // Actualizar el timer local y opcionalmente en la nube si es PRO
                 repository.update(timer.copy(
                     remainingTime = 0,
                     status = "FINISHED",
                     lastHistoryId = historyEntry.id
-                ))
+                ), isPro = isProUser())
             } catch (e: Exception) {
                 Log.e(TAG, "Error al procesar fin de timer", e)
             }
@@ -228,16 +234,16 @@ class TimerManager @Inject constructor(
             description = description,
             uid = currentUid
         )
-        repository.insert(newTimer)
+        repository.insert(newTimer, isPro = isProUser())
     }
 
     suspend fun toggleTimer(timer: TimerEntity) {
         val newStatus = if (timer.status == "LIVE") "PAUSED" else "LIVE"
-        repository.update(timer.copy(status = newStatus))
+        repository.update(timer.copy(status = newStatus), isPro = isProUser())
     }
 
     suspend fun updateTimer(timer: TimerEntity) {
-        repository.update(timer)
+        repository.update(timer, isPro = isProUser())
     }
 
     suspend fun deleteTimer(timer: TimerEntity) {
@@ -254,7 +260,7 @@ class TimerManager @Inject constructor(
             isSnoozed = false,
             lastHistoryId = null,
             lastSnoozeDuration = 0L
-        ))
+        ), isPro = isProUser())
     }
 
     suspend fun clearAllTimers() {

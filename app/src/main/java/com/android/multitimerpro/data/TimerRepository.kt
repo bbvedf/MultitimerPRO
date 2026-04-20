@@ -20,10 +20,11 @@ class TimerRepository @Inject constructor(
 
     fun getTimersByUid(uid: String): Flow<List<TimerEntity>> = timerDao.getTimersByUid(uid)
 
-    suspend fun insert(timer: TimerEntity) {
+    suspend fun insert(timer: TimerEntity, isPro: Boolean = false) {
         try {
             Log.d(TAG, "[TIMER] Insertando local: ${timer.name}")
             timerDao.insertTimer(timer)
+            // AHORA: Sincronizamos SIEMPRE que haya un usuario, sea PRO o FREE
             if (timer.uid.isNotEmpty()) {
                 syncToCloud(timer)
             }
@@ -32,9 +33,10 @@ class TimerRepository @Inject constructor(
         }
     }
 
-    suspend fun update(timer: TimerEntity) {
+    suspend fun update(timer: TimerEntity, isPro: Boolean = false) {
         try {
             timerDao.updateTimer(timer)
+            // AHORA: Sincronizamos SIEMPRE que haya un usuario, sea PRO o FREE
             if (timer.uid.isNotEmpty()) {
                 syncToCloud(timer)
             }

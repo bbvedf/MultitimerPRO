@@ -32,6 +32,7 @@ import com.android.multitimerpro.ui.components.translateCategory
 import com.android.multitimerpro.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
+import com.android.multitimerpro.ui.components.UpgradeProDialog
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +43,8 @@ fun HistoryScreen(
 ) {
     val historyItems by viewModel.history.collectAsState()
     var historyToDelete by remember { mutableStateOf<HistoryEntity?>(null) }
+    val isPro by viewModel.isPro.collectAsState()
+    var showProDialog by remember { mutableStateOf(false) }
     
     val showFilters by viewModel.historyShowFilters.collectAsState()
     val selectedCategory by viewModel.historySelectedCategory.collectAsState()
@@ -79,6 +82,16 @@ fun HistoryScreen(
                 historyToDelete = null
             },
             onDismiss = { historyToDelete = null }
+        )
+    }
+
+    if (showProDialog) {
+        UpgradeProDialog(
+            onDismiss = { showProDialog = false },
+            onUpgrade = { 
+                viewModel.toggleProStatus() 
+                showProDialog = false
+            }
         )
     }
 
@@ -147,7 +160,10 @@ fun HistoryScreen(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Button(
-                                    onClick = { viewModel.exportHistoryToPDF(filteredItems) },
+                                    onClick = { 
+                                        if (isPro) viewModel.exportHistoryToPDF(filteredItems)
+                                        else showProDialog = true
+                                    },
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
@@ -166,7 +182,7 @@ fun HistoryScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        stringResource(R.string.history_pdf),
+                                        "${stringResource(R.string.history_pdf)}${if (!isPro) " " + stringResource(R.string.pro_indicator) else ""}",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp,
                                         color = if (MaterialTheme.colorScheme.background == DeepBlack) Color.Black else Color.White,
@@ -174,7 +190,10 @@ fun HistoryScreen(
                                     )
                                 }
                                 FilledTonalButton(
-                                    onClick = { viewModel.exportHistoryToCSV(filteredItems) },
+                                    onClick = { 
+                                        if (isPro) viewModel.exportHistoryToCSV(filteredItems)
+                                        else showProDialog = true
+                                    },
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
@@ -190,7 +209,7 @@ fun HistoryScreen(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        stringResource(R.string.history_csv),
+                                        "${stringResource(R.string.history_csv)}${if (!isPro) " " + stringResource(R.string.pro_indicator) else ""}",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp,
                                         color = MaterialTheme.colorScheme.onSurface,

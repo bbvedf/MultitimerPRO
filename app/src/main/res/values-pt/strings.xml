@@ -218,11 +218,44 @@
     <string name="login_register_now">Registe-se agora</string>
     <string name="login_toggle_theme">Alternar tema</string>
     <string name="login_error_prefix">ERRO: %1$s</string>
+    <string name="login_forgot_password">Esqueceu a senha?</string>
+    <string name="login_already_have_account">Já tem uma conta? </string>
+    <string name="login_sign_in">Entrar</string>
+
+    <!-- Forgot Password Screen -->
+    <string name="forgot_title">RECUPERAR ACESSO</string>
+    <string name="forgot_desc">Insira o seu endereço de e-mail e enviaremos as instruções para redefinir a sua senha.</string>
+    <string name="forgot_email_label">E-MAIL DA CONTA</string>
+    <string name="forgot_send_btn">ENVOYER LES INSTRUCTIONS</string>
+    <string name="forgot_msg_sent">E-mail de recuperação enviado para %1$s</string>
+    <string name="forgot_error_empty">Por favor, insira o seu e-mail</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">CRIAR OPERADOR</string>
+    <string name="register_desc">Junte-se à rede MultiTimer para sincronizar as suas sessões de foco e explorar todo o seu potencial.</string>
+    <string name="register_btn">CRIAR CONTA</string>
+    <string name="register_success">Bem-vindo ao sistema, Operador!</string>
 
     <string name="msg_logout_confirm">Tem certeza de que deseja sair? Você precisará se identificar novamente para sincronizar seus dados de operador.</string>
     <string name="msg_delete_timer_confirm">Tem certeza de que deseja excluir \'%1$s\'? Esta ação não pode ser desfeita.</string>
     <string name="msg_delete_preset_confirm">Tem certeza de que deseja excluir o modelo \'%1$s\'? Não afetará os cronômetros que já estão em curso.</string>
     <string name="msg_delete_history_confirm">Tem certeza de que deseja excluir o registro de \'%1$s\'? Esta ação não pode ser desfeita.</string>
+
+    <!-- PRO Upgrade Dialog -->
+    <string name="pro_upgrade_title">Multitimer PRO</string>
+    <string name="pro_upgrade_msg">Faça o upgrade para o PRO para desbloquear todo o potencial do Multitimer!</string>
+    <string name="pro_benefit_timers">Cronômetros ilimitados</string>
+    <string name="pro_benefit_styles">Estilos Neon Especiais</string>
+    <string name="pro_benefit_sync">Sincronização na Nuvem</string>
+    <string name="pro_benefit_export">Exportação PDF/CSV</string>
+    <string name="pro_upgrade_btn">DESBLOQUEAR POR 3,49 €</string>
+    <string name="pro_upgrade_later">Talvez mais tarde</string>
+    <string name="pro_status_active">MODO PRO ATIVO 👑</string>
+    <string name="pro_status_free">Modo grátis ativo</string>
+
+    <string name="msg_notif_granted">Notificações ativadas</string>
+    <string name="msg_notif_denied">Os alertas sonoros não funcionarão sem permissão</string>
+    <string name="pro_indicator">👑</string>
 
     <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

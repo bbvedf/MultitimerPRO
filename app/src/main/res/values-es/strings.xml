@@ -217,8 +217,41 @@
     <string name="login_register_now">Regístrate ahora</string>
     <string name="login_toggle_theme">Cambiar tema</string>
     <string name="login_error_prefix">ERROR: %1$s</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_already_have_account">¿Ya tienes una cuenta? </string>
+    <string name="login_sign_in">Inicia Sesión</string>
+
+    <!-- Forgot Password Screen -->
+    <string name="forgot_title">RECUPERAR ACCESO</string>
+    <string name="forgot_desc">Introduce el email de tu cuenta y te enviaremos las instrucciones para restablecer tu clave de acceso.</string>
+    <string name="forgot_email_label">EMAIL DE LA CUENTA</string>
+    <string name="forgot_send_btn">ENVIAR INSTRUCCIONES</string>
+    <string name="forgot_msg_sent">Email de recuperación enviado a %1$s</string>
+    <string name="forgot_error_empty">Por favor, introduce tu email</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">CREAR OPERADOR</string>
+    <string name="register_desc">Únete a la red MultiTimer para sincronizar tus sesiones de enfoque y desbloquear todo tu potencial.</string>
+    <string name="register_btn">CREAR CUENTA</string>
+    <string name="register_success">¡Bienvenido al sistema, Operador!</string>
     <string name="msg_logout_confirm">¿Estás seguro de que quieres cerrar tu sesión? Tendrás que volver a identificarte para sincronizar tus datos de operador.</string>
     <string name="msg_delete_timer_confirm">¿Estás seguro de que quieres eliminar \'%1$s\'? Esta acción no se puede deshacer.</string>
     <string name="msg_delete_preset_confirm">¿Estás seguro de que quieres eliminar la plantilla \'%1$s\'? No afectará a los temporizadores que ya estén en curso.</string>
     <string name="msg_delete_history_confirm">¿Estás seguro de que quieres eliminar el registro de \'%1$s\'? Esta acción no se puede deshacer.</string>
+
+    <!-- PRO Upgrade Dialog -->
+    <string name="pro_upgrade_title">Multitimer PRO</string>
+    <string name="pro_upgrade_msg">¡Actualiza a PRO para desbloquear todo el potencial de Multitimer!</string>
+    <string name="pro_benefit_timers">Temporizadores Ilimitados</string>
+    <string name="pro_benefit_styles">Estilos Neón Especiales</string>
+    <string name="pro_benefit_sync">Sincronización en la Nube</string>
+    <string name="pro_benefit_export">Exportación PDF/CSV</string>
+    <string name="pro_upgrade_btn">DESBLOQUEAR POR 3,49 €</string>
+    <string name="pro_upgrade_later">Quizás más tarde</string>
+    <string name="pro_status_active">MODO PRO ACTIVO 👑</string>
+    <string name="pro_status_free">Modo gratuito activo</string>
+
+    <string name="msg_notif_granted">Notificaciones habilitadas</string>
+    <string name="msg_notif_denied">Las alertas sonoras no funcionarán sin permiso</string>
+    <string name="pro_indicator">👑</string>
 </resources>

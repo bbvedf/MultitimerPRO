@@ -217,11 +217,43 @@
     <string name="login_register_now">Register now</string>
     <string name="login_toggle_theme">Toggle Theme</string>
     <string name="login_error_prefix">ERROR: %1$s</string>
+    <string name="login_forgot_password">Forgot password?</string>
+    <string name="login_already_have_account">Already have an account? </string>
+    <string name="login_sign_in">Sign In</string>
 
-    <string name="msg_logout_confirm">Are you sure you want to log out? You will need to re-identify to sync your operator data.</string>
+    <!-- Forgot Password Screen -->
+    <string name="forgot_title">RECOVER ACCESS</string>
+    <string name="forgot_desc">Enter your account email and we will send you instructions to reset your access key.</string>
+    <string name="forgot_email_label">ACCOUNT EMAIL</string>
+    <string name="forgot_send_btn">SEND INSTRUCTIONS</string>
+    <string name="forgot_msg_sent">Recovery email sent to %1$s</string>
+    <string name="forgot_error_empty">Please enter your email</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">CREATE OPERATOR</string>
+    <string name="register_desc">Join the MultiTimer network to sync your focus sessions and unlock your full potential.</string>
+    <string name="register_btn">CREATE ACCOUNT</string>
+    <string name="register_success">Welcome to the system, Operator!</string>
+    <string name="msg_logout_confirm">Are you sure you want to log out? You will need to sign in again to sync your operator data.</string>
     <string name="msg_delete_timer_confirm">Are you sure you want to delete \'%1$s\'? This action cannot be undone.</string>
-    <string name="msg_delete_preset_confirm">Are you sure you want to delete the template \'%1$s\'? It will not affect timers already in progress.</string>
-    <string name="msg_delete_history_confirm">Are you sure you want to delete the record of \'%1$s\'? This action cannot be undone.</string>
+    <string name="msg_delete_preset_confirm">Are you sure you want to delete the preset \'%1$s\'? It won\'t affect timers already in progress.</string>
+    <string name="msg_delete_history_confirm">Are you sure you want to delete the record for \'%1$s\'? This action cannot be undone.</string>
+
+    <!-- PRO Upgrade Dialog -->
+    <string name="pro_upgrade_title">Multitimer PRO</string>
+    <string name="pro_upgrade_msg">Upgrade to PRO to unlock the full potential of Multitimer!</string>
+    <string name="pro_benefit_timers">Unlimited Timers</string>
+    <string name="pro_benefit_styles">Special Neon Styles</string>
+    <string name="pro_benefit_sync">Cloud Synchronization</string>
+    <string name="pro_benefit_export">PDF/CSV Export</string>
+    <string name="pro_upgrade_btn">UNLOCK FOR €3.49</string>
+    <string name="pro_upgrade_later">Maybe later</string>
+    <string name="pro_status_active">PRO MODE ACTIVE 👑</string>
+    <string name="pro_status_free">Free mode active</string>
+
+    <string name="msg_notif_granted">Notifications enabled</string>
+    <string name="msg_notif_denied">Sound alerts won\'t work without permission</string>
+    <string name="pro_indicator">👑</string>
 
     <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

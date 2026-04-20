@@ -218,11 +218,44 @@
     <string name="login_register_now">Jetzt registrieren</string>
     <string name="login_toggle_theme">Thema umschalten</string>
     <string name="login_error_prefix">FEHLER: %1$s</string>
+    <string name="login_forgot_password">Passwort vergessen?</string>
+    <string name="login_already_have_account">Haben Sie bereits ein Konto? </string>
+    <string name="login_sign_in">Anmelden</string>
+
+    <!-- Forgot Password Screen -->
+    <string name="forgot_title">ZUGANG WIEDERHERSTELLEN</string>
+    <string name="forgot_desc">Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen Anweisungen zum Zurücksetzen Ihres Passworts.</string>
+    <string name="forgot_email_label">KONTO-E-MAIL</string>
+    <string name="forgot_send_btn">ANWEISUNGEN SENDEN</string>
+    <string name="forgot_msg_sent">Wiederherstellungs-E-Mail an %1$s gesendet</string>
+    <string name="forgot_error_empty">Bitte geben Sie Ihre E-Mail-Adresse ein</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">OPERATOR ERSTELLEN</string>
+    <string name="register_desc">Treten Sie dem MultiTimer-Netzwerk bei, um Ihre Fokus-Sitzungen zu synchronisieren und Ihr volles Potenzial auszuschöpfen.</string>
+    <string name="register_btn">KONTO ERSTELLEN</string>
+    <string name="register_success">Willkommen im System, Operator!</string>
 
     <string name="msg_logout_confirm">Sind Sie sicher, dass Sie sich abmelden möchten? Sie müssen sich erneut identifizieren, um Ihre Operator-Daten zu synchronisieren.</string>
     <string name="msg_delete_timer_confirm">Sind Sie sicher, dass Sie \'%1$s\' löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <string name="msg_delete_preset_confirm">Sind Sie sicher, dass Sie die Vorlage \'%1$s\' löschen möchten? Dies hat keine Auswirkungen auf bereits laufende Timer.</string>
     <string name="msg_delete_history_confirm">Sind Sie sicher, dass Sie den Datensatz von \'%1$s\' löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+
+    <!-- PRO Upgrade Dialog -->
+    <string name="pro_upgrade_title">Multitimer PRO</string>
+    <string name="pro_upgrade_msg">Upgrade auf PRO, um das volle Potenzial von Multitimer freizuschalten!</string>
+    <string name="pro_benefit_timers">Unbegrenzte Timer</string>
+    <string name="pro_benefit_styles">Spezielle Neon-Styles</string>
+    <string name="pro_benefit_sync">Cloud-Synchronisierung</string>
+    <string name="pro_benefit_export">PDF/CSV-Export</string>
+    <string name="pro_upgrade_btn">FÜR 3,49 € FREISCHALTEN</string>
+    <string name="pro_upgrade_later">Vielleicht später</string>
+    <string name="pro_status_active">PRO-MODUS AKTIV 👑</string>
+    <string name="pro_status_free">Gratis-Modus aktiv</string>
+
+    <string name="msg_notif_granted">Benachrichtigungen aktiviert</string>
+    <string name="msg_notif_denied">Akustische Warnungen funktionieren nicht ohne Erlaubnis</string>
+    <string name="pro_indicator">👑</string>
 
     <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

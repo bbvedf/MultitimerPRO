@@ -34,6 +34,7 @@ import coil.compose.AsyncImage
 import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.components.LogoutConfirmationDialog
+import com.android.multitimerpro.ui.components.UpgradeProDialog
 import com.android.multitimerpro.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 
@@ -52,8 +53,10 @@ fun SettingsScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showProfileDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showProDialog by remember { mutableStateOf(false) }
     
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
+    val isPro by viewModel.isPro.collectAsState()
     val snooze1 by viewModel.snooze1.collectAsState()
     val snooze2 by viewModel.snooze2.collectAsState()
 
@@ -87,6 +90,16 @@ fun SettingsScreen(
             onConfirm = { langCode ->
                 viewModel.setLanguage(langCode)
                 showLanguageDialog = false
+            }
+        )
+    }
+
+    if (showProDialog) {
+        UpgradeProDialog(
+            onDismiss = { showProDialog = false },
+            onUpgrade = { 
+                viewModel.toggleProStatus() 
+                showProDialog = false
             }
         )
     }
@@ -146,8 +159,19 @@ fun SettingsScreen(
                     Icon(imageVector = if (isDarkModeOverride == true) Icons.Default.DarkMode else Icons.Default.LightMode, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(text = if (isDarkModeOverride == true) stringResource(R.string.dark_mode) else stringResource(R.string.light_mode), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                    if (!isPro) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("👑", fontSize = 12.sp)
+                    }
                 }
-                Switch(checked = isDarkModeOverride ?: false, onCheckedChange = { viewModel.toggleTheme(it) }, colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary, checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)))
+                Switch(
+                    checked = isDarkModeOverride ?: false, 
+                    onCheckedChange = { 
+                        if (isPro) viewModel.toggleTheme(it) 
+                        else showProDialog = true
+                    }, 
+                    colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary, checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                )
             }
         }
 
@@ -157,7 +181,10 @@ fun SettingsScreen(
         Text(stringResource(R.string.language), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         Spacer(modifier = Modifier.height(12.dp))
         Surface(
-            modifier = Modifier.fillMaxWidth().clickable { showLanguageDialog = true },
+            modifier = Modifier.fillMaxWidth().clickable { 
+                if (isPro) showLanguageDialog = true 
+                else showProDialog = true
+            },
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
@@ -167,6 +194,10 @@ fun SettingsScreen(
                     Icon(Icons.Default.Translate, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(text = languages.find { it.code == currentLanguage }?.name ?: "English", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                    if (!isPro) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("👑", fontSize = 12.sp)
+                    }
                 }
                 Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -224,7 +255,22 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-        Text(stringResource(R.string.version_info), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f), modifier = Modifier.align(Alignment.CenterHorizontally))
+        
+        var clickCount by remember { mutableStateOf(0) }
+        Text(
+            text = stringResource(R.string.version_info), 
+            style = MaterialTheme.typography.labelSmall, 
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f), 
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .clickable {
+                    clickCount++
+                    if (clickCount >= 5) {
+                        viewModel.toggleProStatus()
+                        clickCount = 0
+                    }
+                }
+        )
     }
 }
 

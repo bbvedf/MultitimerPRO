@@ -43,8 +43,12 @@ class TimerViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val TAG = "MT_DEBUG"
+    private val auth = FirebaseAuth.getInstance()
+    private val prefs = context.getSharedPreferences("multitimer_prefs", Context.MODE_PRIVATE)
+
+    // --- Core States ---
     val allTimers: StateFlow<List<TimerEntity>> = timerManager.timers
-    
+
     val history: StateFlow<List<HistoryEntity>> = historyRepository.allHistory
         .onEach { list -> Log.d(TAG, "History flow emitted ${list.size} items") }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -52,7 +56,43 @@ class TimerViewModel @Inject constructor(
     val allPresets: StateFlow<List<PresetEntity>> = presetRepository.allPresets
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // --- Persistent History Filter State ---
+    // --- PRO Status ---
+    private val _isPro = MutableStateFlow(prefs.getBoolean("is_pro", false))
+    val isPro: StateFlow<Boolean> = _isPro.asStateFlow()
+
+    // --- Theme state ---
+    private val _isDarkMode = MutableStateFlow<Boolean?>(false)
+    val isDarkMode: StateFlow<Boolean?> = _isDarkMode.asStateFlow()
+
+    // --- Language State ---
+    private val _currentLanguage = MutableStateFlow("en")
+    val currentLanguage = _currentLanguage.asStateFlow()
+
+    // --- Snooze Preferences ---
+    private val _snooze1 = MutableStateFlow(5)
+    val snooze1: StateFlow<Int> = _snooze1.asStateFlow()
+
+    private val _snooze2 = MutableStateFlow(10)
+    val snooze2: StateFlow<Int> = _snooze2.asStateFlow()
+
+    // --- Auth states ---
+    private val _isAuthenticated = MutableStateFlow(false)
+    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
+
+    private val _uiMessage = MutableSharedFlow<String>()
+    val uiMessage = _uiMessage.asSharedFlow()
+
+    private val _authError = MutableStateFlow<String?>(null)
+    val authError: StateFlow<String?> = _authError.asStateFlow()
+
+    // --- User Profile State ---
+    private val _userDisplayName = MutableStateFlow(auth.currentUser?.displayName ?: "")
+    val userDisplayName = _userDisplayName.asStateFlow()
+
+    private val _userPhotoUrl = MutableStateFlow(auth.currentUser?.photoUrl?.toString() ?: "")
+    val userPhotoUrl = _userPhotoUrl.asStateFlow()
+
+    // --- Filter States ---
     private val _historyShowFilters = MutableStateFlow(false)
     val historyShowFilters: StateFlow<Boolean> = _historyShowFilters.asStateFlow()
 
@@ -61,6 +101,78 @@ class TimerViewModel @Inject constructor(
 
     private val _historySelectedTimeFilter = MutableStateFlow(TimeFilter.ALL)
     val historySelectedTimeFilter: StateFlow<TimeFilter> = _historySelectedTimeFilter.asStateFlow()
+
+    init {
+        val currentUser = auth.currentUser
+        _isAuthenticated.value = currentUser != null
+        
+        // Initial setup for Free/PRO
+        checkInitialStatus()
+
+        // Load snoozes
+        val settingsPrefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val s1 = settingsPrefs.getInt("snooze1", 5)
+        val s2 = settingsPrefs.getInt("snooze2", 10)
+        _snooze1.value = s1
+        _snooze2.value = s2
+        timerManager.snooze1Min = s1
+        timerManager.snooze2Min = s2
+
+        if (currentUser != null) {
+            syncUserAndData(currentUser.uid, currentUser.email ?: "")
+        }
+    }
+
+    private fun checkInitialStatus() {
+        if (!_isPro.value) {
+            _isDarkMode.value = false
+            val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags("en")
+            AppCompatDelegate.setApplicationLocales(appLocale)
+            _currentLanguage.value = "en"
+        } else {
+            // If PRO, load current locales if they exist
+            if (!AppCompatDelegate.getApplicationLocales().isEmpty) {
+                _currentLanguage.value = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+            }
+        }
+    }
+
+    // --- Actions ---
+
+    fun toggleProStatus() {
+        val newState = !_isPro.value
+        _isPro.value = newState
+        prefs?.edit()?.putBoolean("is_pro", newState)?.apply()
+        showMessage(if (newState) context.getString(R.string.pro_status_active) else context.getString(R.string.pro_status_free))
+    }
+
+    fun toggleTheme(isDark: Boolean) {
+        if (!_isPro.value) return
+        _isDarkMode.value = isDark
+    }
+
+    fun setLanguage(languageCode: String) {
+        if (!_isPro.value) return
+        val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
+        AppCompatDelegate.setApplicationLocales(appLocale)
+        _currentLanguage.value = languageCode
+        
+        val intent = Intent(context, TimerService::class.java).apply {
+            action = TimerService.ACTION_REFRESH_NOTIFICATIONS
+        }
+        context.startService(intent)
+    }
+
+    fun setSnooze1(minutes: Int) { 
+        _snooze1.value = minutes 
+        timerManager.snooze1Min = minutes
+        context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putInt("snooze1", minutes).apply()
+    }
+    fun setSnooze2(minutes: Int) { 
+        _snooze2.value = minutes 
+        timerManager.snooze2Min = minutes
+        context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putInt("snooze2", minutes).apply()
+    }
 
     fun setHistoryShowFilters(show: Boolean) { _historyShowFilters.value = show }
     fun setHistorySelectedCategory(category: String) { _historySelectedCategory.value = category }
@@ -90,243 +202,7 @@ class TimerViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Theme state
-    private val _isDarkMode = MutableStateFlow<Boolean?>(null)
-    val isDarkMode: StateFlow<Boolean?> = _isDarkMode.asStateFlow()
-
-    // Snooze Preferences
-    private val _snooze1 = MutableStateFlow(5)
-    val snooze1: StateFlow<Int> = _snooze1.asStateFlow()
-
-    private val _snooze2 = MutableStateFlow(10)
-    val snooze2: StateFlow<Int> = _snooze2.asStateFlow()
-
-    // Auth states
-    private val _isAuthenticated = MutableStateFlow(false)
-    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
-
-    private val _uiMessage = MutableSharedFlow<String>()
-    val uiMessage = _uiMessage.asSharedFlow()
-
-    private val _authError = MutableStateFlow<String?>(null)
-    val authError: StateFlow<String?> = _authError.asStateFlow()
-
-    private val auth = FirebaseAuth.getInstance()
-
-    // --- User Profile State ---
-    private val _userDisplayName = MutableStateFlow(auth.currentUser?.displayName ?: "")
-    val userDisplayName = _userDisplayName.asStateFlow()
-
-    private val _userPhotoUrl = MutableStateFlow(auth.currentUser?.photoUrl?.toString() ?: "")
-    val userPhotoUrl = _userPhotoUrl.asStateFlow()
-
-    // --- Language State ---
-    private val _currentLanguage = MutableStateFlow(
-        if (!AppCompatDelegate.getApplicationLocales().isEmpty) {
-            AppCompatDelegate.getApplicationLocales().toLanguageTags()
-        } else {
-            java.util.Locale.getDefault().language
-        }
-    )
-    val currentLanguage = _currentLanguage.asStateFlow()
-
-    fun setLanguage(languageCode: String) {
-        val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageCode)
-        AppCompatDelegate.setApplicationLocales(appLocale)
-        _currentLanguage.value = languageCode
-        
-        // Notificar al servicio para actualizar notificaciones y canales
-        val intent = Intent(context, TimerService::class.java).apply {
-            action = TimerService.ACTION_REFRESH_NOTIFICATIONS
-        }
-        context.startService(intent)
-    }
-
-    init {
-        val currentUser = auth.currentUser
-        _isAuthenticated.value = currentUser != null
-        
-        // Cargar snoozes desde SharedPreferences
-        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        val s1 = prefs.getInt("snooze1", 5)
-        val s2 = prefs.getInt("snooze2", 10)
-        _snooze1.value = s1
-        _snooze2.value = s2
-        timerManager.snooze1Min = s1
-        timerManager.snooze2Min = s2
-
-        if (currentUser != null) {
-            syncUserAndData(currentUser.uid, currentUser.email ?: "")
-        }
-    }
-
-    fun updateProfile(name: String, photoUrl: String) {
-        viewModelScope.launch {
-            val user = auth.currentUser ?: return@launch
-            try {
-                val profileUpdates = userProfileChangeRequest {
-                    displayName = name
-                    photoUri = Uri.parse(photoUrl)
-                }
-                user.updateProfile(profileUpdates).await()
-                
-                // Update Firestore
-                firestore.collection("users").document(user.uid).update(
-                    mapOf("displayName" to name, "photoUrl" to photoUrl)
-                ).await()
-                
-                _userDisplayName.value = name
-                _userPhotoUrl.value = photoUrl
-                showMessage(context.getString(R.string.msg_profile_updated))
-            } catch (e: Exception) {
-                Log.e(TAG, "Update profile failed", e)
-                showMessage(context.getString(R.string.msg_profile_error))
-            }
-        }
-    }
-
-    fun setSnooze1(minutes: Int) { 
-        _snooze1.value = minutes 
-        timerManager.snooze1Min = minutes
-        context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putInt("snooze1", minutes).apply()
-    }
-    fun setSnooze2(minutes: Int) { 
-        _snooze2.value = minutes 
-        timerManager.snooze2Min = minutes
-        context.getSharedPreferences("settings", Context.MODE_PRIVATE).edit().putInt("snooze2", minutes).apply()
-    }
-
-    fun toggleTheme(isDark: Boolean) {
-        _isDarkMode.value = isDark
-    }
-
-    fun showMessage(message: String) {
-        viewModelScope.launch {
-            _uiMessage.emit(message)
-        }
-    }
-
-    private fun syncUserAndData(uid: String, email: String) {
-        viewModelScope.launch {
-            if (uid.isBlank()) return@launch
-            try {
-                val finalEmail = if (email.isBlank()) auth.currentUser?.email ?: "" else email
-                val userDocRef = firestore.collection("users").document(uid)
-                val existingDoc = try { userDocRef.get().await() } catch (e: Exception) { null }
-                val createdAt = if (existingDoc != null && existingDoc.exists()) {
-                    existingDoc.getLong("createdAt") ?: System.currentTimeMillis()
-                } else {
-                    System.currentTimeMillis()
-                }
-                val userMap = mutableMapOf<String, Any>("uid" to uid, "email" to finalEmail, "createdAt" to createdAt)
-                auth.currentUser?.displayName?.let { 
-                    userMap["displayName"] = it
-                    _userDisplayName.value = it
-                }
-                val photoUrl = auth.currentUser?.photoUrl?.toString()
-                if (photoUrl != null) {
-                    userMap["photoUrl"] = photoUrl
-                    _userPhotoUrl.value = photoUrl
-                }
-                userDocRef.set(userMap, SetOptions.merge()).await()
-                timerManager.reclaimLocalTimers(uid)
-                timerManager.syncFromCloud(uid)
-                timerManager.syncHistoryFromCloud(uid)
-            } catch (e: Exception) {
-                Log.e(TAG, "Sync failed: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun updateHistory(history: HistoryEntity) {
-        historyRepository.update(history)
-        showMessage(context.getString(R.string.save))
-    }
-
-    // Stats (Updated to use filteredHistory)
-    val totalTimeSpent: StateFlow<Long> = filteredHistory.map { list ->
-        list.sumOf { it.durationMillis }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
-
-    val globalTotalTime: StateFlow<Long> = history.map { list ->
-        list.sumOf { it.durationMillis }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
-
-    val statsByCategory: StateFlow<Map<String, Long>> = filteredHistory.map { list ->
-        list.groupBy { it.category }.mapValues { entry -> entry.value.sumOf { it.durationMillis } }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
-
-    // --- Advanced Metrics for Stats Screen ---
-    val averageSessionTime: StateFlow<Long> = filteredHistory.map { list ->
-        if (list.isEmpty()) 0L else list.sumOf { it.durationMillis } / list.size
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
-
-    val mostProductiveDay: StateFlow<String> = filteredHistory.map { list ->
-        if (list.isEmpty()) "---" else {
-            val sdf = SimpleDateFormat("EEEE", Locale.getDefault())
-            list.groupBy { sdf.format(Date(it.completedAt)) }
-                .maxByOrNull { it.value.sumOf { item -> item.durationMillis } }
-                ?.key?.uppercase() ?: "---"
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "---")
-
-    val topTimerName: StateFlow<String> = filteredHistory.map { list ->
-        if (list.isEmpty()) "---" else {
-            list.groupBy { it.timerName }
-                .maxByOrNull { it.value.sumOf { item -> item.durationMillis } }
-                ?.key ?: "---"
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "---")
-
-    // --- Time series for activity chart (Last 7 days, respecting category filter) ---
-    val activityLast7Days: StateFlow<Map<String, Long>> = combine(
-        history,
-        historySelectedCategory
-    ) { historyItems, selectedCategory ->
-        val result = mutableMapOf<String, Long>()
-        val sdf = SimpleDateFormat("EE", Locale.getDefault())
-        
-        // Initialize last 7 days with 0 (in local order)
-        val last7DaysKeys = mutableListOf<String>()
-        for (i in 0 until 7) {
-            val tempCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
-            val dayKey = sdf.format(tempCal.time).uppercase()
-            last7DaysKeys.add(dayKey)
-            result[dayKey] = 0L
-        }
-        
-        // Filter by time and selected category
-        val sevenDaysAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
-        historyItems.filter { 
-            it.completedAt >= sevenDaysAgo && (selectedCategory == "ALL" || it.category == selectedCategory)
-        }.forEach { item ->
-            val dayKey = sdf.format(Date(item.completedAt)).uppercase()
-            if (result.containsKey(dayKey)) {
-                result[dayKey] = (result[dayKey] ?: 0L) + item.durationMillis
-            }
-        }
-        
-        // Return in chronological order (oldest to newest)
-        last7DaysKeys.reversed().associateWith { result[it] ?: 0L }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
-
-    // Auth actions... (Google SignIn, Email Login, etc.)
-    fun handleGoogleSignInResult(data: Intent?) {
-        viewModelScope.launch {
-            val result = googleAuthClient.handleSignInResult(data)
-            result.onSuccess { success ->
-                if (success) {
-                    _isAuthenticated.value = true
-                    _authError.value = null
-                    syncUserAndData(auth.currentUser?.uid ?: "", auth.currentUser?.email ?: "")
-                    showMessage(context.getString(R.string.msg_welcome))
-                }
-            }.onFailure { e ->
-                _authError.value = "Error: ${e.localizedMessage}"
-                _isAuthenticated.value = false
-            }
-        }
-    }
+    // --- Auth Actions ---
 
     fun signInWithEmail(email: String, password: String) {
         viewModelScope.launch {
@@ -356,29 +232,133 @@ class TimerViewModel @Inject constructor(
         }
     }
 
+    fun sendPasswordResetEmail(email: String) {
+        viewModelScope.launch {
+            if (email.isBlank()) {
+                _authError.value = context.getString(R.string.forgot_error_empty)
+                return@launch
+            }
+            try {
+                auth.sendPasswordResetEmail(email).await()
+                showMessage(context.getString(R.string.forgot_msg_sent, email))
+                _authError.value = null
+            } catch (e: Exception) {
+                _authError.value = e.localizedMessage
+            }
+        }
+    }
+
+    fun handleGoogleSignInResult(data: Intent?) {
+        viewModelScope.launch {
+            val result = googleAuthClient.handleSignInResult(data)
+            result.onSuccess { success ->
+                if (success) {
+                    _isAuthenticated.value = true
+                    _authError.value = null
+                    syncUserAndData(auth.currentUser?.uid ?: "", auth.currentUser?.email ?: "")
+                    showMessage(context.getString(R.string.msg_welcome))
+                }
+            }.onFailure { e ->
+                _authError.value = "Error: ${e.localizedMessage}"
+                _isAuthenticated.value = false
+            }
+        }
+    }
+
+    fun clearAuthError() {
+        _authError.value = null
+    }
+
     fun signOut() {
         viewModelScope.launch {
-            // 1. Limpiar datos locales de Room
-            timerManager.clearAllTimers()
-            historyRepository.clearAll()
-            presetRepository.clearAll()
-
-            // 2. Resetear estados del ViewModel
+            // Ya NO borramos todo por defecto al salir. 
+            // Los datos se quedan en local. La limpieza se hará al ENTRAR con un usuario distinto.
+            
             _userDisplayName.value = ""
             _userPhotoUrl.value = ""
             _isAuthenticated.value = false
-            _currentLanguage.value = java.util.Locale.getDefault().language
-            _snooze1.value = 5
-            _snooze2.value = 10
             
-            // 3. Cerrar sesión en Google y Firebase
-            googleAuthClient.signOut()
+            // Volvemos a valores por defecto de UI
+            _isPro.value = false
+            _currentLanguage.value = "en"
+            _isDarkMode.value = false
 
+            googleAuthClient.signOut()
+            auth.signOut()
             showMessage(context.getString(R.string.logout))
         }
     }
 
-    // Timer and History actions
+    fun updateProfile(name: String, photoUrl: String) {
+        viewModelScope.launch {
+            val user = auth.currentUser ?: return@launch
+            try {
+                val profileUpdates = userProfileChangeRequest {
+                    displayName = name
+                    photoUri = Uri.parse(photoUrl)
+                }
+                user.updateProfile(profileUpdates).await()
+                firestore.collection("users").document(user.uid).update(
+                    mapOf("displayName" to name, "photoUrl" to photoUrl)
+                ).await()
+                _userDisplayName.value = name
+                _userPhotoUrl.value = photoUrl
+                showMessage(context.getString(R.string.msg_profile_updated))
+            } catch (e: Exception) {
+                Log.e(TAG, "Update profile failed", e)
+                showMessage(context.getString(R.string.msg_profile_error))
+            }
+        }
+    }
+
+    private fun syncUserAndData(uid: String, email: String) {
+        viewModelScope.launch {
+            if (uid.isBlank()) return@launch
+            try {
+                val finalEmail = if (email.isBlank()) auth.currentUser?.email ?: "" else email
+                val userDocRef = firestore.collection("users").document(uid)
+                val existingDoc = try { userDocRef.get().await() } catch (e: Exception) { null }
+                val createdAt = if (existingDoc != null && existingDoc.exists()) {
+                    existingDoc.getLong("createdAt") ?: System.currentTimeMillis()
+                } else {
+                    System.currentTimeMillis()
+                }
+                val userMap = mutableMapOf<String, Any>("uid" to uid, "email" to finalEmail, "createdAt" to createdAt)
+                auth.currentUser?.displayName?.let { 
+                    userMap["displayName"] = it
+                    _userDisplayName.value = it
+                }
+                val photoUrl = auth.currentUser?.photoUrl?.toString()
+                if (photoUrl != null) {
+                    userMap["photoUrl"] = photoUrl
+                    _userPhotoUrl.value = photoUrl
+                }
+                userDocRef.set(userMap, SetOptions.merge()).await()
+                
+                // LIMPIEZA INTELIGENTE: 
+                // Si el UID que entra es distinto al que había en los timers locales, 
+                // entonces sí limpiamos para evitar mezclas.
+                val currentLocalTimers = timerManager.timers.value
+                val isDifferentUser = currentLocalTimers.any { it.uid.isNotEmpty() && it.uid != uid }
+                
+                if (isDifferentUser) {
+                    Log.d(TAG, "[SYNC] Detectado cambio de usuario. Limpiando datos locales.")
+                    timerManager.clearAllTimers()
+                    historyRepository.clearAll()
+                    presetRepository.clearAll()
+                }
+
+                // Cargamos datos de la nube
+                timerManager.syncFromCloud(uid)
+                timerManager.syncHistoryFromCloud(uid)
+            } catch (e: Exception) {
+                Log.e(TAG, "Sync failed: ${e.message}")
+            }
+        }
+    }
+
+    // --- Timer Actions ---
+
     fun insert(name: String, duration: Long, color: Int, category: String, description: String = "") = viewModelScope.launch {
         timerManager.addTimer(name, duration, color, category, description)
     }
@@ -388,11 +368,16 @@ class TimerViewModel @Inject constructor(
         if (timer.status != "LIVE") startService()
     }
 
-    private fun startService() {
-        val intent = Intent(context, TimerService::class.java).apply { action = TimerService.ACTION_START }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent)
-        else context.startService(intent)
+    fun updateTimer(timer: TimerEntity) = viewModelScope.launch { 
+        timerManager.updateTimer(timer.copy(baseDuration = timer.duration)) 
     }
+
+    fun delete(timer: TimerEntity) = viewModelScope.launch { 
+        timerManager.deleteTimer(timer)
+        showMessage(context.getString(R.string.msg_deleted)) 
+    }
+
+    fun resetTimer(timer: TimerEntity) = viewModelScope.launch { timerManager.resetTimer(timer) }
 
     fun snoozeTimer(timer: TimerEntity, minutes: Int) = viewModelScope.launch {
         val additionalMs = minutes * 60 * 1000L
@@ -402,20 +387,11 @@ class TimerViewModel @Inject constructor(
             duration = newDuration,
             status = "LIVE",
             isSnoozed = true,
-            lastSnoozeDuration = additionalMs // Guardamos para el cálculo del progreso visual
+            lastSnoozeDuration = additionalMs
         ))
         startService()
         showMessage(context.getString(R.string.msg_snooze_added, minutes))
     }
-
-    fun updateTimer(timer: TimerEntity) = viewModelScope.launch { 
-        // Al actualizar un timer manualmente (ej: desde edición), 
-        // establecemos la nueva baseDuration también para que el reset funcione.
-        timerManager.updateTimer(timer.copy(baseDuration = timer.duration)) 
-    }
-    fun delete(timer: TimerEntity) = viewModelScope.launch { timerManager.deleteTimer(timer); showMessage(context.getString(R.string.msg_deleted)) }
-    fun resetTimer(timer: TimerEntity) = viewModelScope.launch { timerManager.resetTimer(timer) }
-    fun deleteHistoryEntry(history: HistoryEntity) = viewModelScope.launch { historyRepository.delete(history); showMessage(context.getString(R.string.msg_deleted)) }
 
     fun addInterval(timer: TimerEntity, label: String) = viewModelScope.launch {
         val minutes = (timer.remainingTime / 1000) / 60
@@ -429,15 +405,45 @@ class TimerViewModel @Inject constructor(
         timerManager.updateTimer(timer.copy(intervalsJson = newIntervalsJson))
     }
 
-    // Presets
+    // --- History actions ---
+
+    suspend fun updateHistory(history: HistoryEntity) {
+        historyRepository.update(history)
+        showMessage(context.getString(R.string.save))
+    }
+
+    fun deleteHistoryEntry(history: HistoryEntity) = viewModelScope.launch { 
+        historyRepository.delete(history)
+        showMessage(context.getString(R.string.msg_deleted)) 
+    }
+
+    // --- Presets ---
+
     fun saveAsPreset(name: String, duration: Long, color: Int, category: String, description: String = "") = viewModelScope.launch {
         presetRepository.insert(PresetEntity(name = name, durationMillis = duration, color = color, category = category, description = description, uid = auth.currentUser?.uid ?: ""))
         showMessage(context.getString(R.string.msg_preset_saved))
     }
-    fun deletePreset(preset: PresetEntity) = viewModelScope.launch { presetRepository.delete(preset); showMessage(context.getString(R.string.msg_preset_deleted)) }
+
+    fun deletePreset(preset: PresetEntity) = viewModelScope.launch { 
+        presetRepository.delete(preset)
+        showMessage(context.getString(R.string.msg_preset_deleted)) 
+    }
+
     fun startTimerFromPreset(preset: PresetEntity) = viewModelScope.launch {
         timerManager.addTimer(preset.name, preset.durationMillis, preset.color, preset.category, preset.description)
         showMessage(context.getString(R.string.msg_timer_added))
+    }
+
+    private fun startService() {
+        val intent = Intent(context, TimerService::class.java).apply { action = TimerService.ACTION_START }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(intent)
+        else context.startService(intent)
+    }
+
+    fun showMessage(message: String) {
+        viewModelScope.launch {
+            _uiMessage.emit(message)
+        }
     }
 
     // --- EXPORT TOOLS ---
@@ -487,7 +493,7 @@ class TimerViewModel @Inject constructor(
             // Rows
             paint.isFakeBoldText = false
             var y = 170f
-            items.take(20).forEach { item -> // Limit to first page for now
+            items.take(20).forEach { item -> 
                 canvas.drawText(item.timerName.take(15), 50f, y, paint)
                 canvas.drawText(item.category, 200f, y, paint)
                 canvas.drawText(formatMillisToTime(item.durationMillis), 350f, y, paint)
@@ -539,10 +545,8 @@ class TimerViewModel @Inject constructor(
         val medals = mutableSetOf<String>()
         val cal = Calendar.getInstance()
         
-        // Medallas de Duración
         if (list.any { it.durationMillis >= 2 * 3600000L }) medals.add("medal_deep_work")
         
-        // Medallas de Horario
         list.forEach { session ->
             cal.timeInMillis = session.completedAt
             val hour = cal.get(Calendar.HOUR_OF_DAY)
@@ -553,25 +557,15 @@ class TimerViewModel @Inject constructor(
             if (day == Calendar.SATURDAY || day == Calendar.SUNDAY) medals.add("medal_weekend")
         }
 
-        // Medallas de Variedad
         if (list.map { it.category }.distinct().size >= 3) medals.add("medal_collector")
-        
-        // Medallas de Volumen (100 horas = 360,000,000 ms)
         if (list.sumOf { it.durationMillis } >= 100 * 3600000L) medals.add("medal_veteran")
         
-        // Medallas de Intensidad Hoy
         val todayStart = Calendar.getInstance().apply { 
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }.timeInMillis
         if (list.count { it.completedAt >= todayStart } >= 5) medals.add("medal_hyperfocus")
-        
-        // Medallas de Constancia (Racha 7 días)
         if (checkStreak(list)) medals.add("medal_consistency")
         
-        // Notificar nuevo logro
         if (lastMedalsCount != -1 && medals.size > lastMedalsCount) {
             val newMedal = medals.subtract(unlockedMedals.value).firstOrNull()
             newMedal?.let { viewModelScope.launch { _newAchievementEvent.emit(it) } }
@@ -585,10 +579,7 @@ class TimerViewModel @Inject constructor(
         val uniqueDays = history.map { 
             val c = Calendar.getInstance()
             c.timeInMillis = it.completedAt
-            c.set(Calendar.HOUR_OF_DAY, 0)
-            c.set(Calendar.MINUTE, 0)
-            c.set(Calendar.SECOND, 0)
-            c.set(Calendar.MILLISECOND, 0)
+            c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0); c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0)
             c.timeInMillis
         }.distinct().sortedDescending()
         
@@ -600,9 +591,7 @@ class TimerViewModel @Inject constructor(
             if (diff == 1L) {
                 streak++
                 if (streak >= 7) return true
-            } else {
-                streak = 1
-            }
+            } else streak = 1
         }
         return false
     }
@@ -611,7 +600,7 @@ class TimerViewModel @Inject constructor(
         list.sumOf { it.durationMillis } / 3600000L
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
-    val currentXP: StateFlow<Long> = combine(globalTotalTime, unlockedMedals, history) { time, medals, historyList ->
+    val currentXP: StateFlow<Long> = combine(history.map { it.sumOf { h -> h.durationMillis } }, unlockedMedals, history) { time, medals, historyList ->
         val minutesXP = time / 60000L
         val medalsXP = medals.size * 500L
         val streakXP = calculateCurrentStreak(historyList) * 50L
@@ -623,27 +612,22 @@ class TimerViewModel @Inject constructor(
         val uniqueDays = history.map { 
             val c = Calendar.getInstance()
             c.timeInMillis = it.completedAt
-            c.set(Calendar.HOUR_OF_DAY, 0)
-            c.set(Calendar.MINUTE, 0)
-            c.set(Calendar.SECOND, 0)
-            c.set(Calendar.MILLISECOND, 0)
+            c.set(Calendar.HOUR_OF_DAY, 0); c.set(Calendar.MINUTE, 0); c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0)
             c.timeInMillis
         }.distinct().sortedDescending()
 
-        var streak = 0
         val today = Calendar.getInstance().apply { 
             set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }.timeInMillis
         
-        // Si no hay sesión hoy ni ayer, la racha es 0
         if (uniqueDays.first() < today - (24 * 60 * 60 * 1000L)) return 0
         
+        var streak = 0
         for (i in 0 until uniqueDays.size - 1) {
-            if ((uniqueDays[i] - uniqueDays[i+1]) == (24 * 60 * 60 * 1000L)) {
-                streak++
-            } else break
+            if ((uniqueDays[i] - uniqueDays[i+1]) == (24 * 60 * 60 * 1000L)) streak++
+            else break
         }
-        return streak + 1 // +1 por el día actual
+        return streak + 1
     }
 
     val currentRank: StateFlow<String> = currentXP.map { xp ->
@@ -660,7 +644,7 @@ class TimerViewModel @Inject constructor(
             xp < 500 -> 500L
             xp < 2000 -> 2000L
             xp < 5000 -> 5000L
-            else -> 10000L // Cap final
+            else -> 10000L
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 500L)
 
@@ -670,4 +654,62 @@ class TimerViewModel @Inject constructor(
         val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % 60
         return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
     }
+
+    val totalTimeSpent: StateFlow<Long> = filteredHistory.map { list ->
+        list.sumOf { it.durationMillis }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
+    val globalTotalTime: StateFlow<Long> = history.map { list ->
+        list.sumOf { it.durationMillis }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
+    val statsByCategory: StateFlow<Map<String, Long>> = filteredHistory.map { list ->
+        list.groupBy { it.category }.mapValues { entry -> entry.value.sumOf { it.durationMillis } }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    val averageSessionTime: StateFlow<Long> = filteredHistory.map { list ->
+        if (list.isEmpty()) 0L else list.sumOf { it.durationMillis } / list.size
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
+    val mostProductiveDay: StateFlow<String> = filteredHistory.map { list ->
+        if (list.isEmpty()) "---" else {
+            val sdf = SimpleDateFormat("EEEE", Locale.getDefault())
+            list.groupBy { sdf.format(Date(it.completedAt)) }
+                .maxByOrNull { it.value.sumOf { item -> item.durationMillis } }
+                ?.key?.uppercase() ?: "---"
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "---")
+
+    val topTimerName: StateFlow<String> = filteredHistory.map { list ->
+        if (list.isEmpty()) "---" else {
+            list.groupBy { it.timerName }
+                .maxByOrNull { it.value.sumOf { item -> item.durationMillis } }
+                ?.key ?: "---"
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "---")
+
+    val activityLast7Days: StateFlow<Map<String, Long>> = combine(
+        history,
+        historySelectedCategory
+    ) { historyItems, selectedCategory ->
+        val result = mutableMapOf<String, Long>()
+        val sdf = SimpleDateFormat("EE", Locale.getDefault())
+        val last7DaysKeys = mutableListOf<String>()
+        for (i in 0 until 7) {
+            val tempCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
+            val dayKey = sdf.format(tempCal.time).uppercase()
+            last7DaysKeys.add(dayKey)
+            result[dayKey] = 0L
+        }
+        val sevenDaysAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
+        historyItems.filter { 
+            it.completedAt >= sevenDaysAgo && (selectedCategory == "ALL" || it.category == selectedCategory)
+        }.forEach { item ->
+            val dayKey = sdf.format(Date(item.completedAt)).uppercase()
+            if (result.containsKey(dayKey)) {
+                result[dayKey] = (result[dayKey] ?: 0L) + item.durationMillis
+            }
+        }
+        last7DaysKeys.reversed().associateWith { result[it] ?: 0L }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 }

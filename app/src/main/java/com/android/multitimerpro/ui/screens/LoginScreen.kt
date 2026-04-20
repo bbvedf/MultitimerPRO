@@ -6,8 +6,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -31,7 +29,8 @@ import com.android.multitimerpro.ui.theme.*
 fun LoginScreen(
     onGoogleLogin: () -> Unit,
     onEmailLogin: (String, String) -> Unit,
-    onRegisterClick: () -> Unit,
+    onNavigateToRegister: () -> Unit,
+    onNavigateToForgot: () -> Unit,
     viewModel: TimerViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
@@ -39,8 +38,10 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     val authError by viewModel.authError.collectAsState()
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
+    val isPro by viewModel.isPro.collectAsState()
     
-    val isDark = isDarkModeOverride ?: isSystemInDarkTheme()
+    // Default to Light unless PRO and dark mode is active
+    val isDark = if (isPro) (isDarkModeOverride ?: isSystemInDarkTheme()) else false
     val logoRes = if (isDark) R.drawable.logo_dark else R.drawable.logo_light
 
     Box(
@@ -49,18 +50,6 @@ fun LoginScreen(
             .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
-        // Theme Toggle Button
-        IconButton(
-            onClick = { viewModel.toggleTheme(!isDark) },
-            modifier = Modifier.align(Alignment.TopEnd)
-        ) {
-            Icon(
-                imageVector = if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
-                contentDescription = stringResource(R.string.login_toggle_theme),
-                tint = if (isDark) Color.White else Color.Black
-            )
-        }
-
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -102,7 +91,7 @@ fun LoginScreen(
                 }
             }
 
-            // Google Login Button with real logo
+            // Google Login Button
             Button(
                 onClick = onGoogleLogin,
                 modifier = Modifier
@@ -190,9 +179,20 @@ fun LoginScreen(
                 shape = RoundedCornerShape(8.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            TextButton(
+                onClick = onNavigateToForgot,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = stringResource(R.string.login_forgot_password),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
 
-            // Login Button
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Action Button (Login)
             Button(
                 onClick = { onEmailLogin(email, password) },
                 modifier = Modifier
@@ -212,8 +212,14 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = stringResource(R.string.login_new_operator), color = MaterialTheme.colorScheme.onBackground)
-                TextButton(onClick = onRegisterClick) {
+                Text(
+                    text = stringResource(R.string.login_new_operator), 
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                TextButton(onClick = { 
+                    viewModel.clearAuthError() 
+                    onNavigateToRegister()
+                }) {
                     Text(
                         text = stringResource(R.string.login_register_now),
                         color = MaterialTheme.colorScheme.primary, 

@@ -14,6 +14,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.android.multitimerpro.data.GoogleAuthClient
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.navigation.MainNavigation
@@ -39,13 +40,14 @@ class MainActivity : AppCompatActivity() { // Changed to AppCompatActivity for L
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            viewModel.showMessage("Notificaciones activadas")
+            viewModel.showMessage(getString(R.string.msg_notif_granted))
         } else {
-            viewModel.showMessage("Los avisos sonoros no funcionarán sin permiso")
+            viewModel.showMessage(getString(R.string.msg_notif_denied))
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         
         // Solicitar permiso de notificaciones en Android 13+

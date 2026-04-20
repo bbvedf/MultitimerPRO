@@ -218,11 +218,44 @@
     <string name="login_register_now">Registrati ora</string>
     <string name="login_toggle_theme">Cambia tema</string>
     <string name="login_error_prefix">ERRORE: %1$s</string>
+    <string name="login_forgot_password">Password dimenticata?</string>
+    <string name="login_already_have_account">Hai già un account? </string>
+    <string name="login_sign_in">Accedi</string>
+
+    <!-- Forgot Password Screen -->
+    <string name="forgot_title">RECUPERA ACCESSO</string>
+    <string name="forgot_desc">Inserisci il tuo indirizzo email e ti invieremo le istruzioni per reimpostare la password.</string>
+    <string name="forgot_email_label">EMAIL DELL\'ACCOUNT</string>
+    <string name="forgot_send_btn">INVIA ISTRUZIONI</string>
+    <string name="forgot_msg_sent">Email di recupero inviata a %1$s</string>
+    <string name="forgot_error_empty">Per favore, inserisci la tua email</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">CREA OPERATORE</string>
+    <string name="register_desc">Unisciti alla rete MultiTimer per sincronizzare le tue sessioni di focus e sfruttare tutto il tuo potenziale.</string>
+    <string name="register_btn">CREA ACCOUNT</string>
+    <string name="register_success">Benvenuto nel sistema, Operatore!</string>
 
     <string name="msg_logout_confirm">Sei sicuro di voler disconnetterti? Dovrai identificarti di nuovo per sincronizzare i dati dell\'operatore.</string>
     <string name="msg_delete_timer_confirm">Sei sicuro di voler eliminare \'%1$s\'? Questa azione non può essere annullata.</string>
     <string name="msg_delete_preset_confirm">Sei sicuro di voler eliminare il modello \'%1$s\'? Non influenzerà i timer già in corso.</string>
     <string name="msg_delete_history_confirm">Sei sicuro di voler eliminare il record di \'%1$s\'? Questa azione non può essere annullata.</string>
+
+    <!-- PRO Upgrade Dialog -->
+    <string name="pro_upgrade_title">Multitimer PRO</string>
+    <string name="pro_upgrade_msg">Passa a PRO per sbloccare tutto il potenziale di Multitimer!</string>
+    <string name="pro_benefit_timers">Timer illimitati</string>
+    <string name="pro_benefit_styles">Stili Neon Speciali</string>
+    <string name="pro_benefit_sync">Sincronizzazione Cloud</string>
+    <string name="pro_benefit_export">Esportazione PDF/CSV</string>
+    <string name="pro_upgrade_btn">SBLOCCA PER €3,49</string>
+    <string name="pro_upgrade_later">Forse più tardi</string>
+    <string name="pro_status_active">MODALITÀ PRO ATTIVA 👑</string>
+    <string name="pro_status_free">Modalità gratuita attiva</string>
+
+    <string name="msg_notif_granted">Notifiche attivate</string>
+    <string name="msg_notif_denied">Gli avvisi sonori non funzioneranno senza autorizzazione</string>
+    <string name="pro_indicator">👑</string>
 
     <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

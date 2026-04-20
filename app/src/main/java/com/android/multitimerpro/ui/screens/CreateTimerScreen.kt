@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,8 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
 import com.android.multitimerpro.ui.components.*
@@ -61,12 +61,17 @@ fun CreateTimerScreen(
     
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
     val isDark = isDarkModeOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
+    val isPro by viewModel.isPro.collectAsState()
     
+    var showProDialog by remember { mutableStateOf(false) }
     var selectedColor by remember { mutableStateOf(existingTimer?.let { Color(it.color) } ?: NeonBlue) }
     var selectedCategory by remember { mutableStateOf(existingTimer?.category ?: "GENERAL") }
     var description by remember { mutableStateOf(existingTimer?.description ?: "") }
 
-    val colors = listOf(NeonBlue, NeonGreen, NeonPurple, Color(0xFFFF6B6B), Color(0xFFFFD93D), Color(0xFF6BCB77))
+    val freeColors = listOf(NeonBlue, NeonGreen, NeonPurple)
+    val proColors = listOf(Color(0xFFFF6B6B), Color(0xFFFFD93D), Color(0xFF6BCB77), Color(0xFF6A1B9A))
+    val allColors = freeColors + proColors
+
     val categories = listOf(
         Pair("GENERAL", R.string.cat_general),
         Pair("WORK", R.string.cat_work),
@@ -98,6 +103,16 @@ fun CreateTimerScreen(
                 onBack()
             },
             onDismiss = { showDiscardDialog = false }
+        )
+    }
+
+    if (showProDialog) {
+        UpgradeProDialog(
+            onDismiss = { showProDialog = false },
+            onUpgrade = { 
+                viewModel.toggleProStatus() 
+                showProDialog = false
+            }
         )
     }
 
@@ -245,13 +260,20 @@ fun CreateTimerScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            colors.forEach { color ->
+            allColors.forEach { color ->
+                val isColorPro = proColors.contains(color)
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(color)
-                        .clickable { selectedColor = color }
+                        .clickable { 
+                            if (isColorPro && !isPro) {
+                                showProDialog = true
+                            } else {
+                                selectedColor = color 
+                            }
+                        }
                 ) {
                     if (selectedColor == color) {
                         Box(
@@ -260,6 +282,12 @@ fun CreateTimerScreen(
                                 .clip(CircleShape)
                                 .background(Color.White)
                                 .align(Alignment.Center)
+                        )
+                    } else if (isColorPro && !isPro) {
+                        Text(
+                            text = stringResource(R.string.pro_indicator),
+                            fontSize = 10.sp,
+                            modifier = Modifier.align(Alignment.Center)
                         )
                     }
                 }
@@ -289,10 +317,17 @@ fun CreateTimerScreen(
                                     description = description
                                 )
                             )
+                            onBack()
                         } else {
-                            viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
+                            if (timers.size >= 3 && !isPro) {
+                                showProDialog = true
+                            } else {
+                                viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
+                                onBack()
+                            }
                         }
-                        onBack()
+                    } else {
+                        viewModel.showMessage(requiredMsg)
                     }
                 },
                 modifier = Modifier
@@ -343,7 +378,6 @@ fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String, isD
     var isFocused by remember { mutableStateOf(false) }
     var textFieldValue by remember { mutableStateOf(value) }
 
-    // Sincronizar con el valor externo solo si no tenemos el foco
     LaunchedEffect(value) {
         if (!isFocused) {
             textFieldValue = value
@@ -375,7 +409,7 @@ fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String, isD
                     }
                 },
             textStyle = MaterialTheme.typography.displaySmall.copy(
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 32.sp
             ),
