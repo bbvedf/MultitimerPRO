@@ -8,8 +8,18 @@ val NeonBlueDim = Color(0xFF00C0EA)
 val NeonGreen = Color(0xFF2FF801)
 val NeonGreenDim = Color(0xFF106E00)
 val NeonPurple = Color(0xFF89A5FF)
-val NeonOrange = Color(0xFFFF9F0A) // Añadido para mayor contraste en stats
-val NeonRed = Color(0xFFFF3B30)    // Añadido para alertas/inspección
+val NeonOrange = Color(0xFFFF9D00) // Neon Orange
+val NeonRed = Color(0xFFFF3B30)    // Neon Red
+
+// PRO Palette
+val ProRed = Color(0xFFFF5252)
+val ProYellow = Color(0xFFFFD93D)
+val ProPink = Color(0xFFE91E63)
+val ProAzure = Color(0xFF00B0FF)
+val ProMint = Color(0xFF00FF85)
+val ProGold = Color(0xFFFFD700)
+val ProDeepPurple = Color(0xFF7C4DFF)
+val ProDeepOrange = Color(0xFFFF6E40)
 
 // Colores Modo Oscuro (Obsidian)
 val DeepBlack = Color(0xFF0E0E0E)

@@ -68,8 +68,22 @@ fun CreateTimerScreen(
     var selectedCategory by remember { mutableStateOf(existingTimer?.category ?: "GENERAL") }
     var description by remember { mutableStateOf(existingTimer?.description ?: "") }
 
-    val freeColors = listOf(NeonBlue, NeonGreen, NeonPurple)
-    val proColors = listOf(Color(0xFFFF6B6B), Color(0xFFFFD93D), Color(0xFF6BCB77), Color(0xFF6A1B9A))
+    val freeColors = listOf(
+        NeonBlue, 
+        NeonGreen, 
+        NeonPurple, 
+        NeonOrange
+    )
+    val proColors = listOf(
+        ProRed,
+        ProYellow,
+        ProPink,
+        ProAzure,
+        ProMint,
+        ProGold,
+        ProDeepPurple,
+        ProDeepOrange
+    )
     val allColors = freeColors + proColors
 
     val categories = listOf(
@@ -256,39 +270,44 @@ fun CreateTimerScreen(
             fontSize = 10.sp
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            allColors.forEach { color ->
-                val isColorPro = proColors.contains(color)
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .clickable { 
-                            if (isColorPro && !isPro) {
-                                showProDialog = true
-                            } else {
-                                selectedColor = color 
-                            }
-                        }
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            allColors.chunked(6).forEach { rowColors ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
                 ) {
-                    if (selectedColor == color) {
+                    rowColors.forEach { color ->
+                        val isColorPro = proColors.contains(color)
                         Box(
                             modifier = Modifier
-                                .size(12.dp)
+                                .size(40.dp)
                                 .clip(CircleShape)
-                                .background(Color.White)
-                                .align(Alignment.Center)
-                        )
-                    } else if (isColorPro && !isPro) {
-                        Text(
-                            text = stringResource(R.string.pro_indicator),
-                            fontSize = 10.sp,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                                .background(color)
+                                .clickable { 
+                                    if (isColorPro && !isPro) {
+                                        showProDialog = true
+                                    } else {
+                                        selectedColor = color 
+                                    }
+                                }
+                        ) {
+                            if (selectedColor == color) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .clip(CircleShape)
+                                        .background(if (isDark) DeepBlack else Color.White)
+                                        .align(Alignment.Center)
+                                )
+                            } else if (isColorPro && !isPro) {
+                                Text(
+                                    text = stringResource(R.string.pro_indicator),
+                                    fontSize = 10.sp,
+                                    color = if (color == Color(0xFFFFD93D)) Color.Black else Color.White,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                        }
                     }
                 }
             }
