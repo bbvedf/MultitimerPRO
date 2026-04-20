@@ -256,4 +256,8 @@ class TimerManager @Inject constructor(
             lastSnoozeDuration = 0L
         ))
     }
+
+    suspend fun clearAllTimers() {
+        repository.clearAll()
+    }
 }

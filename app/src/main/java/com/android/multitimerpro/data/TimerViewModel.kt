@@ -358,8 +358,22 @@ class TimerViewModel @Inject constructor(
 
     fun signOut() {
         viewModelScope.launch {
-            googleAuthClient.signOut()
+            // 1. Limpiar datos locales de Room
+            timerManager.clearAllTimers()
+            historyRepository.clearAll()
+            presetRepository.clearAll()
+
+            // 2. Resetear estados del ViewModel
+            _userDisplayName.value = ""
+            _userPhotoUrl.value = ""
             _isAuthenticated.value = false
+            _currentLanguage.value = java.util.Locale.getDefault().language
+            _snooze1.value = 5
+            _snooze2.value = 10
+            
+            // 3. Cerrar sesión en Google y Firebase
+            googleAuthClient.signOut()
+
             showMessage(context.getString(R.string.logout))
         }
     }

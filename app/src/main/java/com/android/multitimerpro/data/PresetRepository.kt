@@ -23,4 +23,8 @@ class PresetRepository @Inject constructor(
     suspend fun delete(preset: PresetEntity) {
         presetDao.deletePreset(preset)
     }
+
+    suspend fun clearAll() {
+        presetDao.clearAll()
+    }
 }

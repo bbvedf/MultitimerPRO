@@ -22,4 +22,7 @@ interface TimerDao {
 
     @Query("SELECT * FROM timers WHERE id = :id")
     suspend fun getTimerById(id: String): TimerEntity?
+
+    @Query("DELETE FROM timers")
+    suspend fun clearAll()
 }

@@ -25,4 +25,7 @@ interface HistoryDao {
 
     @Query("DELETE FROM timer_history WHERE uid = :uid")
     suspend fun clearHistory(uid: String)
+
+    @Query("DELETE FROM timer_history")
+    suspend fun clearAll()
 }

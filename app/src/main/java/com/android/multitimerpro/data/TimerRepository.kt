@@ -98,4 +98,8 @@ class TimerRepository @Inject constructor(
     suspend fun getTimerById(id: String): TimerEntity? {
         return timerDao.getTimerById(id)
     }
+
+    suspend fun clearAll() {
+        timerDao.clearAll()
+    }
 }

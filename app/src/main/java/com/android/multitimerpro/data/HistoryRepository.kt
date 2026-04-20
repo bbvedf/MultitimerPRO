@@ -92,4 +92,8 @@ class HistoryRepository @Inject constructor(
             Log.e(TAG, "[CLOUD] ERROR historial: ${e.message}")
         }
     }
+
+    suspend fun clearAll() {
+        historyDao.clearAll()
+    }
 }
