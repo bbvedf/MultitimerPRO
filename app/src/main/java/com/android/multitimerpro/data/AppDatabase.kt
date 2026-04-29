@@ -4,7 +4,7 @@ import androidx.room.*
 
 @Database(
     entities = [TimerEntity::class, HistoryEntity::class, PresetEntity::class],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

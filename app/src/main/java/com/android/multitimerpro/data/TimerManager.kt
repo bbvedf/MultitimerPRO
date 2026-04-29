@@ -94,25 +94,37 @@ class TimerManager @Inject constructor(
     private fun startTicking() {
         tickJob = serviceScope.launch {
             while (isActive) {
-                delay(100)
+                delay(200) // Un poco menos frecuente para ahorrar CPU, la precisión viene del reloj
+                val now = System.currentTimeMillis()
                 val finishedTimers = mutableListOf<TimerEntity>()
                 
                 _timers.update { currentList ->
                     currentList.map { timer ->
-                        if (timer.status == "LIVE") {
-                            val newRemaining = (timer.remainingTime - 100).coerceAtLeast(0)
-                            if (newRemaining <= 0L && timer.remainingTime > 0) {
-                                val finished = timer.copy(remainingTime = 0, status = "FINISHED")
+                        if (timer.status == "LIVE" && timer.startTime != null) {
+                            val elapsedSinceStart = now - timer.startTime
+                            // El remainingTime real es el que tenía al darle a Play menos lo que ha pasado
+                            // En nuestra DB, remainingTime se actualiza al pausar o iniciar
+                            val newRemaining = (timer.remainingTime - elapsedSinceStart).coerceAtLeast(0)
+                            
+                            if (newRemaining <= 0L) {
+                                val finished = timer.copy(remainingTime = 0, status = "FINISHED", startTime = null)
                                 finishedTimers.add(finished)
                                 finished
                             } else {
-                                timer.copy(remainingTime = newRemaining)
+                                // NO actualizamos el remainingTime en la DB cada 200ms para evitar I/O excesivo
+                                // Solo lo mantenemos en memoria para la UI. 
+                                // El TimerService leerá de este StateFlow.
+                                timer.copy(remainingTime = newRemaining, startTime = now)
                             }
                         } else {
                             timer
                         }
                     }
                 }
+                
+                // Nota: Para simplificar sin cambiar demasiado la estructura, 
+                // vamos a actualizar el remainingTime y resetear el startTime cada tick en memoria.
+                // Así el 'remainingTime' de la entidad siempre es "hace 0ms".
                 
                 finishedTimers.forEach { 
                     Log.d(TAG, "!!! DETECTADO FIN DE TIMER: ${it.name} !!!")
@@ -183,25 +195,36 @@ class TimerManager @Inject constructor(
         tickJob = null
     }
 
-    suspend fun addTimer(name: String, durationMs: Long, color: Int, category: String, description: String = "", uid: String = "") {
+    suspend fun addTimer(name: String, durationMs: Long, color: Int, category: String, description: String = "", uid: String = "", startImmediately: Boolean = false) {
+        val now = System.currentTimeMillis()
         val newTimer = TimerEntity(
             name = name,
             duration = durationMs,
             remainingTime = durationMs,
             baseDuration = durationMs,
-            status = "READY",
+            status = if (startImmediately) "LIVE" else "READY",
             color = color,
             category = category,
             description = description,
             isSnoozed = false,
-            uid = uid
+            uid = uid,
+            startTime = if (startImmediately) now else null
         )
         repository.insert(newTimer)
     }
 
     suspend fun toggleTimer(timer: TimerEntity) {
-        val newStatus = if (timer.status == "LIVE") "PAUSED" else "LIVE"
-        repository.update(timer.copy(status = newStatus))
+        val now = System.currentTimeMillis()
+        val isStarting = timer.status != "LIVE"
+        val newStatus = if (isStarting) "LIVE" else "PAUSED"
+        
+        val updatedTimer = timer.copy(
+            status = newStatus,
+            startTime = if (isStarting) now else null,
+            // Si pausamos, el remainingTime ya está actualizado por el ticker en memoria
+            remainingTime = timer.remainingTime 
+        )
+        repository.update(updatedTimer)
     }
 
     suspend fun updateTimer(timer: TimerEntity) {
@@ -221,7 +244,8 @@ class TimerManager @Inject constructor(
             intervalsJson = "[]",
             isSnoozed = false,
             lastHistoryId = null,
-            lastSnoozeDuration = 0L
+            lastSnoozeDuration = 0L,
+            startTime = null
         ))
     }
 

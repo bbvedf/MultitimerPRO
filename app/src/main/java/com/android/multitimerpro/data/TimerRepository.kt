@@ -65,6 +65,7 @@ class TimerRepository @Inject constructor(
         isSnoozed = this.isSnoozed,
         intervalsJson = this.intervalsJson.ifBlank { null },
         lastHistoryId = this.lastHistoryId,
+        startTime = this.startTime,
         createdAt = this.createdAt
     )
 
@@ -95,6 +96,7 @@ class TimerRepository @Inject constructor(
         isSnoozed = this.isSnoozed ?: false,
         intervalsJson = this.intervalsJson ?: "[]",
         lastHistoryId = this.lastHistoryId,
+        startTime = this.startTime,
         createdAt = this.createdAt ?: System.currentTimeMillis()
     )
     

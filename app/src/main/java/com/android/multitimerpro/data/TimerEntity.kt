@@ -21,6 +21,7 @@ data class TimerEntity(
     val baseDuration: Long = 0,
     val lastSnoozeDuration: Long = 0,
     val lastHistoryId: String? = null,
+    val startTime: Long? = null,
     val uid: String = "",
     val createdAt: Long = System.currentTimeMillis()
 ) {

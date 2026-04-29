@@ -18,5 +18,6 @@ data class TimerDto(
     @SerialName("is_snoozed") val isSnoozed: Boolean = false,
     @SerialName("intervals_json") val intervalsJson: String? = null,
     @SerialName("last_history_id") val lastHistoryId: String? = null,
+    @SerialName("start_time") val startTime: Long? = null,
     @SerialName("created_at") val createdAt: Long? = null
 )

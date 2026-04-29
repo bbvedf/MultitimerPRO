@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -263,7 +265,15 @@ fun PresetCard(
         modifier = Modifier.fillMaxWidth().clickable { onEdit() },
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+        border = BorderStroke(
+            width = 1.5.dp,
+            brush = Brush.horizontalGradient(
+                colors = listOf(
+                    DeepBlack,
+                    MaterialTheme.colorScheme.primary
+                )
+            )
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
