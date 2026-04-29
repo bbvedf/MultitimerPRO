@@ -269,7 +269,7 @@ fun PresetCard(
             width = 1.5.dp,
             brush = Brush.horizontalGradient(
                 colors = listOf(
-                    DeepBlack,
+                    if (isDark) DeepBlack else Color.White,
                     MaterialTheme.colorScheme.primary
                 )
             )
