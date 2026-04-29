@@ -6,9 +6,9 @@
     <!-- Navigation -->
     <string name="nav_timers">CRONÔMETROS</string>
     <string name="nav_presets">PRESETS</string>
-    <string name="nav_stats">STATS</string>
+    <string name="nav_stats">ESTATÍSTICAS</string>
     <string name="nav_history">HISTÓRICO</string>
-    <string name="nav_settings">CONFIG</string>
+    <string name="nav_settings">CONFIGURAÇÕES</string>
 
     <!-- Home Screen -->
     <string name="home_status">ESTADO</string>
@@ -30,6 +30,7 @@
     <string name="actions">AÇÕES</string>
     <string name="logout">SAIR</string>
     <string name="edit_profile">EDITAR PERFIL</string>
+    <string name="upload_avatar">ENVIAR</string>
     <string name="operator_name">Nome do Operador</string>
     <string name="version_info">MultiTimer PRO v1.0.0</string>
 
@@ -44,7 +45,7 @@
     <string name="stats_daily_performance">Rendimento Diário</string>
     <string name="stats_daily_desc">Tempo de foco por dia (7d)</string>
     <string name="stats_category_dist">Distribuição por Categoria</string>
-    <string name="stats_focus_analysis">ANÁLISIS DE FOCO</string>
+    <string name="stats_focus_analysis">ANÁLISE DE FOCO</string>
     <string name="stats_today_prod">PRODUTIVIDADE HOJE</string>
     <string name="stats_no_data">Sem dados para este período</string>
     <string name="stats_start_sessions">Inicie sessões para ver suas análises.</string>
@@ -141,6 +142,11 @@
     <string name="reset">Reset</string>
     <string name="confirm">Confirmar</string>
     <string name="add">ADICIONAR</string>
+    <string name="action_delete_all">EXCLUIR TUDO</string>
+    <string name="action_cancel">CANCELAR</string>
+    <string name="action_ok">OK</string>
+    <string name="action_check_in">CHECK-IN</string>
+    <string name="level_prefix">Nível</string>
     <string name="hours_label_full">HH</string>
     <string name="minutes_label_full">MM</string>
     <string name="seconds_label_full">SS</string>
@@ -152,32 +158,75 @@
     <string name="stats_tab_analysis">ANÁLISE</string>
     <string name="stats_tab_achievements">REGISTROS</string>
     <string name="gamification_help_title">PROTOCOLO OPERACIONAL</string>
-    <string name="gamification_help_desc">A progressão do sistema é baseada na execução focada:\n\n• 1 MINUTO DE FOCO = 1 XP\n• MEDALHA DESBLOQUEADA = 500 XP\n• SEQUÊNCIA DIÁRIA = +50 XP BÔNUS\n\nAcumule XP para aumentar seu nível de Operador e desbloquear privilégios no sistema.</string>
+    <string name="gamification_help_desc">A progressão do sistema é baseada na execução focada:\n\n• 1 MINUTO DE FOCO = 1 XP\n• MEDALHA DESBLOQUEADA = 500 XP\n• SEQUÊNCIA DIÁRIA = ATÉ +50 XP BÔNUS\n\nAcumule XP para aumentar seu nível de Operador e desbloquear privilégios no sistema.</string>
     <string name="new_medal_unlocked">CONQUISTA DESBLOQUEADA</string>
     <string name="protocol_understood">PROTOCOLO COMPREENDIDO</string>
     <string name="xp_to_next_level">%1$d XP PARA O PRÓXIMO NÍVEL</string>
+    <string name="xp_label">XP</string>
+    <string name="color_tokens_label">TOKENS DE COR</string>
+    <string name="color_token_label">token de cor</string>
+    <string name="token_tooltip_title">O que são Tokens de Cor?</string>
+    <string name="token_tooltip_desc">Tokens de Cor permitem que você personalize a aparência do aplicativo. Desbloqueie cores PRO permanentemente selecionando-as na tela de edição do cronômetro quando tiver um token disponível.</string>
+    <string name="share_achievement">COMPARTILHAR</string>
+    <string name="operational_status">ESTADO OPERACIONAL</string>
+    <string name="reset_achievements">REINICIAR CONQUISTAS</string>
+    <string name="reset_achievements_dialog_title">Reinicialização do Sistema?</string>
+    <string name="reset_achievements_dialog_msg">Isso excluirá permanentemente todo o seu progresso, níveis, medalhas permanentes e tokens de cor deste dispositivo e da nuvem. Esta ação não pode ser desfeita.</string>
+    <string name="reset_confirm">REINICIAR SISTEMA</string>
+    <string name="colors_label_status">CORES</string>
+    <string name="timers_label_status">CRONÔMETROS</string>
+    <string name="status_unlimited">ILIMITADO</string>
+    <string name="status_max">MÁX</string>
+    <string name="limit_format">LIMITE %1$d</string>
+    <string name="share_text_medal">Desbloqueei a medalha %1$s em %2$s! 🚀 #MultitimerPRO</string>
+    <string name="share_text_collection">Completei a coleção de %1$s no MultitimerPRO! 🏆 #MultitimerPRO</string>
     <string name="operational_achievements_title">CONQUISTAS OPERACIONAIS</string>
+    <string name="system_security">SEGURANÇA DO SISTEMA</string>
     <string name="rank_novice">OPERADOR NOVIÇO</string>
+    <string name="rank_apprentice">APRENDIZ INICIANTE</string>
+    <string name="rank_initiate">INICIANTE DO SISTEMA</string>
     <string name="rank_technician">TÉCNICO SR.</string>
+    <string name="rank_specialist">ESPECIALISTA EM FOCO</string>
     <string name="rank_master">MESTRE DO SISTEMA</string>
     <string name="rank_architect">GRANDE ARQUITETO</string>
+    <string name="rank_grand_architect">O ARQUITETO</string>
+    <string name="rank_supreme">COMANDANTE SUPREMO</string>
 
     <string name="medal_deep_work">Mestre do Deep Work</string>
-    <string name="medal_deep_work_desc">Conclua uma sessão de mais de 2 horas</string>
+    <string name="medal_deep_work_desc">Sessão mais longa de pelo menos 2h / 4h / 8h</string>
     <string name="medal_early_bird">Madrugador</string>
-    <string name="medal_early_bird_desc">Termine uma sessão antes das 07:00</string>
+    <string name="medal_early_bird_desc">Termine sessões antes das 07:00 por 7 / 30 / 90 dias</string>
     <string name="medal_night_owl">Coruja</string>
-    <string name="medal_night_owl_desc">Termine uma sessão depois das 23:00</string>
+    <string name="medal_night_owl_desc">Termine sessões depois das 23:00 por 7 / 30 / 90 dias</string>
     <string name="medal_weekend">Guerreiro do Fim de Semana</string>
-    <string name="medal_weekend_desc">Mantenha o foco no sábado ou domingo</string>
+    <string name="medal_weekend_desc">Foco durante 4 / 12 / 24 fins de semana</string>
     <string name="medal_collector">Colecionador de Categorias</string>
-    <string name="medal_collector_desc">Use pelo menos 3 categorias diferentes</string>
+    <string name="medal_collector_desc">Use todas as categorias e alcance 5h / 20h em cada</string>
     <string name="medal_veteran">Veterano do Foco</string>
-    <string name="medal_veteran_desc">Alcance 100 horas totais de foco</string>
+    <string name="medal_veteran_desc">Alcance 100h / 500h / 1000h de foco total</string>
     <string name="medal_hyperfocus">Hiperfoco</string>
-    <string name="medal_hyperfocus_desc">Conclua 5 sessões em um único dia</string>
+    <string name="medal_hyperfocus_desc">Conclua 5 / 10 / 15 sessões em um único dia</string>
     <string name="medal_consistency">Rei da Consistência</string>
-    <string name="medal_consistency_desc">Mantenha uma sequência de foco de 7 dias</string>
+    <string name="medal_consistency_desc">Mantenha uma sequência de foco de 7 / 30 / 90 dias</string>
+    <string name="medal_architect">O Arquiteto</string>
+    <string name="medal_architect_desc">Crie 5 / 15 / 30 presets</string>
+    <string name="medal_finisher">O Finalizador</string>
+    <string name="medal_finisher_desc">Conclua 50 / 250 / 750 sessões totais</string>
+    <string name="medal_polymath">O Polímata</string>
+    <string name="medal_polymath_desc">Múltiplas categorias com 5h / 25h / 100h cada</string>
+    <string name="medal_zen_master">Mestre Zen</string>
+    <string name="medal_zen_master_desc">Conclua 10 / 50 / 150 sessões de foco (+1h) sem adiamentos</string>
+
+    <string name="medal_tier_bronze">BRONZE</string>
+    <string name="medal_tier_silver">PRATA</string>
+    <string name="medal_tier_gold">OURO</string>
+    <string name="medal_tier_legendary">LENDÁRIO</string>
+    <string name="daily_streak_total">%1$d CHECK-INS TOTAIS</string>
+    <string name="daily_streak_day">DIA %1$d</string>
+    <string name="daily_streak_reward">+%1$d XP</string>
+    <string name="daily_streak_pending">CHECK-IN PENDENTE</string>
+    <string name="daily_streak_done">RECOMPENSA DE HOJE COLETADA</string>
+    <string name="legendary_status">⚡ LENDÁRIO</string>
 
     <!-- Notifications -->
     <string name="notif_running_channel">Instrumentos Ativos</string>
@@ -205,6 +254,7 @@
     <string name="msg_preset_saved">Preset salvo</string>
     <string name="msg_preset_deleted">Preset excluído</string>
     <string name="msg_timer_added">Timer adicionado</string>
+    <string name="msg_timer_created">Cronômetro criado</string>
     <string name="status_snoozed">ADIADO</string>
 
     <!-- Login Screen -->
@@ -215,8 +265,8 @@
     <string name="login_password_label">CHAVE DE ACESSO</string>
     <string name="login_btn">INICIALIZAR SISTEMA</string>
     <string name="login_new_operator">Novo operador? </string>
-    <string name="login_register_now">Registe-se agora</string>
-    <string name="login_toggle_theme">Alternar tema</string>
+    <string name="login_register_now">Registre-se agora</string>
+    <string name="login_toggle_theme">Alternar Tema</string>
     <string name="login_error_prefix">ERRO: %1$s</string>
     <string name="login_forgot_password">Esqueceu a senha?</string>
     <string name="login_already_have_account">Já tem uma conta? </string>
@@ -224,18 +274,17 @@
 
     <!-- Forgot Password Screen -->
     <string name="forgot_title">RECUPERAR ACESSO</string>
-    <string name="forgot_desc">Insira o seu endereço de e-mail e enviaremos as instruções para redefinir a sua senha.</string>
+    <string name="forgot_desc">Insira o seu endereço de e-mail e enviaremos as instruções para redefinir a sua chave de acesso.</string>
     <string name="forgot_email_label">E-MAIL DA CONTA</string>
-    <string name="forgot_send_btn">ENVOYER LES INSTRUCTIONS</string>
+    <string name="forgot_send_btn">ENVIAR INSTRUÇÕES</string>
     <string name="forgot_msg_sent">E-mail de recuperação enviado para %1$s</string>
     <string name="forgot_error_empty">Por favor, insira o seu e-mail</string>
 
     <!-- Register Screen -->
     <string name="register_title">CRIAR OPERADOR</string>
-    <string name="register_desc">Junte-se à rede MultiTimer para sincronizar as suas sessões de foco e explorar todo o seu potencial.</string>
+    <string name="register_desc">Junte-se à rede MultiTimer para sincronizar as suas sessões de foco e desbloquear todo o seu potencial.</string>
     <string name="register_btn">CRIAR CONTA</string>
     <string name="register_success">Bem-vindo ao sistema, Operador!</string>
-
     <string name="msg_logout_confirm">Tem certeza de que deseja sair? Você precisará se identificar novamente para sincronizar seus dados de operador.</string>
     <string name="msg_delete_timer_confirm">Tem certeza de que deseja excluir \'%1$s\'? Esta ação não pode ser desfeita.</string>
     <string name="msg_delete_preset_confirm">Tem certeza de que deseja excluir o modelo \'%1$s\'? Não afetará os cronômetros que já estão em curso.</string>
@@ -244,7 +293,7 @@
     <!-- PRO Upgrade Dialog -->
     <string name="pro_upgrade_title">Multitimer PRO</string>
     <string name="pro_upgrade_msg">Faça o upgrade para o PRO para desbloquear todo o potencial do Multitimer!</string>
-    <string name="pro_benefit_timers">Cronômetros ilimitados</string>
+    <string name="pro_benefit_timers">Cronômetros Ilimitados</string>
     <string name="pro_benefit_styles">Estilos Neon Especiais</string>
     <string name="pro_benefit_sync">Sincronização na Nuvem</string>
     <string name="pro_benefit_export">Exportação PDF/CSV</string>
@@ -252,10 +301,29 @@
     <string name="pro_upgrade_later">Talvez mais tarde</string>
     <string name="pro_status_active">MODO PRO ATIVO 👑</string>
     <string name="pro_status_free">Modo grátis ativo</string>
+    <string name="settings_pro_config">CONFIGURAÇÃO PRO</string>
+    <string name="settings_dynamic_effects">Efeitos Visuais Dinâmicos</string>
+    <string name="settings_dynamic_effects_desc">Brilho, partículas e animações</string>
 
     <string name="msg_notif_granted">Notificações ativadas</string>
     <string name="msg_notif_denied">Os alertas sonoros não funcionarão sem permissão</string>
     <string name="pro_indicator">👑</string>
+    <string name="token_indicator">🪙</string>
+    <string name="timer_separator">:</string>
+    <string name="token_dialog_title">Gastar Token de Cor?</string>
+    <string name="token_dialog_msg">Você tem %1$d tokens. Deseja usar 1 token para desbloquear permanentemente esta cor PRO?</string>
+    <string name="token_dialog_confirm">DESBLOQUEAR COR</string>
+
+    <string name="collection_complete_title">COLEÇÃO %1$s COMPLETA!</string>
+    <string name="collection_complete_msg">Você coletou todas as 12 medalhas de %1$s. Você é um verdadeiro mestre do tempo.</string>
+    <string name="reward_bronze">RECOMPENSA: 1 TOKEN DE COR DESBLOQUEADO</string>
+    <string name="reward_silver">RECOMPENSA: LIMITE DE TIMERS AUMENTADO (3 → 4)</string>
+    <string name="reward_gold">RECOMPENSA: STATUS LENDÁRIO PERMANENTE ⚡</string>
+
+    <string name="timer_capacity_label">CAPACIDADE DE CRONÔMETROS</string>
+    <string name="timer_capacity_tooltip_title">Nova Capacidade de Cronômetros!</string>
+    <string name="timer_capacity_tooltip_desc">Você desbloqueou um aumento permanente para seus cronômetros simultâneos (3 → 4). Isso agora está ativo no seu sistema!</string>
+    <string name="msg_timer_limit_reached">Limite de cronômetros atingido. Faça o upgrade para PRO para cronômetros ilimitados!</string>
 
     <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

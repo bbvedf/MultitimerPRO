@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.kotlin.serialization)
     //id("com.android.application")
     //id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
@@ -77,6 +78,31 @@ dependencies {
 
     // Splash Screen API
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // GSON
+    implementation("com.google.code.gson:gson:2.11.0")
+
+    // Supabase y Ktor (Versiones alineadas a 3.0.1)
+    implementation("io.github.jan-tennert.supabase:supabase-kt:3.0.1")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.1")
+    implementation("io.github.jan-tennert.supabase:auth-kt:3.0.1")
+    implementation("io.github.jan-tennert.supabase:storage-kt:3.0.1")
+    implementation("io.ktor:ktor-client-okhttp:3.0.1")
+    implementation("io.ktor:ktor-client-core:3.0.1")
+    implementation("io.ktor:ktor-client-content-negotiation:3.0.1")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.1")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.1")
+    implementation(libs.kotlinx.serialization.json)
+
+    // Forzar browser 1.8.0 para evitar el requisito de SDK 36
+    implementation("androidx.browser:browser:1.8.0") {
+        version { strictly("1.8.0") }
+    }
+
+    // Fix para evitar el requisito de SDK 36
+    implementation("androidx.browser:browser:1.8.0") {
+        version { strictly("1.8.0") }
+    }
 
     // Room
     implementation(libs.androidx.room.runtime)

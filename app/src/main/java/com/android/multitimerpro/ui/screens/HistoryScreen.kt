@@ -1,5 +1,6 @@
 package com.android.multitimerpro.ui.screens
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,12 +42,13 @@ fun HistoryScreen(
     viewModel: TimerViewModel = hiltViewModel(),
     onNavigateToDetail: (String) -> Unit = {}
 ) {
-    val historyItems by viewModel.history.collectAsState()
+    val historyItems by viewModel.filteredHistory.collectAsState()
     var historyToDelete by remember { mutableStateOf<HistoryEntity?>(null) }
     val isPro by viewModel.isPro.collectAsState()
     var showProDialog by remember { mutableStateOf(false) }
     
     val showFilters by viewModel.historyShowFilters.collectAsState()
+    val isDarkMode by viewModel.isDarkMode.collectAsState()
     val selectedCategory by viewModel.historySelectedCategory.collectAsState()
     val selectedTimeFilter by viewModel.historySelectedTimeFilter.collectAsState()
     
@@ -55,24 +57,8 @@ fun HistoryScreen(
         listOf("ALL") + uniqueCats
     }
 
-    val filteredItems = remember(historyItems, selectedCategory, selectedTimeFilter) {
-        val now = System.currentTimeMillis()
-        historyItems.filter { item ->
-            val categoryMatch = selectedCategory == "ALL" || item.category == selectedCategory
-            val timeMatch = when (selectedTimeFilter) {
-                TimeFilter.ALL -> true
-                TimeFilter.TODAY -> {
-                    val itemCal = Calendar.getInstance().apply { timeInMillis = item.completedAt }
-                    val nowCal = Calendar.getInstance()
-                    itemCal.get(Calendar.DAY_OF_YEAR) == nowCal.get(Calendar.DAY_OF_YEAR) &&
-                    itemCal.get(Calendar.YEAR) == nowCal.get(Calendar.YEAR)
-                }
-                TimeFilter.WEEK -> item.completedAt >= (now - (7 * 24 * 60 * 60 * 1000L))
-                TimeFilter.MONTH -> item.completedAt >= (now - (30 * 24 * 60 * 60 * 1000L))
-            }
-            categoryMatch && timeMatch
-        }
-    }
+    // Ya no necesitamos filteredItems aquí porque usamos viewModel.filteredHistory
+    val filteredItems = historyItems
 
     if (historyToDelete != null) {
         DeleteHistoryConfirmationDialog(
@@ -89,7 +75,6 @@ fun HistoryScreen(
         UpgradeProDialog(
             onDismiss = { showProDialog = false },
             onUpgrade = { 
-                viewModel.toggleProStatus() 
                 showProDialog = false
             }
         )
@@ -106,13 +91,28 @@ fun HistoryScreen(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(stringResource(R.string.history_activity), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
-                        Text(stringResource(R.string.history_sessions), style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(stringResource(R.string.history_sessions), style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            val historyCount by viewModel.historyCount.collectAsState()
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            ) {
+                                Text(
+                                    text = historyCount.toString(),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
-                    IconButton(
-                        onClick = { viewModel.setHistoryShowFilters(!showFilters) },
-                        colors = IconButtonDefaults.iconButtonColors(containerColor = if (showFilters) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Icon(Icons.Default.Tune, contentDescription = null, tint = if (showFilters) Color.Black else MaterialTheme.colorScheme.primary)
+                    IconButton(onClick = { viewModel.setHistoryShowFilters(!showFilters) }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -153,68 +153,27 @@ fun HistoryScreen(
                             }
                             
                             // EXPORT ACTIONS
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(IntrinsicSize.Max),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
+                            Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Button(
-                                    onClick = { 
-                                        if (isPro) viewModel.exportHistoryToPDF(filteredItems)
-                                        else showProDialog = true
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .heightIn(min = 48.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    ),
+                                    onClick = { if (isPro) viewModel.exportHistoryToPDF(filteredItems) else showProDialog = true },
+                                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = StatsBlue),
                                     shape = RoundedCornerShape(12.dp),
                                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
                                 ) {
-                                    Icon(
-                                        Icons.Default.PictureAsPdf,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp),
-                                        tint = if (MaterialTheme.colorScheme.background == DeepBlack) Color.Black else Color.White
-                                    )
+                                    Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.White)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        "${stringResource(R.string.history_pdf)}${if (!isPro) " " + stringResource(R.string.pro_indicator) else ""}",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp,
-                                        color = if (MaterialTheme.colorScheme.background == DeepBlack) Color.Black else Color.White,
-                                        lineHeight = 12.sp
-                                    )
+                                    Text("${stringResource(R.string.history_pdf)}${if (!isPro) " " + stringResource(R.string.pro_indicator) else ""}", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color.White, lineHeight = 12.sp)
                                 }
                                 FilledTonalButton(
-                                    onClick = { 
-                                        if (isPro) viewModel.exportHistoryToCSV(filteredItems)
-                                        else showProDialog = true
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .heightIn(min = 48.dp),
+                                    onClick = { if (isPro) viewModel.exportHistoryToCSV(filteredItems) else showProDialog = true },
+                                    modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 48.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
                                 ) {
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ListAlt,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
+                                    Icon(Icons.AutoMirrored.Filled.ListAlt, contentDescription = null, modifier = Modifier.size(18.dp), tint = StatsBlue)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        "${stringResource(R.string.history_csv)}${if (!isPro) " " + stringResource(R.string.pro_indicator) else ""}",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        lineHeight = 12.sp
-                                    )
+                                    Text("${stringResource(R.string.history_csv)}${if (!isPro) " " + stringResource(R.string.pro_indicator) else ""}", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface, lineHeight = 12.sp)
                                 }
                             }
                         }
@@ -225,7 +184,7 @@ fun HistoryScreen(
             item {
                 Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(24.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))) {
                     Column(modifier = Modifier.padding(24.dp)) {
-                        val categoryText = if (selectedCategory == "ALL") stringResource(R.string.category_all) else translateCategory(selectedCategory)
+                        val categoryText = translateCategory(selectedCategory)
                         val periodText = translateTimeFilter(selectedTimeFilter)
                         Text(text = stringResource(R.string.history_focused_time, "$periodText • $categoryText"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 2.sp)
                         val totalFilteredTime = filteredItems.sumOf { it.durationMillis }
@@ -236,33 +195,16 @@ fun HistoryScreen(
 
             if (filteredItems.isEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 80.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.History,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
-                            )
-                            Text(
-                                text = stringResource(R.string.history_no_sessions),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    Box(modifier = Modifier.fillMaxWidth().padding(top = 80.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+                            Text(text = stringResource(R.string.history_no_sessions), textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
             } else {
                 items(filteredItems) { item ->
-                    HistoryEntryCard(item = item, onDelete = { historyToDelete = item }, onClick = { onNavigateToDetail(item.id) })
+                    HistoryEntryCard(item = item, isDarkMode = isDarkMode ?: false, onDelete = { historyToDelete = item }, onClick = { onNavigateToDetail(item.id) })
                 }
             }
             item { Spacer(modifier = Modifier.height(100.dp)) }
@@ -281,48 +223,62 @@ private fun translateTimeFilter(filter: TimeFilter): String {
 }
 
 @Composable
-fun HistoryEntryCard(item: HistoryEntity, onDelete: () -> Unit, onClick: () -> Unit) {
+fun HistoryEntryCard(item: HistoryEntity, isDarkMode: Boolean, onDelete: () -> Unit, onClick: () -> Unit) {
     val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
     val dateStr = dateFormat.format(Date(item.completedAt))
-    Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp), border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)), onClick = onClick) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Box(modifier = Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant).border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Timer, contentDescription = null, tint = Color(item.color), modifier = Modifier.size(24.dp))
-                    }
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(text = item.timerName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                            if (item.isSnoozed) {
-                                Surface(
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                    shape = RoundedCornerShape(4.dp),
-                                    border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.status_snoozed).uppercase(),
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontSize = 7.sp,
-                                        fontWeight = FontWeight.Black
-                                    )
-                                }
+    
+    val snoozeBg = if (isDarkMode) NeonOrange.copy(alpha = 0.2f) else StatsBlue.copy(alpha = 0.2f)
+    val snoozeColor = if (isDarkMode) NeonOrange else StatsBlue
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(), 
+        color = MaterialTheme.colorScheme.surface, 
+        shape = RoundedCornerShape(16.dp), 
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)), 
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(), 
+            horizontalArrangement = Arrangement.SpaceBetween, 
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Timer, contentDescription = null, tint = Color(item.color), modifier = Modifier.size(20.dp))
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = item.timerName, 
+                            style = MaterialTheme.typography.titleSmall, 
+                            fontWeight = FontWeight.Bold, 
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                        if (item.isSnoozed) {
+                            Surface(color = snoozeBg, shape = RoundedCornerShape(4.dp)) {
+                                Text(
+                                    text = "SNOOZE",
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = snoozeColor,
+                                    fontSize = 7.sp,
+                                    fontWeight = FontWeight.Black
+                                )
                             }
                         }
-                        Text(text = "${translateCategory(item.category)} • $dateStr", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(text = formatMillisToTimeShort(item.durationMillis), style = MaterialTheme.typography.headlineSmall, color = Color(item.color), fontWeight = FontWeight.Bold)
-                    Text(text = stringResource(R.string.history_duration), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+                    Text(text = "${translateCategory(item.category)} • $dateStr", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(onClick = onClick, modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))) { Icon(Icons.Default.Analytics, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
-                IconButton(onClick = onDelete, modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))) { Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red.copy(alpha = 0.6f)) }
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 8.dp)) {
+                Text(text = formatMillisToTimeShort(item.durationMillis), style = MaterialTheme.typography.titleMedium, color = Color(item.color), fontWeight = FontWeight.Bold)
+                Text(text = "DURATION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+            }
+            
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = null, tint = DestructiveRed.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
             }
         }
     }

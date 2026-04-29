@@ -40,14 +40,13 @@ fun LoginScreen(
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
     val isPro by viewModel.isPro.collectAsState()
     
-    // Default to Light unless PRO and dark mode is active
-    val isDark = if (isPro) (isDarkModeOverride ?: isSystemInDarkTheme()) else false
+    val isDark = isDarkModeOverride ?: isSystemInDarkTheme()
     val logoRes = if (isDark) R.drawable.logo_dark else R.drawable.logo_light
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(if (isDark) Color.Black else MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
         Column(
@@ -56,13 +55,18 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             // Real Logo from resources
-            Image(
-                painter = painterResource(id = logoRes),
-                contentDescription = stringResource(R.string.login_logo_desc),
+            Surface(
+                color = Color.Transparent,
                 modifier = Modifier
                     .size(120.dp)
                     .padding(bottom = 16.dp)
-            )
+            ) {
+                Image(
+                    painter = painterResource(id = logoRes),
+                    contentDescription = stringResource(R.string.login_logo_desc),
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
             Text(
                 text = stringResource(R.string.app_name),
@@ -77,9 +81,9 @@ fun LoginScreen(
             // Display Error if any
             authError?.let { error ->
                 Surface(
-                    color = Color(0xFFFF4B4B).copy(alpha = 0.2f),
+                    color = ErrorRed.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(8.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4B4B)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, ErrorRed),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                 ) {
                     Text(
@@ -98,7 +102,7 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isDark) Color.White else Color(0xFFF2F2F2)
+                    containerColor = if (isDark) Color.White else LoginBgLight
                 ),
                 shape = RoundedCornerShape(12.dp),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)

@@ -30,6 +30,7 @@
     <string name="actions">ACTIONS</string>
     <string name="logout">DÉCONNEXION</string>
     <string name="edit_profile">MODIFIER LE PROFIL</string>
+    <string name="upload_avatar">CHARGER</string>
     <string name="operator_name">Nom de l\'opérateur</string>
     <string name="version_info">MultiTimer PRO v1.0.0</string>
 
@@ -141,6 +142,11 @@
     <string name="reset">Reset</string>
     <string name="confirm">Confirmer</string>
     <string name="add">AJOUTER</string>
+    <string name="action_delete_all">TOUT SUPPRIMER</string>
+    <string name="action_cancel">ANNULER</string>
+    <string name="action_ok">OK</string>
+    <string name="action_check_in">CHECK-IN</string>
+    <string name="level_prefix">Niv</string>
     <string name="hours_label_full">HH</string>
     <string name="minutes_label_full">MM</string>
     <string name="seconds_label_full">SS</string>
@@ -152,32 +158,75 @@
     <string name="stats_tab_analysis">ANALYSE</string>
     <string name="stats_tab_achievements">JOURNAUX</string>
     <string name="gamification_help_title">PROTOCOLE OPÉRATIONNEL</string>
-    <string name="gamification_help_desc">La progression du système est basée sur une exécution concentrée :\n\n• 1 MINUTE DE FOCUS = 1 XP\n• MÉDAILLE DÉVERROUILLÉE = 500 XP\n• SÉRIE QUOTIDIENNE = +50 XP BONUS\n\nAccumulez des XP pour améliorer votre rang d\'opérateur et débloquer des privilèges système.</string>
+    <string name="gamification_help_desc">La progression du système est basée sur une exécution concentrée :\n\n• 1 MINUTE DE FOCUS = 1 XP\n• MÉDAILLE DÉVERROUILLÉE = 500 XP\n• SÉRIE QUOTIDIENNE = JUSQU\'À +50 XP BONUS\n\nAccumulez des XP pour améliorer votre rang d\'opérateur et débloquer des privilèges système.</string>
     <string name="new_medal_unlocked">SUCCÈS DÉVERROUILLÉ</string>
     <string name="protocol_understood">PROTOCOLE COMPRIS</string>
     <string name="xp_to_next_level">%1$d XP JUSQU\'AU NIVEAU SUIVANT</string>
+    <string name="xp_label">XP</string>
+    <string name="color_tokens_label">JETONS DE COULEUR</string>
+    <string name="color_token_label">jeton de couleur</string>
+    <string name="token_tooltip_title">Que sont los Jetons de Couleur ?</string>
+    <string name="token_tooltip_desc">Les Jetons de Couleur vous permettent de personnaliser l\'apparence de l\'appli. Débloquez des couleurs PRO de façon permanente en les sélectionnant dans l\'écran d\'édition du chrono quand vous avez un jeton disponible.</string>
+    <string name="share_achievement">PARTAGER</string>
+    <string name="operational_status">ÉTAT OPÉRATIONNEL</string>
+    <string name="reset_achievements">RÉINITIALISER LES SUCCÈS</string>
+    <string name="reset_achievements_dialog_title">Réinitialiser le système ?</string>
+    <string name="reset_achievements_dialog_msg">Cela effacera définitivement toute votre progression, vos rangs, vos médailles permanentes et vos jetons de couleur de cet appareil et du cloud. Cette action est irréversible.</string>
+    <string name="reset_confirm">RÉINITIALISER LE SYSTÈME</string>
+    <string name="colors_label_status">COULEURS</string>
+    <string name="timers_label_status">CHRONOS</string>
+    <string name="status_unlimited">ILLIMITÉ</string>
+    <string name="status_max">MAX</string>
+    <string name="limit_format">LIMITE %1$d</string>
+    <string name="share_text_medal">J\'ai débloqué la médaille de %1$s en %2$s ! 🚀 #MultitimerPRO</string>
+    <string name="share_text_collection">J\'ai complété la collection %1$s sur MultitimerPRO ! 🏆 #MultitimerPRO</string>
     <string name="operational_achievements_title">SUCCÈS OPÉRATIONNELS</string>
+    <string name="system_security">SÉCURITÉ DU SYSTÈME</string>
     <string name="rank_novice">OPÉRATEUR NOVICE</string>
+    <string name="rank_apprentice">APPRENTI INITIÉ</string>
+    <string name="rank_initiate">INITIÉ DU SYSTÈME</string>
     <string name="rank_technician">SR. TECHNICIEN</string>
+    <string name="rank_specialist">SPÉCIALISTE DU FOCUS</string>
     <string name="rank_master">MAÎTRE DU SYSTÈME</string>
     <string name="rank_architect">GRAND ARCHITECTE</string>
+    <string name="rank_grand_architect">L\'ARCHITECTE</string>
+    <string name="rank_supreme">COMMANDANT SUPRÊME</string>
 
     <string name="medal_deep_work">Maître du Travail Profond</string>
-    <string name="medal_deep_work_desc">Terminer une session de +2 heures</string>
-    <string name="medal_early_bird">Lève-tard</string>
-    <string name="medal_early_bird_desc">Terminer une session avant 07h00</string>
+    <string name="medal_deep_work_desc">Session la plus longue d\'au moins 2h / 4h / 8h</string>
+    <string name="medal_early_bird">Lève-tôt</string>
+    <string name="medal_early_bird_desc">Terminer des sessions avant 07:00 pour 7 / 30 / 90 jours</string>
     <string name="medal_night_owl">Oiseau de nuit</string>
-    <string name="medal_night_owl_desc">Terminer une session après 23h00</string>
+    <string name="medal_night_owl_desc">Terminer des sessions après 23:00 pour 7 / 30 / 90 jours</string>
     <string name="medal_weekend">Guerrier du Week-end</string>
-    <string name="medal_weekend_desc">Garder le focus pendant le samedi ou le dimanche</string>
+    <string name="medal_weekend_desc">Focus pendant 4 / 12 / 24 week-ends</string>
     <string name="medal_collector">Collecteur de Catégories</string>
-    <string name="medal_collector_desc">Utiliser au moins 3 catégories différentes</string>
+    <string name="medal_collector_desc">Utiliser toutes les catégories et atteindre 5h / 20h dans chacune</string>
     <string name="medal_veteran">Vétéran du Focus</string>
-    <string name="medal_veteran_desc">Atteindre 100 heures totales de focus</string>
+    <string name="medal_veteran_desc">Atteindre 100h / 500h / 1000h de focus total</string>
     <string name="medal_hyperfocus">Hyperfocus</string>
-    <string name="medal_hyperfocus_desc">Terminer 5 sessions en une seule journée</string>
+    <string name="medal_hyperfocus_desc">Terminer 5 / 10 / 15 sessions en une seule journée</string>
     <string name="medal_consistency">Roi de la Constance</string>
-    <string name="medal_consistency_desc">Maintenir une série de focus de 7 jours</string>
+    <string name="medal_consistency_desc">Maintenir une série de focus de 7 / 30 / 90 jours</string>
+    <string name="medal_architect">L\'Architecte</string>
+    <string name="medal_architect_desc">Créer 5 / 15 / 30 presets</string>
+    <string name="medal_finisher">Le Finisseur</string>
+    <string name="medal_finisher_desc">Terminer 50 / 250 / 750 sessions au total</string>
+    <string name="medal_polymath">Le Polymathe</string>
+    <string name="medal_polymath_desc">Plusieurs catégories avec 5h / 25h / 100h chacune</string>
+    <string name="medal_zen_master">Maître Zen</string>
+    <string name="medal_zen_master_desc">Terminer 10 / 50 / 150 sessions de focus (+1h) sans snooze</string>
+
+    <string name="medal_tier_bronze">BRONZE</string>
+    <string name="medal_tier_silver">ARGENT</string>
+    <string name="medal_tier_gold">OR</string>
+    <string name="medal_tier_legendary">LÉGENDAIRE</string>
+    <string name="daily_streak_total">%1$d TOTAL CHECK-INS</string>
+    <string name="daily_streak_day">JOUR %1$d</string>
+    <string name="daily_streak_reward">+%1$d XP</string>
+    <string name="daily_streak_pending">CHECK-IN EN ATTENTE</string>
+    <string name="daily_streak_done">RÉCOMPENSE DU JOUR RÉCUPÉRÉE</string>
+    <string name="legendary_status">⚡ LÉGENDAIRE</string>
 
     <!-- Notifications -->
     <string name="notif_running_channel">Instruments Actifs</string>
@@ -205,6 +254,7 @@
     <string name="msg_preset_saved">Preset enregistré</string>
     <string name="msg_preset_deleted">Preset supprimé</string>
     <string name="msg_timer_added">Chrono ajouté</string>
+    <string name="msg_timer_created">Chrono créé</string>
     <string name="status_snoozed">REPEATER</string>
 
     <!-- Login Screen -->
@@ -232,13 +282,13 @@
 
     <!-- Register Screen -->
     <string name="register_title">CRÉER UN OPÉRATEUR</string>
-    <string name="register_desc">Rejoignez le réseau MultiTimer para synchroniser vos sessions de focus et exploiter tout votre potentiel.</string>
+    <string name="register_desc">Rejoignez le réseau MultiTimer pour synchroniser vos sessions de focus et exploiter tout votre potentiel.</string>
     <string name="register_btn">CRÉER UN COMPTE</string>
     <string name="register_success">Bienvenue dans le système, Opérateur !</string>
 
     <string name="msg_logout_confirm">Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous ré-identifier pour synchroniser vos données d\'opérateur.</string>
     <string name="msg_delete_timer_confirm">Êtes-vous sûr de vouloir supprimer \'%1$s\' ? Cette action est irréversible.</string>
-    <string name="msg_delete_preset_confirm">Êtes-vous sûr de vouloir supprimer le modèle \'%1$s\' ? Cela n\'affectera pas les chronos déjà en cours.</string>
+    <string name="msg_delete_preset_confirm">Êtes-vous sûr de vouloir supprimer le modèle \'%1$s\' ? Cela n\'affectera pas les chronos déjà en curso.</string>
     <string name="msg_delete_history_confirm">Êtes-vous sûr de vouloir supprimer l\'enregistrement de \'%1$s\' ? Cette action est irréversible.</string>
 
     <!-- PRO Upgrade Dialog -->
@@ -252,10 +302,29 @@
     <string name="pro_upgrade_later">Peut-être plus tard</string>
     <string name="pro_status_active">MODE PRO ACTIF 👑</string>
     <string name="pro_status_free">Mode gratuit actif</string>
+    <string name="settings_pro_config">CONFIGURATION PRO</string>
+    <string name="settings_dynamic_effects">Effets visuels dynamiques</string>
+    <string name="settings_dynamic_effects_desc">Lueur, particules et animations</string>
 
     <string name="msg_notif_granted">Notifications activées</string>
     <string name="msg_notif_denied">Les alertes sonores ne fonctionneront pas sans autorisation</string>
     <string name="pro_indicator">👑</string>
+    <string name="token_indicator">🪙</string>
+    <string name="timer_separator">:</string>
+    <string name="token_dialog_title">Dépenser un Jeton Couleur ?</string>
+    <string name="token_dialog_msg">Vous avez %1$d jetons. Voulez-vous utiliser 1 jeton pour déverrouiller définitivement cette couleur PRO ?</string>
+    <string name="token_dialog_confirm">DÉVERROUILLER COULEUR</string>
+
+    <string name="collection_complete_title">COLLECTION %1$s COMPLÈTE !</string>
+    <string name="collection_complete_msg">Vous avez collecté les 12 médailles de %1$s. Vous êtes un véritable maître du temps.</string>
+    <string name="reward_bronze">RÉCOMPENSE : 1 JETON COULEUR DÉBLOQUÉ</string>
+    <string name="reward_silver">RÉCOMPENSE : LIMITE DE CHRONOS AUGMENTÉE (3 → 4)</string>
+    <string name="reward_gold">RÉCOMPENSE : STATUT LÉGENDAIRE PERMANENT ⚡</string>
+
+    <string name="timer_capacity_label">CAPACITÉ DES CHRONOS</string>
+    <string name="timer_capacity_tooltip_title">Nouvelle capacité de chronos !</string>
+    <string name="timer_capacity_tooltip_desc">Vous avez débloqué une augmentation permanente pour vos chronos simultanés (3 → 4). C\'est maintenant actif dans votre système !</string>
+    <string name="msg_timer_limit_reached">Limite de chronos atteinte. Passez à la version PRO pour des chronos illimités !</string>
 
     <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

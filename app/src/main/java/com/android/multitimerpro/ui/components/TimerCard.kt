@@ -1,5 +1,6 @@
 package com.android.multitimerpro.ui.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -39,6 +40,7 @@ private fun translateStatus(status: String): String {
 @Composable
 fun TimerCard(
     timer: TimerEntity,
+    isDarkMode: Boolean,
     onToggle: () -> Unit,
     onReset: () -> Unit,
     onDelete: () -> Unit,
@@ -52,11 +54,11 @@ fun TimerCard(
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)),
         onClick = onClick
     ) {
-        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Box(modifier = Modifier.fillMaxHeight().width(6.dp).background(Color(timer.color)))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.width(6.dp).height(120.dp).background(Color(timer.color))) // Altura fija para la barra lateral para evitar que se estire infinito
 
             Row(
-                modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                modifier = Modifier.padding(16.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -67,26 +69,31 @@ fun TimerCard(
                             style = MaterialTheme.typography.labelSmall, 
                             color = MaterialTheme.colorScheme.onSurfaceVariant, 
                             letterSpacing = 1.sp,
-                            maxLines = 1
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f, fill = false) // Evita que el nombre empuje los iconos fuera de la pantalla
                         )
                         Text(
-                            text = translateStatus(timer.status),
+                            text = translateStatus(timer.status).uppercase(),
                             style = MaterialTheme.typography.labelSmall, 
                             color = Color(timer.color), 
                             fontWeight = FontWeight.Black, 
-                            fontSize = 8.sp
+                            fontSize = 9.sp
                         )
 
-                        if (timer.isSnoozed) {
+                        if (timer.isSnoozed && timer.status != "READY") {
+                            val snoozeBg = if (isDarkMode) NeonOrange.copy(alpha = 0.2f) else StatsBlue.copy(alpha = 0.2f)
+                            val snoozeColor = if (isDarkMode) NeonOrange else StatsBlue
+                            
                             Surface(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                shape = RoundedCornerShape(4.dp)
+                                color = snoozeBg,
+                                shape = RoundedCornerShape(4.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, snoozeColor.copy(alpha = 0.5f))
                             ) {
                                 Text(
                                     text = stringResource(R.string.status_snoozed),
                                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = snoozeColor,
                                     fontSize = 7.sp,
                                     fontWeight = FontWeight.Bold
                                 )

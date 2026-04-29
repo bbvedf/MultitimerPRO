@@ -36,7 +36,7 @@ fun DeleteConfirmationDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     text = stringResource(R.string.delete).uppercase(),
-                    color = Color(0xFFFF6B6B),
+                    color = DestructiveRed,
                     fontWeight = FontWeight.Bold
                 )
             }

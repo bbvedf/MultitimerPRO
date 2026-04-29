@@ -35,7 +35,7 @@ fun LogoutConfirmationDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     text = stringResource(R.string.confirm),
-                    color = Color(0xFFFF6B6B),
+                    color = DestructiveRed,
                     fontWeight = FontWeight.Bold
                 )
             }

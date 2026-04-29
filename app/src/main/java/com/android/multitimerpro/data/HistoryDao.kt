@@ -17,6 +17,9 @@ interface HistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(history: HistoryEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(historyList: List<HistoryEntity>)
+
     @Update
     suspend fun update(history: HistoryEntity)
 
@@ -28,4 +31,7 @@ interface HistoryDao {
 
     @Query("DELETE FROM timer_history")
     suspend fun clearAll()
+
+    @Query("UPDATE timer_history SET uid = :uid WHERE uid = '' OR uid = 'ANONYMOUS'")
+    suspend fun reclaimHistory(uid: String)
 }

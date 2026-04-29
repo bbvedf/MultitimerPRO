@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
@@ -37,53 +35,54 @@ import java.util.Locale
 fun CreateTimerScreen(
     viewModel: TimerViewModel,
     timerId: String? = null,
+    isPresetMode: Boolean = false,
     onBack: () -> Unit
 ) {
-    val context = LocalContext.current
-    val timers by viewModel.allTimers.collectAsState()
-    val existingTimer = remember(timerId, timers) {
-        timers.find { it.id == timerId }
+    val allTimers by viewModel.allTimers.collectAsState()
+    val allPresets by viewModel.allPresets.collectAsState()
+    val existingPreset = remember(timerId, allPresets, isPresetMode) {
+        if (isPresetMode && !timerId.isNullOrEmpty()) allPresets.find { it.id == timerId } else null
     }
 
-    var name by remember { mutableStateOf(existingTimer?.name ?: "") }
-    var hours by remember {
-        val h = (existingTimer?.duration ?: 0) / 3600000
+    val existingTimer = remember(timerId, allTimers, isPresetMode) {
+        if (!isPresetMode && !timerId.isNullOrEmpty()) allTimers.find { it.id == timerId } else null
+    }
+
+    val baseEntityName = existingPreset?.name ?: existingTimer?.name ?: ""
+    val baseEntityDuration = existingPreset?.durationMillis ?: existingTimer?.duration ?: 0L
+    val baseEntityColor = existingPreset?.color ?: existingTimer?.color
+    val baseEntityCategory = existingPreset?.category ?: existingTimer?.category ?: "GENERAL"
+    val baseEntityDescription = existingPreset?.description ?: existingTimer?.description ?: ""
+
+    var name by remember(baseEntityName) { mutableStateOf(baseEntityName) }
+    var hours by remember(baseEntityDuration) {
+        val h = baseEntityDuration / 3600000
         mutableStateOf(String.format(Locale.getDefault(), "%02d", h))
     }
-    var minutes by remember {
-        val m = ((existingTimer?.duration ?: 0) % 3600000) / 60000
+    var minutes by remember(baseEntityDuration) {
+        val m = (baseEntityDuration % 3600000) / 60000
         mutableStateOf(String.format(Locale.getDefault(), "%02d", m))
     }
-    var seconds by remember {
-        val s = ((existingTimer?.duration ?: 0) % 60000) / 1000
+    var seconds by remember(baseEntityDuration) {
+        val s = (baseEntityDuration % 60000) / 1000
         mutableStateOf(String.format(Locale.getDefault(), "%02d", s))
     }
     
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
     val isDark = isDarkModeOverride ?: androidx.compose.foundation.isSystemInDarkTheme()
     val isPro by viewModel.isPro.collectAsState()
+    val colorTokens by viewModel.colorTokens.collectAsState()
+    val unlockedProColors by viewModel.unlockedProColors.collectAsState()
+    val freeTimerLimit by viewModel.freeTimerLimit.collectAsState()
     
     var showProDialog by remember { mutableStateOf(false) }
-    var selectedColor by remember { mutableStateOf(existingTimer?.let { Color(it.color) } ?: NeonBlue) }
-    var selectedCategory by remember { mutableStateOf(existingTimer?.category ?: "GENERAL") }
-    var description by remember { mutableStateOf(existingTimer?.description ?: "") }
+    var showTokenDialog by remember { mutableStateOf<Color?>(null) }
+    var selectedColor by remember(baseEntityColor) { mutableStateOf(baseEntityColor?.let { Color(it) } ?: NeonBlue) }
+    var selectedCategory by remember(baseEntityCategory) { mutableStateOf(baseEntityCategory) }
+    var description by remember(baseEntityDescription) { mutableStateOf(baseEntityDescription) }
 
-    val freeColors = listOf(
-        NeonBlue, 
-        NeonGreen, 
-        NeonPurple, 
-        NeonOrange
-    )
-    val proColors = listOf(
-        ProRed,
-        ProYellow,
-        ProPink,
-        ProAzure,
-        ProMint,
-        ProGold,
-        ProDeepPurple,
-        ProDeepOrange
-    )
+    val freeColors = listOf(NeonBlue, NeonGreen, NeonPurple, NeonOrange)
+    val proColors = listOf(ProRed, ProYellow, ProPink, ProAzure, ProMint, ProGold, ProDeepPurple, ProDeepOrange)
     val allColors = freeColors + proColors
 
     val categories = listOf(
@@ -106,16 +105,11 @@ fun CreateTimerScreen(
         description != (existingTimer?.description ?: "")
     }
 
-    BackHandler(enabled = hasChanges) {
-        showDiscardDialog = true
-    }
+    BackHandler(enabled = hasChanges) { showDiscardDialog = true }
 
     if (showDiscardDialog) {
         DiscardChangesDialog(
-            onConfirm = {
-                showDiscardDialog = false
-                onBack()
-            },
+            onConfirm = { showDiscardDialog = false; onBack() },
             onDismiss = { showDiscardDialog = false }
         )
     }
@@ -123,9 +117,26 @@ fun CreateTimerScreen(
     if (showProDialog) {
         UpgradeProDialog(
             onDismiss = { showProDialog = false },
-            onUpgrade = { 
-                viewModel.toggleProStatus() 
-                showProDialog = false
+            onUpgrade = { showProDialog = false }
+        )
+    }
+
+    showTokenDialog?.let { color ->
+        AlertDialog(
+            onDismissRequest = { showTokenDialog = null },
+            title = { Text(stringResource(R.string.token_dialog_title)) },
+            text = { Text(stringResource(R.string.token_dialog_msg, colorTokens)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.unlockColorWithToken(String.format("#%06X", 0xFFFFFF and color.toArgb()))
+                        showTokenDialog = null
+                    },
+                    enabled = colorTokens > 0
+                ) { Text(stringResource(R.string.token_dialog_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTokenDialog = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -137,22 +148,18 @@ fun CreateTimerScreen(
             .padding(24.dp)
     ) {
         // Header
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            IconButton(onClick = {
-                if (hasChanges) showDiscardDialog = true else onBack()
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack, 
-                    contentDescription = null, 
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            IconButton(onClick = { if (hasChanges) showDiscardDialog = true else onBack() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(8.dp))
+            val titleRes = when {
+                isPresetMode -> R.string.presets_title
+                timerId != null -> R.string.timer_edit
+                else -> R.string.timer_new
+            }
             Text(
-                text = stringResource(if (timerId == null) R.string.timer_new else R.string.timer_edit),
+                text = stringResource(titleRes),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 2.sp
@@ -162,12 +169,7 @@ fun CreateTimerScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // Name Input
-        Text(
-            text = stringResource(R.string.timer_name_label),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp
-        )
+        Text(stringResource(R.string.timer_name_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         TextField(
             value = name,
             onValueChange = { name = it },
@@ -181,23 +183,13 @@ fun CreateTimerScreen(
                 focusedIndicatorColor = MaterialTheme.colorScheme.primary,
                 unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceVariant
             ),
-            placeholder = { 
-                Text(
-                    stringResource(R.string.timer_name_placeholder), 
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                ) 
-            }
+            placeholder = { Text(stringResource(R.string.timer_name_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Category Selection
-        Text(
-            text = stringResource(R.string.timer_category_label),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp
-        )
+        Text(stringResource(R.string.timer_category_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         Spacer(modifier = Modifier.height(12.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(categories) { (internalName, labelRes) ->
@@ -219,92 +211,42 @@ fun CreateTimerScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Time Picker
-        Text(
-            text = stringResource(R.string.timer_duration_label),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TimeInput(
-                value = hours, 
-                onValueChange = { if (it.length <= 2) hours = it }, 
-                label = stringResource(R.string.hours_label_full),
-                isDark = isDark
-            )
-            Text(
-                ":", 
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
-                fontSize = 24.sp
-            )
-            TimeInput(
-                value = minutes, 
-                onValueChange = { if (it.length <= 2) minutes = it }, 
-                label = stringResource(R.string.minutes_label_full),
-                isDark = isDark
-            )
-            Text(
-                ":", 
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
-                fontSize = 24.sp
-            )
-            TimeInput(
-                value = seconds, 
-                onValueChange = { if (it.length <= 2) seconds = it }, 
-                label = stringResource(R.string.seconds_label_full),
-                isDark = isDark
-            )
+        Text(stringResource(R.string.timer_duration_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+            TimeInput(value = hours, onValueChange = { if (it.length <= 2) hours = it }, label = stringResource(R.string.hours_label_full))
+            Text(stringResource(R.string.timer_separator), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 24.sp)
+            TimeInput(value = minutes, onValueChange = { if (it.length <= 2) minutes = it }, label = stringResource(R.string.minutes_label_full))
+            Text(stringResource(R.string.timer_separator), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 24.sp)
+            TimeInput(value = seconds, onValueChange = { if (it.length <= 2) seconds = it }, label = stringResource(R.string.seconds_label_full))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Color Selection
-        Text(
-            text = stringResource(R.string.timer_color_label),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = 10.sp
-        )
+        Text(stringResource(R.string.timer_color_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         Spacer(modifier = Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             allColors.chunked(6).forEach { rowColors ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)) {
                     rowColors.forEach { color ->
                         val isColorPro = proColors.contains(color)
+                        val isUnlocked = unlockedProColors.contains(String.format("#%06X", 0xFFFFFF and color.toArgb()))
+                        val canUseColor = isPro || !isColorPro || isUnlocked
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(color)
+                                .size(40.dp).clip(CircleShape).background(color)
                                 .clickable { 
-                                    if (isColorPro && !isPro) {
-                                        showProDialog = true
-                                    } else {
-                                        selectedColor = color 
-                                    }
+                                    if (!canUseColor) {
+                                        if (colorTokens > 0) showTokenDialog = color else showProDialog = true
+                                    } else selectedColor = color 
                                 }
                         ) {
                             if (selectedColor == color) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(12.dp)
-                                        .clip(CircleShape)
-                                        .background(if (isDark) DeepBlack else Color.White)
-                                        .align(Alignment.Center)
-                                )
-                            } else if (isColorPro && !isPro) {
+                                Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(if (isDark) DeepBlack else Color.White).align(Alignment.Center))
+                            } else if (isColorPro && !isPro && !isUnlocked) {
                                 Text(
-                                    text = stringResource(R.string.pro_indicator),
-                                    fontSize = 10.sp,
-                                    color = if (color == Color(0xFFFFD93D)) Color.Black else Color.White,
-                                    modifier = Modifier.align(Alignment.Center)
+                                    text = if (colorTokens > 0) stringResource(R.string.token_indicator) else stringResource(R.string.pro_indicator),
+                                    fontSize = 10.sp, color = if (color == ProYellow) Color.Black else Color.White, modifier = Modifier.align(Alignment.Center)
                                 )
                             }
                         }
@@ -318,82 +260,72 @@ fun CreateTimerScreen(
         // Action Buttons
         val requiredMsg = stringResource(R.string.timer_required_msg)
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(
-                onClick = {
-                    val h = hours.toLongOrNull() ?: 0L
-                    val m = minutes.toLongOrNull() ?: 0L
-                    val s = seconds.toLongOrNull() ?: 0L
-                    val totalMs = (h * 3600 + m * 60 + s) * 1000
-                    if (name.isNotBlank() && totalMs > 0) {
-                        if (existingTimer != null) {
-                            viewModel.updateTimer(
-                                existingTimer.copy(
-                                    name = name,
-                                    duration = totalMs,
-                                    remainingTime = totalMs,
-                                    color = selectedColor.toArgb(),
-                                    category = selectedCategory,
-                                    description = description
-                                )
-                            )
+            val h = hours.toLongOrNull() ?: 0L
+            val m = minutes.toLongOrNull() ?: 0L
+            val s = seconds.toLongOrNull() ?: 0L
+            val totalMs = (h * 3600 + m * 60 + s) * 1000
+
+            if (isPresetMode) {
+                // MODO PRESET: Un solo botón de guardar preset + cancelar
+                Button(
+                    onClick = {
+                        if (name.isNotBlank() && totalMs > 0) {
+                            viewModel.saveAsPreset(name, totalMs, selectedColor.toArgb(), selectedCategory, description, id = timerId ?: "")
                             onBack()
-                        } else {
-                            if (timers.size >= 3 && !isPro) {
-                                showProDialog = true
-                            } else {
-                                viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
+                        } else viewModel.showMessage(requiredMsg)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(stringResource(R.string.timer_preset_btn), color = if (isDark) DeepBlack else Color.White, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                }
+            } else {
+                // MODO TIMER (Create or Edit)
+                Button(
+                    onClick = {
+                        if (name.isNotBlank() && totalMs > 0) {
+                            if (existingTimer != null) {
+                                viewModel.updateTimer(existingTimer.copy(
+                                    name = name, 
+                                    duration = totalMs, 
+                                    remainingTime = totalMs, 
+                                    baseDuration = totalMs,
+                                    isSnoozed = false,
+                                    status = "READY", // Volver al estado inicial
+                                    color = selectedColor.toArgb(), 
+                                    category = selectedCategory, 
+                                    description = description
+                                ))
                                 onBack()
+                            } else {
+                                if (allTimers.size >= freeTimerLimit && !isPro) showProDialog = true
+                                else { viewModel.insert(name, totalMs, selectedColor.toArgb(), selectedCategory, description); onBack() }
                             }
-                        }
-                    } else {
-                        viewModel.showMessage(requiredMsg)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text(
-                    text = stringResource(if (timerId == null) R.string.timer_create_btn else R.string.timer_save_btn),
-                    color = if (isDark) DeepBlack else Color.White,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
+                        } else viewModel.showMessage(requiredMsg)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(stringResource(if (timerId == null) R.string.timer_create_btn else R.string.timer_save_btn), color = if (isDark) DeepBlack else Color.White, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                }
             }
 
             OutlinedButton(
-                onClick = {
-                    val h = hours.toLongOrNull() ?: 0L
-                    val m = minutes.toLongOrNull() ?: 0L
-                    val s = seconds.toLongOrNull() ?: 0L
-                    val totalMs = (h * 3600 + m * 60 + s) * 1000
-                    if (name.isNotBlank() && totalMs > 0) {
-                        viewModel.saveAsPreset(name, totalMs, selectedColor.toArgb(), selectedCategory, description)
-                    } else {
-                        viewModel.showMessage(requiredMsg)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                onClick = { onBack() },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
-                Text(
-                    text = stringResource(R.string.timer_preset_btn),
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
+                Text(stringResource(R.string.cancel), fontWeight = FontWeight.Bold, letterSpacing = 1.sp, color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
 }
 
 @Composable
-fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String, isDark: Boolean) {
+fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String) {
     var isFocused by remember { mutableStateOf(false) }
     var textFieldValue by remember { mutableStateOf(value) }
 

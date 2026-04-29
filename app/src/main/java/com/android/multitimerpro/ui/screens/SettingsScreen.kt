@@ -1,14 +1,18 @@
 package com.android.multitimerpro.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -30,23 +35,28 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.android.multitimerpro.R
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.ui.components.LegendaryBadge
 import com.android.multitimerpro.ui.components.LogoutConfirmationDialog
 import com.android.multitimerpro.ui.components.UpgradeProDialog
 import com.android.multitimerpro.ui.theme.*
-import com.google.firebase.auth.FirebaseAuth
+// Borrado FirebaseAuth import
 
 @Composable
 fun SettingsScreen(
     viewModel: TimerViewModel,
     onBack: () -> Unit
 ) {
-    val auth = FirebaseAuth.getInstance()
-    val user = auth.currentUser
-    
     val userDisplayName by viewModel.userDisplayName.collectAsState()
+    val userEmail by viewModel.userEmail.collectAsState()
     val userPhotoUrl by viewModel.userPhotoUrl.collectAsState()
     val currentLanguage by viewModel.currentLanguage.collectAsState()
     
@@ -57,6 +67,8 @@ fun SettingsScreen(
     
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
     val isPro by viewModel.isPro.collectAsState()
+    val isLegendary by viewModel.isLegendary.collectAsState()
+    val proEffectsEnabled by viewModel.proEffectsEnabled.collectAsState()
     val snooze1 by viewModel.snooze1.collectAsState()
     val snooze2 by viewModel.snooze2.collectAsState()
 
@@ -71,11 +83,35 @@ fun SettingsScreen(
         )
     }
 
+    val context = LocalContext.current
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val bytes = com.android.multitimerpro.util.ShareUtils.compressImage(context, it)
+            if (bytes != null) {
+                viewModel.uploadUserAvatar(bytes)
+            } else {
+                viewModel.showMessage("Error al procesar la imagen.")
+            }
+        }
+    }
+
     if (showProfileDialog) {
         EditProfileDialog(
             currentName = userDisplayName,
             currentAvatar = userPhotoUrl,
+            isPro = isPro,
             onDismiss = { showProfileDialog = false },
+            onCustomAvatarClick = { 
+                if (isPro) {
+                    photoPickerLauncher.launch("image/*")
+                    showProfileDialog = false
+                } else {
+                    showProfileDialog = false
+                    showProDialog = true
+                }
+            },
             onConfirm = { name, avatar ->
                 viewModel.updateProfile(name, avatar)
                 showProfileDialog = false
@@ -98,7 +134,7 @@ fun SettingsScreen(
         UpgradeProDialog(
             onDismiss = { showProDialog = false },
             onUpgrade = { 
-                viewModel.toggleProStatus() 
+                // TODO: Implement real billing flow
                 showProDialog = false
             }
         )
@@ -126,24 +162,122 @@ fun SettingsScreen(
         Text(stringResource(R.string.operator_account), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
         Spacer(modifier = Modifier.height(16.dp))
 
+        val infiniteTransition = rememberInfiniteTransition(label = "ProAvatarGlow")
+        val glowAlpha by infiniteTransition.animateFloat(
+            initialValue = 0.4f,
+            targetValue = 0.8f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(2000, easing = LinearOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "GlowAlpha"
+        )
+
+        val isDark = isDarkModeOverride ?: isSystemInDarkTheme()
+        val proBrush = Brush.linearGradient(
+            colors = if (isDark) listOf(ProCardDarkStart, ProCardDarkMiddle, ProCardDarkEnd)
+                     else listOf(ProCardLightStart, ProCardLightEnd)
+        )
+
         Surface(
-            modifier = Modifier.fillMaxWidth().clickable { showProfileDialog = true },
-            color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showProfileDialog = true }
+                .then(
+                    if (isPro) Modifier.border(
+                        width = 1.dp,
+                        brush = Brush.sweepGradient(listOf(ProGlowGold, ProGlowOrange, ProGlowGold)),
+                        shape = RoundedCornerShape(24.dp)
+                    ) else Modifier
+                ),
+            color = if (isPro) Color.Transparent else MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp),
+            border = if (!isPro) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)) else null,
+            shadowElevation = if (isPro) 12.dp else 0.dp
         ) {
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                UserAvatar(photoUrl = userPhotoUrl, size = 56.dp)
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = userDisplayName.ifBlank { stringResource(R.string.unknown_operator) }, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                    Text(text = user?.email ?: stringResource(R.string.no_email), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(modifier = Modifier.then(if (isPro) Modifier.background(proBrush) else Modifier)) {
+                Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Avatar con Glow Animado
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .then(
+                                if (isPro) {
+                                    if (isDark) Modifier.border(2.dp, ProGlowGold.copy(alpha = glowAlpha), CircleShape)
+                                    else Modifier.border(1.dp, Color.Black.copy(alpha = 0.1f), CircleShape)
+                                } else Modifier
+                            )
+                            .padding(4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        UserAvatar(photoUrl = userPhotoUrl, size = 64.dp)
+                    }
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+                    
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = userDisplayName.ifBlank { stringResource(R.string.unknown_operator) },
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (isPro) (if (isDark) Color.White else CharcoalGrey) else MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                            if (isLegendary) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                LegendaryBadge()
+                            }
+                        }
+                        Text(
+                            text = userEmail.ifBlank { stringResource(R.string.no_email) },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isPro) (if (isDark) Color.White.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.6f)) else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (isPro) {
+                        Icon(
+                            Icons.Default.Verified,
+                            contentDescription = null,
+                            tint = if (isDark) AccentCyan else CharcoalGrey,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    } else {
+                        Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
+                    }
                 }
-                Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        // PRO Features Section
+        if (isPro) {
+            Text(stringResource(R.string.settings_pro_config), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, letterSpacing = 1.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+            ) {
+                Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = AccentCyan)
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(stringResource(R.string.settings_dynamic_effects), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(R.string.settings_dynamic_effects_desc), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    Switch(
+                        checked = proEffectsEnabled,
+                        onCheckedChange = { viewModel.toggleProEffects(it) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = AccentCyan, checkedTrackColor = AccentCyan.copy(alpha = 0.5f))
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
 
         // Theme Section
         Text(stringResource(R.string.visual_preferences), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
@@ -243,9 +377,9 @@ fun SettingsScreen(
         Button(
             onClick = { showLogoutDialog = true },
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF4B4B).copy(alpha = 0.1f), contentColor = Color(0xFFFF4B4B)),
+            colors = ButtonDefaults.buttonColors(containerColor = DestructiveRed.copy(alpha = 0.1f), contentColor = DestructiveRed),
             shape = RoundedCornerShape(12.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF4B4B).copy(alpha = 0.3f))
+            border = androidx.compose.foundation.BorderStroke(1.dp, DestructiveRed.copy(alpha = 0.3f))
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null)
@@ -256,21 +390,16 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.weight(1f))
         
-        var clickCount by remember { mutableStateOf(0) }
-        Text(
-            text = stringResource(R.string.version_info), 
-            style = MaterialTheme.typography.labelSmall, 
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f), 
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .clickable {
-                    clickCount++
-                    if (clickCount >= 5) {
-                        viewModel.toggleProStatus()
-                        clickCount = 0
-                    }
-                }
-        )
+        Column(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.version_info), 
+                style = MaterialTheme.typography.labelSmall, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+            )
+        }
     }
 }
 
@@ -278,7 +407,7 @@ fun SettingsScreen(
 fun UserAvatar(photoUrl: String, size: androidx.compose.ui.unit.Dp) {
     Surface(
         modifier = Modifier.size(size),
-        shape = RoundedCornerShape(size / 4),
+        shape = CircleShape,
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         if (photoUrl.startsWith("http")) {
@@ -297,35 +426,112 @@ fun UserAvatar(photoUrl: String, size: androidx.compose.ui.unit.Dp) {
 fun EditProfileDialog(
     currentName: String,
     currentAvatar: String,
+    isPro: Boolean,
     onDismiss: () -> Unit,
+    onCustomAvatarClick: () -> Unit,
     onConfirm: (String, String) -> Unit
 ) {
     var name by remember { mutableStateOf(currentName) }
     var selectedAvatar by remember { mutableStateOf(currentAvatar) }
+    val isDark = isSystemInDarkTheme()
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(28.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp, 
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+            )
         ) {
-            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(stringResource(R.string.edit_profile), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(24.dp))
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.edit_profile),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    letterSpacing = 2.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 
-                LazyVerticalGrid(columns = GridCells.Fixed(4), modifier = Modifier.height(140.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(avatarPresets) { avatar ->
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Grid de Avatares (6 Presets + 1 Slot Doble PRO)
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    modifier = Modifier.height(130.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // 1. Los primeros 6 presets (fila 1 completa + mitad de fila 2)
+                    items(avatarPresets.take(6)) { avatar ->
                         Box(
                             modifier = Modifier
-                                .size(50.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (selectedAvatar == avatar.id) avatar.color.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(
+                                    if (selectedAvatar == avatar.id) avatar.color.copy(alpha = 0.2f) 
+                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                )
                                 .clickable { selectedAvatar = avatar.id }
-                                .border(if (selectedAvatar == avatar.id) 2.dp else 0.dp, avatar.color, RoundedCornerShape(12.dp)),
+                                .border(
+                                    if (selectedAvatar == avatar.id) 2.dp else 1.dp, 
+                                    if (selectedAvatar == avatar.id) avatar.color else Color.Transparent, 
+                                    RoundedCornerShape(14.dp)
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(avatar.icon, contentDescription = null, tint = if (selectedAvatar == avatar.id) avatar.color else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(24.dp))
+                            Icon(
+                                avatar.icon, 
+                                contentDescription = null, 
+                                tint = if (selectedAvatar == avatar.id) avatar.color 
+                                       else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    // 2. El slot DOBLE para UPLOAD PRO (ocupa los 2 últimos huecos)
+                    item(span = { GridItemSpan(2) }) {
+                        val proGradient = Brush.linearGradient(listOf(AccentCyan, NeonPurple))
+                        val isCustomSelected = selectedAvatar.startsWith("http")
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(2.2f) // Ajustado para igualar la altura de los slots 1x1 + gap
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(
+                                    if (isCustomSelected) AccentCyan.copy(alpha = 0.1f)
+                                    else if (isDark) CharcoalGrey
+                                    else Color.White
+                                )
+                                .clickable { onCustomAvatarClick() }
+                                .border(
+                                    width = 2.dp,
+                                    brush = proGradient,
+                                    shape = RoundedCornerShape(14.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.upload_avatar),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("👑", fontSize = 14.sp)
+                            }
                         }
                     }
                 }
@@ -339,14 +545,35 @@ fun EditProfileDialog(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.cancel)) }
-                    Button(onClick = { onConfirm(name, selectedAvatar) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) { Text(stringResource(R.string.save)) }
+                // Botones de Acción
+                Row(
+                    modifier = Modifier.fillMaxWidth(), 
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    TextButton(
+                        onClick = onDismiss, 
+                        modifier = Modifier.weight(1f)
+                    ) { 
+                        Text(stringResource(R.string.cancel)) 
+                    }
+                    Button(
+                        onClick = { onConfirm(name, selectedAvatar) }, 
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) { 
+                        Text(stringResource(R.string.save), fontWeight = FontWeight.Bold) 
+                    }
                 }
             }
         }
@@ -454,7 +681,8 @@ fun SnoozeInput(value: String, onValueChange: (String) -> Unit) {
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
             focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            cursorColor = MaterialTheme.colorScheme.primary
         )
     )
 }

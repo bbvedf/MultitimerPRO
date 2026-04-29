@@ -11,6 +11,9 @@ interface PresetDao {
     @Query("SELECT * FROM timer_presets WHERE uid = :uid ORDER BY name ASC")
     fun getPresetsByUid(uid: String): Flow<List<PresetEntity>>
 
+    @Query("SELECT * FROM timer_presets WHERE id = :id")
+    suspend fun getPresetById(id: String): PresetEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPreset(preset: PresetEntity)
 

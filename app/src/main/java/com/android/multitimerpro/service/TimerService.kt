@@ -126,18 +126,26 @@ class TimerService : Service() {
                     timerManager.timers.value.find { it.id == timerId }?.let {
                         val additionalMs = minutes * 60 * 1000L
                         val newDuration = it.duration + additionalMs
-                        timerManager.updateTimer(it.copy(
+                        val updatedTimer = it.copy(
                             remainingTime = additionalMs, 
                             duration = newDuration,
                             status = "LIVE",
                             isSnoozed = true
-                        ))
+                        )
+                        timerManager.updateTimer(updatedTimer)
                     }
                 }
                 notificationManager.cancel(timerId.hashCode())
             }
             ACTION_DISMISS -> {
                 val timerId = intent.getStringExtra(EXTRA_TIMER_ID)
+                serviceScope.launch {
+                    timerManager.timers.value.find { it.id == timerId }?.let {
+                        if (it.isSnoozed) {
+                            timerManager.updateTimer(it.copy(isSnoozed = false))
+                        }
+                    }
+                }
                 notificationManager.cancel(timerId.hashCode())
             }
             ACTION_FINISH_NOTIFY -> {

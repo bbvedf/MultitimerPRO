@@ -1,5 +1,6 @@
 package com.android.multitimerpro.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -20,130 +21,130 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.android.multitimerpro.R
+import com.android.multitimerpro.ui.theme.*
 
 @Composable
 fun UpgradeProDialog(
     onDismiss: () -> Unit,
     onUpgrade: () -> Unit
 ) {
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.padding(16.dp),
-        title = {
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .wrapContentHeight()
+                .clip(RoundedCornerShape(28.dp)),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
+        ) {
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                ProCardDarkStart,
+                                ProCardDarkEnd
+                            )
+                        )
+                    )
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier
                         .size(80.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
+                        .background(ProGold.copy(alpha = 0.1f), CircleShape)
+                        .border(2.dp, ProGold, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Default.Star,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.dp),
+                        tint = ProGold
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Text(
-                    text = stringResource(R.string.pro_upgrade_title),
+                    text = "UPGRADE TO PRO",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Black,
+                    color = Color.White,
                     textAlign = TextAlign.Center
                 )
-            }
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
+
                 Text(
-                    text = stringResource(R.string.pro_upgrade_msg),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    text = "Unlock the full potential of Multitimer PRO",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
                 )
-                
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    ),
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ProBenefitItem("Unlimited Active Timers")
+                    ProBenefitItem("Cloud Sync Across Devices")
+                    ProBenefitItem("Advanced Statistics & PDF Export")
+                    ProBenefitItem("No Advertisements Forever")
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Button(
+                    onClick = onUpgrade,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ProGold),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        ProBenefitItem(stringResource(R.string.pro_benefit_timers))
-                        ProBenefitItem(stringResource(R.string.pro_benefit_styles))
-                        ProBenefitItem(stringResource(R.string.pro_benefit_sync))
-                        ProBenefitItem(stringResource(R.string.pro_benefit_export))
-                    }
+                    Text(
+                        "GO PRO FOR $4.99",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
+
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Maybe Later", color = Color.White.copy(alpha = 0.6f))
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = onUpgrade,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-            ) {
-                Text(
-                    stringResource(R.string.pro_upgrade_btn),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    stringResource(R.string.pro_upgrade_later),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
-    )
+    }
 }
 
 @Composable
 fun ProBenefitItem(text: String) {
     Row(
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(
             Icons.Default.CheckCircle,
             contentDescription = null,
-            tint = Color(0xFF6BCB77),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(20.dp),
+            tint = SoftGreen,
         )
-        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = Color.White,
             fontWeight = FontWeight.Medium
         )
     }

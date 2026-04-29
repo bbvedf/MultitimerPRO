@@ -30,6 +30,7 @@
     <string name="actions">AKTIONEN</string>
     <string name="logout">ABMELDEN</string>
     <string name="edit_profile">PROFIL BEARBEITEN</string>
+    <string name="upload_avatar">HOCHLADEN</string>
     <string name="operator_name">Benutzername</string>
     <string name="version_info">MultiTimer PRO v1.0.0</string>
 
@@ -141,6 +142,11 @@
     <string name="reset">Reset</string>
     <string name="confirm">Bestätigen</string>
     <string name="add">HINZUFÜGEN</string>
+    <string name="action_delete_all">ALLES LÖSCHEN</string>
+    <string name="action_cancel">ABBRECHEN</string>
+    <string name="action_ok">OK</string>
+    <string name="action_check_in">CHECK-IN</string>
+    <string name="level_prefix">Lvl</string>
     <string name="hours_label_full">HH</string>
     <string name="minutes_label_full">MM</string>
     <string name="seconds_label_full">SS</string>
@@ -152,32 +158,75 @@
     <string name="stats_tab_analysis">ANALYSE</string>
     <string name="stats_tab_achievements">PROTOKOLLE</string>
     <string name="gamification_help_title">BETRIEBSPROTOKOLL</string>
-    <string name="gamification_help_desc">Die Systemprogression basiert auf fokussierter Ausführung:\n\n• 1 MINUTE FOKUS = 1 XP\n• MEDAILLE FREIGESCHALTET = 500 XP\n• TÄGLICHE STRÄHNE = +50 XP BONUS\n\nSammeln Sie XP, um Ihren Operator-Rang zu verbessern und Systemprivilegien freizuschalten.</string>
+    <string name="gamification_help_desc">Die Systemprogression basiert auf fokussierter Ausführung:\n\n• 1 MINUTE FOKUS = 1 XP\n• MEDAILLE FREIGESCHALTET = 500 XP\n• TÄGLICHE STRÄHNE = BIS ZU +50 XP BONUS\n\nSammeln Sie XP, um Ihren Operator-Rang zu verbessern und Systemprivilegien freizuschalten.</string>
     <string name="new_medal_unlocked">ERFOLG FREIGESCHALTET</string>
     <string name="protocol_understood">PROTOKOLL VERSTANDEN</string>
     <string name="xp_to_next_level">%1$d XP BIS ZUM NÄCHSTEN LEVEL</string>
+    <string name="xp_label">XP</string>
+    <string name="color_tokens_label">FARB-TOKEN</string>
+    <string name="color_token_label">Farb-Token</string>
+    <string name="token_tooltip_title">Was sind Farb-Token?</string>
+    <string name="token_tooltip_desc">Mit Farb-Token können Sie das Erscheinungsbild der App anpassen. Schalten Sie PRO-Farben dauerhaft frei, indem Sie diese im Timer-Bearbeitungsbildschirm auswählen, wenn Sie einen Token verfügbar haben.</string>
+    <string name="share_achievement">TEILEN</string>
+    <string name="operational_status">BETRIEBSSTATUS</string>
+    <string name="reset_achievements">ERFOLGE ZURÜCKSETZEN</string>
+    <string name="reset_achievements_dialog_title">System zurücksetzen?</string>
+    <string name="reset_achievements_dialog_msg">Dies wird dauerhaft Ihren gesamten Fortschritt, Ränge, permanente Medaillen und Farb-Token von diesem Gerät und der Cloud löschen. Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="reset_confirm">SYSTEM NEU STARTEN</string>
+    <string name="colors_label_status">FARBEN</string>
+    <string name="timers_label_status">TIMER</string>
+    <string name="status_unlimited">UNBEGRENZT</string>
+    <string name="status_max">MAX</string>
+    <string name="limit_format">%1$d LIMIT</string>
+    <string name="share_text_medal">Ich habe die %1$s Medaille in %2$s freigeschaltet! 🚀 #MultitimerPRO</string>
+    <string name="share_text_collection">Ich habe die %1$s Sammlung in MultitimerPRO vervollständigt! 🏆 #MultitimerPRO</string>
     <string name="operational_achievements_title">OPERATIONALE ERFOLGE</string>
+    <string name="system_security">SYSTEMSICHERHEIT</string>
     <string name="rank_novice">NOVIZE-OPERATOR</string>
+    <string name="rank_apprentice">EINGEWEIHTER LEHRLING</string>
+    <string name="rank_initiate">SYSTEM-INITIATOR</string>
     <string name="rank_technician">SR. TECHNIKER</string>
+    <string name="rank_specialist">FOKUS-SPEZIALIST</string>
     <string name="rank_master">SYSTEM-MASTER</string>
     <string name="rank_architect">GROSSARCHITEKT</string>
+    <string name="rank_grand_architect">DER ARCHITEKT</string>
+    <string name="rank_supreme">OBERSTER BEFEHLSHABER</string>
 
     <string name="medal_deep_work">Deep Work Meister</string>
-    <string name="medal_deep_work_desc">Schließe eine Sitzung von +2 Stunden ab</string>
+    <string name="medal_deep_work_desc">Längste Sitzung von mindestens 2h / 4h / 8h</string>
     <string name="medal_early_bird">Früher Vogel</string>
-    <string name="medal_early_bird_desc">Beende eine Sitzung vor 07:00 Uhr</string>
+    <string name="medal_early_bird_desc">Beende Sitzungen vor 07:00 Uhr für 7 / 30 / 90 Tage</string>
     <string name="medal_night_owl">Nachtschwärmer</string>
-    <string name="medal_night_owl_desc">Beende eine Sitzung nach 23:00 Uhr</string>
+    <string name="medal_night_owl_desc">Beende Sitzungen nach 23:00 Uhr für 7 / 30 / 90 Tage</string>
     <string name="medal_weekend">Wochenend-Krieger</string>
-    <string name="medal_weekend_desc">Bleibe am Samstag oder Sonntag fokussiert</string>
+    <string name="medal_weekend_desc">Fokus an 4 / 12 / 24 Wochenenden</string>
     <string name="medal_collector">Kategorien-Sammler</string>
-    <string name="medal_collector_desc">Verwende mindestens 3 verschiedene Kategorien</string>
+    <string name="medal_collector_desc">Verwende alle Kategorien und erreiche 5h / 20h in jeder</string>
     <string name="medal_veteran">Fokus-Veteran</string>
-    <string name="medal_veteran_desc">Erreiche insgesamt 100 Stunden Fokus</string>
+    <string name="medal_veteran_desc">Erreiche insgesamt 100h / 500h / 1000h Fokus</string>
     <string name="medal_hyperfocus">Hyperfokus</string>
-    <string name="medal_hyperfocus_desc">Schließe 5 Sitzungen an einem einzigen Tag ab</string>
+    <string name="medal_hyperfocus_desc">Schließe 5 / 10 / 15 Sitzungen an einem einzigen Tag ab</string>
     <string name="medal_consistency">Konsistenz-König</string>
-    <string name="medal_consistency_desc">Behalte eine 7-tägige Fokus-Strähne bei</string>
+    <string name="medal_consistency_desc">Behalte eine 7 / 30 / 90-tägige Fokus-Strähne bei</string>
+    <string name="medal_architect">Der Architekt</string>
+    <string name="medal_architect_desc">Erstelle 5 / 15 / 30 Presets</string>
+    <string name="medal_finisher">Der Finisher</string>
+    <string name="medal_finisher_desc">Schließe insgesamt 50 / 250 / 750 Sitzungen ab</string>
+    <string name="medal_polymath">Der Polymath</string>
+    <string name="medal_polymath_desc">Mehrere Kategorien mit jeweils 5h / 25h / 100h</string>
+    <string name="medal_zen_master">Zen-Meister</string>
+    <string name="medal_zen_master_desc">Schließe 10 / 50 / 150 Fokus-Sitzungen (+1h) ohne Schlummern ab</string>
+
+    <string name="medal_tier_bronze">BRONZE</string>
+    <string name="medal_tier_silver">SILBER</string>
+    <string name="medal_tier_gold">GOLD</string>
+    <string name="medal_tier_legendary">LEGENDÄR</string>
+    <string name="daily_streak_total">%1$d GESAMT CHECK-INS</string>
+    <string name="daily_streak_day">TAG %1$d</string>
+    <string name="daily_streak_reward">+%1$d XP</string>
+    <string name="daily_streak_pending">CHECK-IN AUSSTEHEND</string>
+    <string name="daily_streak_done">HEUTIGE BELOHNUNG EINGESAMMELT</string>
+    <string name="legendary_status">⚡ LEGENDÄR</string>
 
     <!-- Notifications -->
     <string name="notif_running_channel">Aktive Instrumente</string>
@@ -205,6 +254,7 @@
     <string name="msg_preset_saved">Preset gespeichert</string>
     <string name="msg_preset_deleted">Preset gelöscht</string>
     <string name="msg_timer_added">Timer hinzugefügt</string>
+    <string name="msg_timer_created">Timer erstellt</string>
     <string name="status_snoozed">SCHLUMMERN</string>
 
     <!-- Login Screen -->
@@ -252,10 +302,29 @@
     <string name="pro_upgrade_later">Vielleicht später</string>
     <string name="pro_status_active">PRO-MODUS AKTIV 👑</string>
     <string name="pro_status_free">Gratis-Modus aktiv</string>
+    <string name="settings_pro_config">PRO-KONFIGURATION</string>
+    <string name="settings_dynamic_effects">Dynamische visuelle Effekte</string>
+    <string name="settings_dynamic_effects_desc">Glühen, Partikel und Animationen</string>
 
     <string name="msg_notif_granted">Benachrichtigungen aktiviert</string>
     <string name="msg_notif_denied">Akustische Warnungen funktionieren nicht ohne Erlaubnis</string>
     <string name="pro_indicator">👑</string>
+    <string name="token_indicator">🪙</string>
+    <string name="timer_separator">:</string>
+    <string name="token_dialog_title">Farbtreue ausgeben?</string>
+    <string name="token_dialog_msg">Sie haben %1$d Token. Möchten Sie 1 Token verwenden, um diese PRO-Farbe dauerhaft freizuschalten?</string>
+    <string name="token_dialog_confirm">FARBE FREISCHALTEN</string>
+
+    <string name="collection_complete_title">%1$s SAMMLUNG VOLLSTÄNDIG!</string>
+    <string name="collection_complete_msg">Du hast alle 12 %1$s Medaillen gesammelt. Du bist ein wahrer Meister der Zeit.</string>
+    <string name="reward_bronze">BELOHNUNG: 1 FARB-TOKEN FREIGESCHALTET</string>
+    <string name="reward_silver">BELOHNUNG: TIMER-LIMIT ERHÖHT (3 → 4)</string>
+    <string name="reward_gold">BELOHNUNG: PERMANENTER LEGENDÄRER STATUS ⚡</string>
+
+    <string name="timer_capacity_label">TIMER-KAPAZITÄT</string>
+    <string name="timer_capacity_tooltip_title">Neue Timer-Kapazität!</string>
+    <string name="timer_capacity_tooltip_desc">Sie haben eine dauerhafte Erhöhung für Ihre gleichzeitigen Timer freigeschaltet (3 → 4). Dies ist nun in Ihrem System aktiv!</string>
+    <string name="msg_timer_limit_reached">Timer-Limit erreicht. Upgrade auf PRO für unbegrenzte Timer!</string>
 
     <string name="default_web_client_id">345643159897-803878d88828c86fc23c48.apps.googleusercontent.com</string>
 </resources>

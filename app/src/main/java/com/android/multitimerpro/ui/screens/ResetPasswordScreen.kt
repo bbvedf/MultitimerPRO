@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,11 +27,12 @@ import com.android.multitimerpro.data.TimerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForgotPasswordScreen(
+fun ResetPasswordScreen(
     viewModel: TimerViewModel,
     onBack: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     val authError by viewModel.authError.collectAsState()
     val isPro by viewModel.isPro.collectAsState()
     val isDarkModeOverride by viewModel.isDarkMode.collectAsState()
@@ -66,7 +71,7 @@ fun ForgotPasswordScreen(
             )
 
             Text(
-                text = stringResource(R.string.forgot_title),
+                text = "Nueva Contraseña",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onBackground
@@ -75,7 +80,7 @@ fun ForgotPasswordScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = stringResource(R.string.forgot_desc),
+                text = "Introduce tu nueva contraseña para recuperar el acceso a tu cuenta.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
@@ -84,10 +89,17 @@ fun ForgotPasswordScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             TextField(
-                value = email,
-                onValueChange = { email = it },
+                value = password,
+                onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.forgot_email_label)) },
+                label = { Text("Contraseña Nueva") },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -97,7 +109,7 @@ fun ForgotPasswordScreen(
 
             authError?.let { error ->
                 Text(
-                    text = if (error == "Por favor, introduce tu email") stringResource(R.string.forgot_error_empty) else error,
+                    text = error,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
@@ -109,7 +121,7 @@ fun ForgotPasswordScreen(
 
             Button(
                 onClick = { 
-                    viewModel.resetPassword(email)
+                    viewModel.updatePassword(password)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -117,7 +129,7 @@ fun ForgotPasswordScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.forgot_send_btn),
+                    text = "ACTUALIZAR CONTRASEÑA",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )

@@ -7,9 +7,7 @@ import com.android.multitimerpro.data.TimerDao
 import com.android.multitimerpro.data.HistoryDao
 import com.android.multitimerpro.data.PresetDao
 import com.android.multitimerpro.data.GoogleAuthClient
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
+import io.github.jan.supabase.SupabaseClient
 import dagger.*
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,15 +20,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGoogleAuthClient(@ApplicationContext context: Context): GoogleAuthClient {
-        return GoogleAuthClient(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideFirestore(): FirebaseFirestore {
-        // Usamos el ID específico de tu base de datos que aparece en la captura
-        return Firebase.firestore("ai-studio-ccfd95a4-1b33-4d90-8119-cff5243e3752")
+    fun provideGoogleAuthClient(
+        @ApplicationContext context: Context,
+        supabaseClient: SupabaseClient
+    ): GoogleAuthClient {
+        return GoogleAuthClient(context, supabaseClient)
     }
 
     @Provides

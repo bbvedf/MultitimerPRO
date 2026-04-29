@@ -1,32 +1,28 @@
 package com.android.multitimerpro.data
 
 import android.util.Log
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
+import com.android.multitimerpro.data.remote.SupabaseService
+import com.android.multitimerpro.data.remote.TimerDto
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class TimerRepository @Inject constructor(
     private val timerDao: TimerDao,
-    private val firestore: FirebaseFirestore
+    private val supabaseService: SupabaseService
 ) {
     private val TAG = "MT_DEBUG"
-    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val allTimers: Flow<List<TimerEntity>> = timerDao.getAllTimers()
 
-    fun getTimersByUid(uid: String): Flow<List<TimerEntity>> = timerDao.getTimersByUid(uid)
-
     suspend fun insert(timer: TimerEntity, isPro: Boolean = false) {
         try {
-            Log.d(TAG, "[TIMER] Insertando local: ${timer.name}")
             timerDao.insertTimer(timer)
-            // AHORA: Sincronizamos SIEMPRE que haya un usuario, sea PRO o FREE
             if (timer.uid.isNotEmpty()) {
-                syncToCloud(timer)
+                supabaseService.upsertTimer(timer.toDto())
             }
         } catch (e: Exception) {
             Log.e(TAG, "[TIMER] Error en insert", e)
@@ -36,9 +32,8 @@ class TimerRepository @Inject constructor(
     suspend fun update(timer: TimerEntity, isPro: Boolean = false) {
         try {
             timerDao.updateTimer(timer)
-            // AHORA: Sincronizamos SIEMPRE que haya un usuario, sea PRO o FREE
             if (timer.uid.isNotEmpty()) {
-                syncToCloud(timer)
+                supabaseService.upsertTimer(timer.toDto())
             }
         } catch (e: Exception) {
             Log.e(TAG, "[TIMER] Error actualizando local", e)
@@ -49,59 +44,60 @@ class TimerRepository @Inject constructor(
         try {
             timerDao.deleteTimer(timer)
             if (timer.uid.isNotEmpty()) {
-                firestore.collection("users")
-                    .document(timer.uid)
-                    .collection("timers")
-                    .document(timer.id)
-                    .delete()
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) Log.d(TAG, "[TIMER] Borrado de nube OK")
-                        else Log.e(TAG, "[TIMER] Error borrando de nube: ${task.exception?.message}")
-                    }
+                supabaseService.deleteTimer(timer.id)
             }
         } catch (e: Exception) {
             Log.e(TAG, "[TIMER] Error en delete", e)
         }
     }
 
-    private fun syncToCloud(timer: TimerEntity) {
-        val timerMap = mapOf(
-            "id" to timer.id,
-            "name" to timer.name,
-            "description" to timer.description,
-            "duration" to timer.duration,
-            "remainingTime" to timer.remainingTime,
-            "status" to timer.status,
-            "color" to timer.color,
-            "category" to timer.category,
-            "intervalsJson" to timer.intervalsJson,
-            "isSnoozed" to timer.isSnoozed,
-            "baseDuration" to timer.baseDuration,
-            "lastHistoryId" to (timer.lastHistoryId ?: ""),
-            "uid" to timer.uid,
-            "createdAt" to timer.createdAt
-        )
+    private fun TimerEntity.toDto() = TimerDto(
+        id = this.id,
+        userId = this.uid,
+        name = this.name,
+        duration = this.duration,
+        baseDuration = this.baseDuration,
+        remainingTime = this.remainingTime,
+        category = this.category,
+        color = this.color,
+        status = this.status,
+        description = this.description.ifBlank { null },
+        isSnoozed = this.isSnoozed,
+        intervalsJson = this.intervalsJson.ifBlank { null },
+        lastHistoryId = this.lastHistoryId,
+        createdAt = this.createdAt
+    )
 
-        Log.d(TAG, "[CLOUD] Intentando escribir timer: ${timer.name}")
-        firestore.collection("users")
-            .document(timer.uid)
-            .collection("timers")
-            .document(timer.id)
-            .set(timerMap, SetOptions.merge())
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "[CLOUD] Sincronización de timer EXITOSA: ${timer.name}")
-                } else {
-                    Log.e(TAG, "[CLOUD] ERROR sincronizando timer ${timer.name}: ${task.exception?.message}")
-                }
+    suspend fun refreshTimersFromCloud(userId: String) {
+        try {
+            Log.d(TAG, "[SUPABASE] Descargando timers para: $userId")
+            val remoteTimers = supabaseService.getTimers(userId)
+            if (remoteTimers.isNotEmpty()) {
+                val entities = remoteTimers.map { it.toEntity() }
+                entities.forEach { timerDao.insertTimer(it) }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "[SUPABASE] Error refrescando timers", e)
+        }
     }
 
-    suspend fun getTimerById(id: String): TimerEntity? {
-        return timerDao.getTimerById(id)
-    }
-
-    suspend fun clearAll() {
-        timerDao.clearAll()
-    }
+    private fun TimerDto.toEntity() = TimerEntity(
+        id = this.id ?: UUID.randomUUID().toString(),
+        uid = this.userId,
+        name = this.name,
+        duration = this.duration,
+        baseDuration = this.baseDuration ?: this.duration,
+        remainingTime = this.remainingTime ?: this.duration,
+        category = this.category ?: "GENERAL",
+        color = this.color ?: 0,
+        status = this.status ?: "READY",
+        description = this.description ?: "",
+        isSnoozed = this.isSnoozed ?: false,
+        intervalsJson = this.intervalsJson ?: "[]",
+        lastHistoryId = this.lastHistoryId,
+        createdAt = this.createdAt ?: System.currentTimeMillis()
+    )
+    
+    suspend fun getTimerById(id: String): TimerEntity? = timerDao.getTimerById(id)
+    suspend fun clearAll() = timerDao.clearAll()
 }

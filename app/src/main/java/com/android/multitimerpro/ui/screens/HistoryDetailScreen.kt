@@ -1,6 +1,7 @@
 package com.android.multitimerpro.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,12 +23,16 @@ import androidx.compose.ui.res.stringResource
 import com.android.multitimerpro.R
 import com.android.multitimerpro.data.HistoryEntity
 import com.android.multitimerpro.data.TimerViewModel
+import com.android.multitimerpro.data.TimerInterval
 import com.android.multitimerpro.ui.components.*
 import com.android.multitimerpro.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.launch
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import android.util.Log
 
 @Composable
 fun HistoryDetailScreen(
@@ -50,10 +55,35 @@ fun HistoryDetailScreen(
     val dateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
-    // Parse intervals
+    // Parse intervals (Retrocompatible logic)
     val intervals = remember(item.intervalsJson) {
-        if (item.intervalsJson == "[]" || item.intervalsJson.isBlank()) emptyList<String>()
-        else item.intervalsJson.removeSurrounding("[", "]").split(", ").map { it.removeSurrounding("\"") }
+        if (item.intervalsJson.isBlank() || item.intervalsJson == "[]") {
+            emptyList<TimerInterval>()
+        } else {
+            try {
+                // Intentar parsear como nueva estructura (JSON List of TimerInterval)
+                val type = object : TypeToken<List<TimerInterval>>() {}.type
+                val parsed = Gson().fromJson<List<TimerInterval>>(item.intervalsJson, type) ?: emptyList()
+                
+                if (parsed.isEmpty() && item.intervalsJson.contains(":")) {
+                    // Si falla o está vacío pero tiene ":" probablemente sea el formato viejo de Firebase: "00:01:00 - m01"
+                    // Intentamos convertir marcas viejas al vuelo para visualizarlas
+                    val oldMarks = item.intervalsJson.removeSurrounding("[", "]").split(",")
+                    oldMarks.mapIndexed { i, mark ->
+                        val cleanMark = mark.trim().replace("\"", "")
+                        val parts = cleanMark.split("-")
+                        val timeStr = parts.getOrNull(0)?.trim() ?: ""
+                        val labelStr = parts.getOrNull(1)?.trim() ?: "M${i+1}"
+                        TimerInterval(labelStr, parseTimeToMillis(timeStr))
+                    }
+                } else {
+                    parsed
+                }
+            } catch (e: Exception) {
+                Log.e("HistoryDetailScreen", "Error parsing intervalsJson: ${e.message}")
+                emptyList<TimerInterval>()
+            }
+        }
     }
 
     LazyColumn(
@@ -171,26 +201,36 @@ fun HistoryDetailScreen(
 
             // IMPORTANTE: Invertimos el cálculo porque el temporizador es regresivo
             itemsIndexed(intervals) { index, interval ->
-                val currentParts = interval.split(" - ")
-                val currentTimeStr = currentParts.getOrNull(0) ?: "00:00:00"
-                val label = currentParts.getOrNull(1) ?: stringResource(R.string.detail_no_label)
-                
-                // Cálculo de tramo real para temporizador regresivo:
-                // El primer tramo es (Duración Total - Primera Marca)
-                // Los siguientes son (Marca Anterior - Marca Actual)
-                val currentRemainingMs = parseTimeToMillis(currentTimeStr)
-                val lapMillis = if (index == 0) {
-                    item.durationMillis - currentRemainingMs
+                // Discriminamos si es un timestamp absoluto (milis de época > 10^11) o relativo (tiempo restante < total)
+                val isAbsoluteTimestamp = interval.timestamp > 1_000_000_000_000L
+                val currentRemainingMs = if (isAbsoluteTimestamp) {
+                    // Si es absoluto (regresión accidental), no podemos saber el remaining exacto sin el start time.
+                    // Fallback: tratarlo como 0 o intentar inferir. Por ahora lo dejamos como está para ver el error
+                    // pero corregimos la visualización para que no de tiempos locos si es posible.
+                    0L 
                 } else {
-                    val previousRemainingMs = parseTimeToMillis(intervals[index - 1].split(" - ").getOrNull(0) ?: "00:00:00")
-                    previousRemainingMs - currentRemainingMs
+                    interval.timestamp
+                }
+
+                val lapMillis = if (index == 0) {
+                    // Para el primer tramo, es la duración total del timer menos el tiempo en la primera marca
+                    (item.durationMillis - currentRemainingMs).coerceAtLeast(0L)
+                } else {
+                    // Para tramos posteriores, es la marca anterior menos la marca actual
+                    val previousInterval = intervals.getOrNull(index - 1)
+                    val prevRemaining = if (previousInterval != null && previousInterval.timestamp < 1_000_000_000_000L) {
+                        previousInterval.timestamp
+                    } else {
+                        item.durationMillis // Fallback al inicio si el anterior era absoluto
+                    }
+                    (prevRemaining - currentRemainingMs).coerceAtLeast(0L)
                 }
 
                 HistoryIntervalItem(
                     index = index + 1,
-                    label = label,
-                    absoluteTime = formatToThreeBlocks(currentTimeStr),
-                    lapTime = formatMillisToTime(lapMillis.coerceAtLeast(0L))
+                    label = interval.label,
+                    absoluteTime = formatMillisToTime(currentRemainingMs),
+                    lapTime = formatMillisToTime(lapMillis)
                 )
             }
         }
@@ -213,7 +253,7 @@ fun HistoryDetailScreen(
             ) {
                 Text(
                     text = stringResource(R.string.timer_save_btn),
-                    color = if (MaterialTheme.colorScheme.background == DeepBlack) DeepBlack else Color.White,
+                    color = if (isSystemInDarkTheme()) DeepBlack else Color.White,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 )
@@ -240,7 +280,7 @@ fun HistoryIntervalItem(index: Int, label: String, absoluteTime: String, lapTime
                 Text(
                     text = String.format(Locale.getDefault(), "%02d", index), 
                     style = MaterialTheme.typography.labelSmall, 
-                    color = MaterialTheme.colorScheme.primary, 
+                    color = StatsBlue, 
                     modifier = Modifier.width(32.dp)
                 )
                 Column {
@@ -249,7 +289,7 @@ fun HistoryIntervalItem(index: Int, label: String, absoluteTime: String, lapTime
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = lapTime, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black)
+                Text(text = lapTime, style = MaterialTheme.typography.bodyLarge, color = StatsBlue, fontWeight = FontWeight.Black)
                 Text(text = stringResource(R.string.detail_lap_duration), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
             }
         }
@@ -274,17 +314,13 @@ private fun formatMillisToTime(millis: Long): String {
     return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
 }
 
+// Recuperamos esta función para parsear los datos viejos de Firebase
 private fun parseTimeToMillis(timeStr: String): Long {
-    val parts = timeStr.split(":").map { it.toLongOrNull() ?: 0L }
+    val parts = timeStr.trim().split(":").map { it.toLongOrNull() ?: 0L }
     return when (parts.size) {
         3 -> (parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000
         2 -> (parts[0] * 60 + parts[1]) * 1000
         else -> 0L
     }
-}
-
-private fun formatToThreeBlocks(timeStr: String): String {
-    val parts = timeStr.split(":")
-    return if (parts.size == 2) "00:$timeStr" else timeStr
 }
 

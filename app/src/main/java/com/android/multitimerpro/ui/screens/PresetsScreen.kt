@@ -1,6 +1,7 @@
 package com.android.multitimerpro.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -8,9 +9,16 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,7 +41,7 @@ import java.util.Locale
 @Composable
 fun PresetsScreen(
     viewModel: TimerViewModel,
-    onNavigateToCreate: () -> Unit
+    onNavigateToCreate: (String?) -> Unit
 ) {
     val presets by viewModel.allPresets.collectAsState()
     val isDark = MaterialTheme.colorScheme.background == DeepBlack
@@ -62,12 +70,122 @@ fun PresetsScreen(
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = stringResource(R.string.presets_saved),
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = stringResource(R.string.presets_saved),
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        val presetsCount by viewModel.presetsCount.collectAsState()
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            ),
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        ) {
+                            Text(
+                                text = presetsCount.toString(),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    // --- NUEVO MENÚ DE CONTROL ---
+                    var showMenu by remember { mutableStateOf(false) }
+                    var showDeleteAllConfirm by remember { mutableStateOf(false) }
+
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "Menu",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Search (PRO)") },
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                                onClick = {
+                                    showMenu = false
+                                    viewModel.showMessage("FEATURE EXCLUSIVE TO PRO MEMBERS")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Filter (PRO)") },
+                                leadingIcon = { Icon(Icons.Default.FilterList, contentDescription = null) },
+                                onClick = {
+                                    showMenu = false
+                                    viewModel.showMessage("FEATURE EXCLUSIVE TO PRO MEMBERS")
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Sort (PRO)") },
+                                leadingIcon = { Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = null) },
+                                onClick = {
+                                    showMenu = false
+                                    viewModel.showMessage("FEATURE EXCLUSIVE TO PRO MEMBERS")
+                                }
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Delete All", color = MaterialTheme.colorScheme.error) },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.DeleteSweep,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    showDeleteAllConfirm = true
+                                }
+                            )
+                        }
+                    }
+
+                    if (showDeleteAllConfirm) {
+                        AlertDialog(
+                            onDismissRequest = { showDeleteAllConfirm = false },
+                            title = { Text("Wipe All Presets?") },
+                            text = { Text("This will remove all saved presets. This action cannot be undone.") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        viewModel.deleteAllPresets()
+                                        showDeleteAllConfirm = false
+                                    },
+                                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                ) { Text("DELETE ALL") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDeleteAllConfirm = false }) { Text("CANCEL") }
+                            }
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -106,7 +224,8 @@ fun PresetsScreen(
                             preset = preset,
                             isDark = isDark,
                             onStart = { viewModel.startTimerFromPreset(preset) },
-                            onDelete = { presetToDelete = preset }
+                            onDelete = { presetToDelete = preset },
+                            onEdit = { onNavigateToCreate(preset.id) }
                         )
                     }
                 }
@@ -114,7 +233,7 @@ fun PresetsScreen(
         }
 
         FloatingActionButton(
-            onClick = onNavigateToCreate,
+            onClick = { onNavigateToCreate(null) },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(24.dp),
@@ -132,7 +251,8 @@ fun SmallPresetCard(
     preset: PresetEntity, 
     isDark: Boolean,
     onStart: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
     val hours = preset.durationMillis / 3600000
     val minutes = (preset.durationMillis % 3600000) / 60000
@@ -140,7 +260,7 @@ fun SmallPresetCard(
     val timeStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
 
     Surface(
-        modifier = Modifier.height(180.dp),
+        modifier = Modifier.height(180.dp).clickable { onEdit() },
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
@@ -155,8 +275,13 @@ fun SmallPresetCard(
                 ) {
                     Icon(Icons.Default.Timer, contentDescription = null, tint = Color(preset.color), modifier = Modifier.size(18.dp))
                 }
-                IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
+                    }
+                    IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
+                    }
                 }
             }
             

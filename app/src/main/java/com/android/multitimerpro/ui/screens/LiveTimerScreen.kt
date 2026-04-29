@@ -1,5 +1,6 @@
 package com.android.multitimerpro.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -22,9 +23,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,6 +42,9 @@ import com.android.multitimerpro.ui.components.*
 import com.android.multitimerpro.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.random.Random
 
 @Composable
 fun LiveTimerScreen(
@@ -46,10 +55,7 @@ fun LiveTimerScreen(
     val timers by viewModel.allTimers.collectAsState()
     val timer = timers.find { it.id == timerId } ?: return
 
-    val currentIntervals = remember(timer.intervalsJson) {
-        if (timer.intervalsJson == "[]" || timer.intervalsJson.isBlank()) emptyList<String>()
-        else timer.intervalsJson.removeSurrounding("[", "]").split(", ").map { it.removeSurrounding("\"") }
-    }
+    val currentIntervals = timer.getIntervals()
 
     var showAddMarkDialog by remember { mutableStateOf(false) }
     var markLabel by remember { mutableStateOf("") }
@@ -145,7 +151,9 @@ fun LiveTimerScreen(
 
             // Circular Progress
             Box(
-                modifier = Modifier.fillMaxWidth().height(260.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(260.dp),
                 contentAlignment = Alignment.Center
             ) {
                 // Cálculo de progreso intuitivo:
@@ -158,12 +166,36 @@ fun LiveTimerScreen(
                 }
                 
                 val timerColor = Color(timer.color)
+                val isProUser by viewModel.isPro.collectAsState()
+                val proEffectsEnabled by viewModel.proEffectsEnabled.collectAsState()
+                val isLive = timer.status == "LIVE"
+
+                if (isProUser && isLive && proEffectsEnabled) {
+                    DynamicProEffects(timerColor)
+                }
 
                 Canvas(modifier = Modifier.size(240.dp)) {
                     drawCircle(
                         color = if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(alpha = 0.05f),
                         style = Stroke(width = 12.dp.toPx())
                     )
+                    
+                    if (isProUser && isLive && proEffectsEnabled) {
+                        // Glow effect for PRO - Adjusted for better blending
+                        val glowAlpha = if (isDark) 0.3f else 0.2f
+                        drawArc(
+                            brush = Brush.radialGradient(
+                                colors = listOf(timerColor.copy(alpha = glowAlpha), Color.Transparent),
+                                center = center,
+                                radius = size.minDimension / 1.5f // Reducido el radio del gradiente
+                            ),
+                            startAngle = -90f,
+                            sweepAngle = 360f * progress,
+                            useCenter = false,
+                            style = Stroke(width = 30.dp.toPx(), cap = StrokeCap.Round)
+                        )
+                    }
+
                     drawArc(
                         color = timerColor,
                         startAngle = -90f,
@@ -253,7 +285,7 @@ fun LiveTimerScreen(
             // Controls
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(
-                    onClick = { viewModel.update(timer) },
+                    onClick = { viewModel.toggleTimer(timer) },
                     modifier = Modifier.weight(1f).height(64.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(20.dp)
@@ -344,9 +376,9 @@ fun LiveTimerScreen(
             // Dynamic Intervals
             Column(modifier = Modifier.fillMaxWidth()) {
                 currentIntervals.forEachIndexed { index, interval ->
-                    val parts = interval.split(" - ")
-                    val time = parts.getOrNull(0) ?: ""
-                    val label = parts.getOrNull(1) ?: ""
+                    val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                    val time = sdf.format(Date(interval.timestamp))
+                    val label = interval.label
                     IntervalItem(
                         number = String.format(Locale.getDefault(), "%02d", index + 1),
                         name = label,
@@ -402,6 +434,74 @@ fun IntervalItem(number: String, name: String, time: String, color: Color) {
         }
     }
 }
+
+@Composable
+fun DynamicProEffects(baseColor: Color) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pro_effects")
+    
+    // Pulse Effect
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+
+    // Particles
+    val particles = remember { List(15) { ParticleData() } }
+    val particleProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "particles"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(300.dp)
+            .drawWithContent {
+                // Draw Particles
+                particles.forEach { p ->
+                    val currentProgress = (particleProgress + p.delay) % 1f
+                    val angle = p.angle
+                    val distance = 120.dp.toPx() + (p.speed * currentProgress * 50.dp.toPx())
+                    val alpha = 1f - currentProgress
+                    
+                    val x = center.x + cos(angle) * distance
+                    val y = center.y + sin(angle) * distance
+                    
+                    drawCircle(
+                        color = baseColor.copy(alpha = alpha * 0.6f),
+                        radius = p.size.dp.toPx() * (1f - currentProgress * 0.5f),
+                        center = androidx.compose.ui.geometry.Offset(x, y)
+                    )
+                }
+                
+                // Draw ambient glow
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(baseColor.copy(alpha = 0.03f * (pulseScale - 0.5f)), Color.Transparent),
+                        center = center,
+                        radius = 160.dp.toPx() * pulseScale
+                    ),
+                    radius = 160.dp.toPx() * pulseScale
+                )
+            }
+    )
+}
+
+private data class ParticleData(
+    val angle: Float = Random.nextFloat() * 2f * Math.PI.toFloat(),
+    val delay: Float = Random.nextFloat(),
+    val speed: Float = 0.5f + Random.nextFloat(),
+    val size: Float = 2f + Random.nextFloat() * 4f
+)
 
 @Composable
 fun StatMiniCard(title: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, modifier: Modifier = Modifier) {

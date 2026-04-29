@@ -1,46 +1,116 @@
 package com.android.multitimerpro.data
 
 import android.util.Log
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
+import com.android.multitimerpro.data.remote.HistoryDto
+import com.android.multitimerpro.data.remote.SupabaseService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.first
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class HistoryRepository @Inject constructor(
     private val historyDao: HistoryDao,
-    private val firestore: FirebaseFirestore
+    private val supabaseService: SupabaseService
 ) {
     private val TAG = "MT_DEBUG"
-    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val allHistory: Flow<List<HistoryEntity>> = historyDao.getAllHistory()
 
+    fun getHistoryByUid(uid: String): Flow<List<HistoryEntity>> = historyDao.getHistoryByUid(uid)
+
     suspend fun insert(history: HistoryEntity) {
         try {
-            Log.d(TAG, "[HISTORIAL] Insertando local: ${history.timerName}")
+            Log.d(TAG, "[HISTORIAL] Insertando local: ${history.timerName} (ID: ${history.id})")
             historyDao.insert(history)
-            
-            if (history.uid.isNotEmpty()) {
-                repositoryScope.launch {
-                    syncToCloud(history)
-                }
+            if (history.uid.isNotEmpty() && history.uid != "ANONYMOUS") {
+                Log.d(TAG, "[SUPABASE] Sincronizando historial: ${history.timerName}")
+                supabaseService.upsertHistory(history.toDto())
             }
         } catch (e: Exception) {
             Log.e(TAG, "[HISTORIAL] Error en insert", e)
         }
     }
 
+    suspend fun reclaimLocalHistory(userId: String) {
+        try {
+            Log.d(TAG, "[HISTORIAL] Reclamando historial local para: $userId")
+            historyDao.reclaimHistory(userId)
+            
+            // Subir a la nube lo que acabamos de reclamar
+            val localItems = historyDao.getHistoryByUid(userId).first()
+            localItems.forEach { item ->
+                try {
+                    supabaseService.upsertHistory(item.toDto())
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error subiendo item reclamado: ${item.timerName}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "[HISTORIAL] Error reclamando historial", e)
+        }
+    }
+
+    suspend fun insertAll(historyList: List<HistoryEntity>) {
+        try {
+            historyDao.insertAll(historyList)
+            historyList.filter { it.uid.isNotEmpty() && it.uid != "ANONYMOUS" }.forEach { history ->
+                Log.d(TAG, "[SUPABASE] Sincronizando bloque de historial: ${history.timerName}")
+                supabaseService.upsertHistory(history.toDto())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "[HISTORIAL] Error en insertAll", e)
+        }
+    }
+
+    suspend fun refreshHistoryFromCloud(userId: String) {
+        try {
+            Log.d(TAG, "[SUPABASE] Descargando historial para: $userId")
+            val remoteHistory = supabaseService.getHistory(userId)
+            if (remoteHistory.isNotEmpty()) {
+                val entities = remoteHistory.map { it.toEntity() }
+                historyDao.insertAll(entities)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "[SUPABASE] Error refrescando historial", e)
+        }
+    }
+
+    private fun HistoryDto.toEntity() = HistoryEntity(
+        id = this.id ?: UUID.randomUUID().toString(),
+        timerName = this.timerName,
+        durationMillis = this.durationMillis,
+        completedAt = this.endTime,
+        uid = this.userId,
+        category = this.category ?: "GENERAL",
+        color = this.color ?: 0,
+        isSnoozed = this.isSnoozed,
+        notes = this.notes ?: "",
+        intervalsJson = this.intervalsJson ?: "[]"
+    )
+
+    private fun HistoryEntity.toDto() = HistoryDto(
+        id = this.id,
+        userId = this.uid,
+        timerName = this.timerName,
+        durationMillis = this.durationMillis,
+        startTime = this.completedAt - this.durationMillis,
+        endTime = this.completedAt,
+        category = this.category,
+        color = this.color,
+        isSnoozed = this.isSnoozed,
+        notes = this.notes.ifBlank { null },
+        intervalsJson = this.intervalsJson.ifBlank { null }
+    )
+
     suspend fun update(history: HistoryEntity) {
         try {
-            historyDao.update(history)
-            if (history.uid.isNotEmpty()) {
-                repositoryScope.launch {
-                    syncToCloud(history)
-                }
+            Log.d(TAG, "[HISTORIAL] Actualizando local: ${history.timerName}")
+            historyDao.insert(history) // Usamos insert (que es REPLACE) para evitar problemas si no existe
+            if (history.uid.isNotEmpty() && history.uid != "ANONYMOUS") {
+                supabaseService.upsertHistory(history.toDto())
             }
         } catch (e: Exception) {
             Log.e(TAG, "[HISTORIAL] Error en update", e)
@@ -49,51 +119,23 @@ class HistoryRepository @Inject constructor(
 
     suspend fun delete(history: HistoryEntity) {
         historyDao.delete(history)
-        if (history.uid.isNotEmpty()) {
-            repositoryScope.launch {
-                try {
-                    firestore.collection("users")
-                        .document(history.uid)
-                        .collection("history")
-                        .document(history.id)
-                        .delete()
-                        .await()
-                } catch (e: Exception) {
-                    Log.e(TAG, "[HISTORIAL] Error borrando de nube", e)
-                }
+        if (history.uid.isNotEmpty() && history.uid != "ANONYMOUS") {
+            try {
+                supabaseService.deleteHistory(history.id)
+            } catch (e: Exception) {
+                Log.e(TAG, "[HISTORIAL] Error en delete remoto", e)
             }
         }
     }
 
-    private suspend fun syncToCloud(history: HistoryEntity) {
-        try {
-            val historyMap = mapOf(
-                "id" to history.id,
-                "timerName" to history.timerName,
-                "startTime" to (history.completedAt - history.durationMillis),
-                "endTime" to history.completedAt,
-                "duration" to history.durationMillis,
-                "uid" to history.uid,
-                "category" to history.category,
-                "color" to history.color,
-                "notes" to history.notes,
-                "intervalsJson" to history.intervalsJson,
-                "isSnoozed" to history.isSnoozed
-            )
-
-            firestore.collection("users")
-                .document(history.uid)
-                .collection("history")
-                .document(history.id)
-                .set(historyMap, SetOptions.merge())
-                .await()
-            Log.d(TAG, "[CLOUD] Sincronización de historial EXITOSA")
-        } catch (e: Exception) {
-            Log.e(TAG, "[CLOUD] ERROR historial: ${e.message}")
-        }
-    }
-
-    suspend fun clearAll() {
+    suspend fun clearAll(userId: String? = null) {
         historyDao.clearAll()
+        if (userId != null && userId.isNotEmpty() && userId != "ANONYMOUS") {
+            try {
+                supabaseService.clearRemoteHistory(userId)
+            } catch (e: Exception) {
+                Log.e(TAG, "[HISTORIAL] Error clearing remote history for $userId", e)
+            }
+        }
     }
 }
