@@ -72,8 +72,20 @@ class TimerManager @Inject constructor(
 
     private fun checkTickingState() {
         val hasActiveTimers = _timers.value.any { it.status == "LIVE" }
-        if (hasActiveTimers && tickJob == null) {
-            startTicking()
+        if (hasActiveTimers) {
+            // Asegurar que el servicio esté corriendo en primer plano
+            val serviceIntent = Intent(context, TimerService::class.java).apply {
+                action = TimerService.ACTION_REFRESH_NOTIFICATIONS
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+
+            if (tickJob == null) {
+                startTicking()
+            }
         } else if (!hasActiveTimers && tickJob != null) {
             stopTicking()
         }

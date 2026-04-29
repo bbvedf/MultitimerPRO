@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import kotlinx.coroutines.launch
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -37,6 +40,7 @@ import com.android.multitimerpro.ui.components.UpgradeProDialog
 import com.android.multitimerpro.ui.screens.*
 import com.android.multitimerpro.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
+import androidx.compose.runtime.rememberCoroutineScope
 
 sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector? = null) {
     object Timers : Screen("timers", R.string.nav_timers, Icons.Default.Timer)
@@ -111,6 +115,7 @@ fun MainNavigation(
         )
     }
 
+    val scope = rememberCoroutineScope()
     val items = listOf(
         Screen.Timers,
         Screen.Presets,
@@ -118,16 +123,27 @@ fun MainNavigation(
         Screen.History,
         Screen.Settings
     )
+    
+    val showBottomBar = currentDestination?.route in items.map { it.route } || currentDestination?.route == "main_pager"
+    val pagerState = rememberPagerState(pageCount = { items.size })
 
-    val showBottomBar = isAuthenticated && (
-        items.any { it.route == currentDestination?.route || currentDestination?.route?.contains(it.route.split("?")[0]) == true } ||
-        currentDestination?.route?.startsWith("create_timer") == true
-    )
+    // Sincronizar Pager con la selección de la BottomBar (si se navega vía click)
+    LaunchedEffect(currentDestination) {
+        val index = items.indexOfFirst { it.route == currentDestination?.route }
+        if (index != -1 && index != pagerState.currentPage) {
+            pagerState.scrollToPage(index)
+        }
+    }
 
-    LaunchedEffect(isRecoveryMode) {
-        if (isRecoveryMode) {
-            navController.navigate(Screen.ResetPassword.route) {
-                popUpTo(0)
+    // Sincronizar BottomBar con el Swipe del Pager
+    LaunchedEffect(pagerState.currentPage) {
+        val targetRoute = items[pagerState.currentPage].route
+        if (currentDestination?.route != targetRoute && 
+            items.any { it.route == currentDestination?.route }) {
+            navController.navigate(targetRoute) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
             }
         }
     }
@@ -141,7 +157,7 @@ fun MainNavigation(
                     modifier = Modifier.height(80.dp),
                     tonalElevation = 8.dp
                 ) {
-                    items.forEach { screen ->
+                    items.forEachIndexed { index, screen ->
                         NavigationBarItem(
                             icon = {
                                 screen.icon?.let {
@@ -162,13 +178,7 @@ fun MainNavigation(
                             },
                             selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                             onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                                scope.launch { pagerState.animateScrollToPage(index) }
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.primary,
@@ -185,9 +195,42 @@ fun MainNavigation(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = if (isAuthenticated) Screen.Timers.route else Screen.Login.route,
+            startDestination = if (isAuthenticated) "main_pager" else Screen.Login.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+            // Ruta contenedora del Pager para las pestañas principales
+            composable("main_pager") {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize(),
+                    beyondViewportPageCount = 1 // Mantiene la página contigua cargada para suavidad
+                ) { page ->
+                    when (val screen = items[page]) {
+                        Screen.Timers -> MultiTimerHomeScreen(
+                            viewModel = viewModel,
+                            onNavigateToCreate = { id -> navController.navigate(Screen.CreateTimer.createRoute(id)) },
+                            onNavigateToLive = { id -> navController.navigate(Screen.LiveTimer.createRoute(id)) }
+                        )
+                        Screen.Presets -> PresetsScreen(
+                            viewModel = viewModel,
+                            onNavigateToCreate = { id -> navController.navigate(Screen.CreateTimer.createRoute(id, isPreset = true)) }
+                        )
+                        Screen.Stats -> StatsScreen(viewModel)
+                        Screen.History -> HistoryScreen(
+                            viewModel = viewModel,
+                            onNavigateToDetail = { id -> navController.navigate(Screen.HistoryDetail.createRoute(id)) }
+                        )
+                        Screen.Settings -> SettingsScreen(
+                            viewModel = viewModel,
+                            onBack = { /* En el pager, el back no aplica igual */ }
+                        )
+                        else -> {
+                            // Exhaustive when handling for other screens that might be in the list
+                            Box(Modifier.fillMaxSize())
+                        }
+                    }
+                }
+            }
             composable(Screen.Login.route) {
                 LoginScreen(
                     viewModel = viewModel,

@@ -3,6 +3,8 @@ package com.android.multitimerpro.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -78,7 +80,7 @@ fun PresetsScreen(
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(
                             text = stringResource(R.string.presets_saved),
-                            style = MaterialTheme.typography.headlineLarge,
+                            style = MaterialTheme.typography.headlineMedium, // Reducido de headlineLarge
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold
                         )
@@ -212,15 +214,13 @@ fun PresetsScreen(
                     }
                 }
             } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                LazyColumn(
                     modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
                     items(presets) { preset ->
-                        SmallPresetCard(
+                        PresetCard(
                             preset = preset,
                             isDark = isDark,
                             onStart = { viewModel.startTimerFromPreset(preset) },
@@ -247,7 +247,7 @@ fun PresetsScreen(
 }
 
 @Composable
-fun SmallPresetCard(
+fun PresetCard(
     preset: PresetEntity, 
     isDark: Boolean,
     onStart: () -> Unit,
@@ -260,32 +260,32 @@ fun SmallPresetCard(
     val timeStr = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
 
     Surface(
-        modifier = Modifier.height(180.dp).clickable { onEdit() },
+        modifier = Modifier.fillMaxWidth().clickable { onEdit() },
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(24.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(Color(preset.color).copy(alpha = 0.1f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.Timer, contentDescription = null, tint = Color(preset.color), modifier = Modifier.size(18.dp))
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
-                    }
-                    IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
-                    }
-                }
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Icono con color en lugar de banda lateral
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color(preset.color).copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Timer, 
+                    contentDescription = null, 
+                    tint = Color(preset.color), 
+                    modifier = Modifier.size(24.dp)
+                )
             }
-            
-            Column {
+
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = preset.name, 
                     style = MaterialTheme.typography.titleMedium, 
@@ -297,25 +297,26 @@ fun SmallPresetCard(
                 Text(
                     text = translateCategory(preset.category),
                     style = MaterialTheme.typography.labelSmall, 
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, 
-                    fontSize = 9.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(), 
-                    horizontalArrangement = Arrangement.SpaceBetween, 
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = timeStr, 
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface, 
-                        fontWeight = FontWeight.Bold
-                    )
+            }
+
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = timeStr, 
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface, 
+                    fontWeight = FontWeight.Bold
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
+                    }
+                    IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
+                    }
                     Surface(
-                        modifier = Modifier.size(40.dp), 
+                        modifier = Modifier.size(32.dp), 
                         shape = CircleShape, 
                         color = MaterialTheme.colorScheme.primary,
                         onClick = onStart
@@ -325,7 +326,7 @@ fun SmallPresetCard(
                                 Icons.Default.Add,
                                 contentDescription = null, 
                                 tint = if (isDark) DeepBlack else Color.White,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
                     }

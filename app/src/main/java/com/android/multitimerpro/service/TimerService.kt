@@ -6,6 +6,7 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.multitimerpro.MainActivity
@@ -25,6 +26,8 @@ class TimerService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
+    private val powerManager by lazy { getSystemService(Context.POWER_SERVICE) as PowerManager }
+    private var wakeLock: PowerManager.WakeLock? = null
     private val activeNotificationIds = mutableSetOf<Int>()
 
     override fun onCreate() {
@@ -52,14 +55,22 @@ class TimerService : Service() {
             activeNotificationIds.remove(id)
         }
 
-        // 2. Gestionar el Foreground obligatorio
+        // 2. Gestionar el Foreground obligatorio y WakeLock
         if (currentActiveTimers.isEmpty()) {
             stopForegroundService()
+            releaseWakeLock()
         } else {
             // El primer timer LIVE (o el primero de la lista) mantiene el servicio vivo
             val foregroundTimer = currentActiveTimers.find { it.status == "LIVE" } ?: currentActiveTimers.first()
             startForeground(NOTIFICATION_ID, createBaseForegroundNotification(foregroundTimer))
             
+            // Gestionar WakeLock: Solo si hay al menos un timer LIVE
+            if (currentActiveTimers.any { it.status == "LIVE" }) {
+                acquireWakeLock()
+            } else {
+                releaseWakeLock()
+            }
+
             // Actualizar las demás notificaciones como normales
             currentActiveTimers.forEach { timer ->
                 if (timer.id != foregroundTimer.id) {
@@ -243,6 +254,7 @@ class TimerService : Service() {
     }
 
     private fun stopForegroundService() {
+        releaseWakeLock()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
@@ -250,6 +262,22 @@ class TimerService : Service() {
             stopForeground(true)
         }
         stopSelf()
+    }
+
+    private fun acquireWakeLock() {
+        if (wakeLock == null) {
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MultitimerPRO::TimerWakeLock")
+            wakeLock?.acquire()
+            Log.d("TimerService", "WakeLock acquired")
+        }
+    }
+
+    private fun releaseWakeLock() {
+        if (wakeLock?.isHeld == true) {
+            wakeLock?.release()
+            Log.d("TimerService", "WakeLock released")
+        }
+        wakeLock = null
     }
 
     private fun createNotificationChannels() {
@@ -295,6 +323,7 @@ class TimerService : Service() {
     }
 
     override fun onDestroy() {
+        releaseWakeLock()
         serviceScope.cancel()
         super.onDestroy()
     }

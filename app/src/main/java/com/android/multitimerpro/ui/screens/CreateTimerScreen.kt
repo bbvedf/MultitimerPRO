@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -121,7 +123,8 @@ fun CreateTimerScreen(
         )
     }
 
-    showTokenDialog?.let { color ->
+    val colorToUnlock = showTokenDialog
+    if (colorToUnlock != null) {
         AlertDialog(
             onDismissRequest = { showTokenDialog = null },
             title = { Text(stringResource(R.string.token_dialog_title)) },
@@ -129,7 +132,7 @@ fun CreateTimerScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.unlockColorWithToken(String.format("#%06X", 0xFFFFFF and color.toArgb()))
+                        viewModel.unlockColorWithToken(String.format("#%06X", 0xFFFFFF and colorToUnlock.toArgb()))
                         showTokenDialog = null
                     },
                     enabled = colorTokens > 0
@@ -145,10 +148,14 @@ fun CreateTimerScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 24.dp)
     ) {
         // Header
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically, 
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+        ) {
             IconButton(onClick = { if (hasChanges) showDiscardDialog = true else onBack() }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             }
@@ -161,105 +168,115 @@ fun CreateTimerScreen(
             Text(
                 text = stringResource(titleRes),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                letterSpacing = 2.sp
+                color = MaterialTheme.colorScheme.primary, // Cambiado a primary para consistencia
+                letterSpacing = 2.sp,
+                fontWeight = FontWeight.Bold
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Name Input
-        Text(stringResource(R.string.timer_name_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
-        TextField(
-            value = name,
-            onValueChange = { name = it },
-            modifier = Modifier.fillMaxWidth(),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            placeholder = { Text(stringResource(R.string.timer_name_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }
-        )
+        // Contenedor con Scroll para evitar solapamientos en pantallas pequeñas
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Name Input
+            Text(stringResource(R.string.timer_name_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                placeholder = { Text(stringResource(R.string.timer_name_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Category Selection
-        Text(stringResource(R.string.timer_category_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
-        Spacer(modifier = Modifier.height(12.dp))
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(categories) { (internalName, labelRes) ->
-                FilterChip(
-                    selected = selectedCategory == internalName,
-                    onClick = { selectedCategory = internalName },
-                    label = { Text(stringResource(labelRes)) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = if (isDark) DeepBlack else Color.White,
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    border = null
-                )
+            // Category Selection
+            Text(stringResource(R.string.timer_category_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(items = categories) { pair ->
+                    val (internalName, labelRes) = pair
+                    FilterChip(
+                        selected = selectedCategory == internalName,
+                        onClick = { selectedCategory = internalName },
+                        label = { Text(stringResource(labelRes)) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = if (isDark) DeepBlack else Color.White,
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        border = null
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Time Picker
-        Text(stringResource(R.string.timer_duration_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-            TimeInput(value = hours, onValueChange = { if (it.length <= 2) hours = it }, label = stringResource(R.string.hours_label_full))
-            Text(stringResource(R.string.timer_separator), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 24.sp)
-            TimeInput(value = minutes, onValueChange = { if (it.length <= 2) minutes = it }, label = stringResource(R.string.minutes_label_full))
-            Text(stringResource(R.string.timer_separator), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 24.sp)
-            TimeInput(value = seconds, onValueChange = { if (it.length <= 2) seconds = it }, label = stringResource(R.string.seconds_label_full))
-        }
+            // Time Picker
+            Text(stringResource(R.string.timer_duration_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                TimeInput(value = hours, onValueChange = { if (it.length <= 2) hours = it }, label = stringResource(R.string.hours_label_full))
+                Text(stringResource(R.string.timer_separator), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 20.sp, modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 20.dp))
+                TimeInput(value = minutes, onValueChange = { if (it.length <= 2) minutes = it }, label = stringResource(R.string.minutes_label_full))
+                Text(stringResource(R.string.timer_separator), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 20.sp, modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 20.dp))
+                TimeInput(value = seconds, onValueChange = { if (it.length <= 2) seconds = it }, label = stringResource(R.string.seconds_label_full))
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Color Selection
-        Text(stringResource(R.string.timer_color_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
-        Spacer(modifier = Modifier.height(12.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            allColors.chunked(6).forEach { rowColors ->
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)) {
-                    rowColors.forEach { color ->
-                        val isColorPro = proColors.contains(color)
-                        val isUnlocked = unlockedProColors.contains(String.format("#%06X", 0xFFFFFF and color.toArgb()))
-                        val canUseColor = isPro || !isColorPro || isUnlocked
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp).clip(CircleShape).background(color)
-                                .clickable { 
-                                    if (!canUseColor) {
-                                        if (colorTokens > 0) showTokenDialog = color else showProDialog = true
-                                    } else selectedColor = color 
+            // Color Selection
+            Text(stringResource(R.string.timer_color_label), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                val colorRows = allColors.chunked(6)
+                for (rowColors in colorRows) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)) {
+                        for (color in rowColors) {
+                            val isColorPro = proColors.contains(color)
+                            val isUnlocked = unlockedProColors.contains(String.format("#%06X", 0xFFFFFF and color.toArgb()))
+                            val canUseColor = isPro || !isColorPro || isUnlocked
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp).clip(CircleShape).background(color)
+                                    .clickable { 
+                                        if (!canUseColor) {
+                                            if (colorTokens > 0) showTokenDialog = color else showProDialog = true
+                                        } else selectedColor = color 
+                                    }
+                            ) {
+                                if (selectedColor == color) {
+                                    Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(if (isDark) DeepBlack else Color.White).align(Alignment.Center))
+                                } else if (isColorPro && !isPro && !isUnlocked) {
+                                    Text(
+                                        text = if (colorTokens > 0) stringResource(R.string.token_indicator) else stringResource(R.string.pro_indicator),
+                                        fontSize = 10.sp, color = if (color == ProYellow) Color.Black else Color.White, modifier = Modifier.align(Alignment.Center)
+                                    )
                                 }
-                        ) {
-                            if (selectedColor == color) {
-                                Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(if (isDark) DeepBlack else Color.White).align(Alignment.Center))
-                            } else if (isColorPro && !isPro && !isUnlocked) {
-                                Text(
-                                    text = if (colorTokens > 0) stringResource(R.string.token_indicator) else stringResource(R.string.pro_indicator),
-                                    fontSize = 10.sp, color = if (color == ProYellow) Color.Black else Color.White, modifier = Modifier.align(Alignment.Center)
-                                )
                             }
                         }
                     }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Action Buttons
+        // Action Buttons (Fuera del scroll para que siempre estén visibles)
         val requiredMsg = stringResource(R.string.timer_required_msg)
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 8.dp)) {
             val h = hours.toLongOrNull() ?: 0L
             val m = minutes.toLongOrNull() ?: 0L
             val s = seconds.toLongOrNull() ?: 0L
@@ -362,7 +379,7 @@ fun TimeInput(value: String, onValueChange: (String) -> Unit, label: String) {
             textStyle = MaterialTheme.typography.displaySmall.copy(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 32.sp
+                fontSize = 28.sp
             ),
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                 keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword

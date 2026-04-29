@@ -81,7 +81,7 @@ fun MultiTimerHomeScreen(
                         Row(verticalAlignment = Alignment.Bottom) {
                             Text(
                                 text = stringResource(R.string.home_active_instruments),
-                                style = MaterialTheme.typography.displaySmall,
+                                style = MaterialTheme.typography.headlineMedium,
                                 color = MaterialTheme.colorScheme.onBackground,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.weight(1f, fill = false)
